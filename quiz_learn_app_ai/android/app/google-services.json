@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "876598819894",
+    "project_id": "quizlearnappai",
+    "storage_bucket": "quizlearnappai.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876598819894:android:96a70209fc5fb90fd3ac97",
+        "android_client_info": {
+          "package_name": "com.example.quiz_learn_app_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX6gb6znrz1k3GWbUz3wHyo9TgmBehlCM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
