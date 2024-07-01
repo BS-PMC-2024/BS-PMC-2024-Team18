@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'auth_page.dart';
+//import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
