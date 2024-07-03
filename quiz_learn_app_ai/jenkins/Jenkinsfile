@@ -1,26 +1,32 @@
 pipeline {
-    agent {
-        docker {
-            // Use the same image as in your Dockerfile
-            image 'cirrusci/flutter:stable'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
+    
     stages {
+        stage('Initialize') {
+            steps {
+                // This stage can include steps like environment setup
+                echo 'Initializing...'
+            }
+        }
+        
         stage('Build') {
             steps {
+                // Steps to build your Flutter project
                 sh 'flutter pub get'
                 sh 'flutter build apk'
             }
         }
+        
         stage('Test') {
             steps {
-                // Add your test commands here
+                // Steps to run tests if applicable
+                echo 'Running tests...'
             }
         }
+        
         stage('Deploy') {
             steps {
-                // Copy the APK to a location accessible to Jenkins
+                // Steps to deploy your APK to a location accessible to Jenkins
                 sh 'mkdir -p $JENKINS_HOME/apks'
                 sh 'cp build/app/outputs/flutter-apk/app-release.apk $JENKINS_HOME/apks/myapp-release.apk'
             }
