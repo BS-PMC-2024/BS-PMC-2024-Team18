@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'cirrusci/flutter:stable'
-            args '-u root:root'  // Run as root to avoid permission issues
-        }
-    }
+    agent any
 
     stages {
         stage('Checkout') {
@@ -13,31 +8,18 @@ pipeline {
             }
         }
 
-        stage('Flutter Doctor') {
-            steps {
-                sh 'flutter doctor -v'
+        stage('Build and Test') {
+            agent {
+                docker {
+                    image 'cirrusci/flutter:stable'
+                    args '-u root:root'
+                }
             }
-        }
-
-        stage('Get Dependencies') {
             steps {
                 dir('quiz_learn_app_ai') {
+                    sh 'flutter doctor -v'
                     sh 'flutter pub get'
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                dir('quiz_learn_app_ai') {
                     sh 'flutter test'
-                }
-            }
-        }
-
-        stage('Build Android APK') {
-            steps {
-                dir('quiz_learn_app_ai') {
                     sh 'flutter build apk --release'
                 }
             }
@@ -52,7 +34,9 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            node {
+                cleanWs()
+            }
         }
     }
 }
