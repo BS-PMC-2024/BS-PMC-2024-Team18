@@ -1,19 +1,24 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'my-docker-registry/my-flutter-image' // Replace with your Flutter Docker image
+            args '-v /var/run/docker.sock:/var/run/docker.sock' // If needed
+        }
+    }
     stages {
-        stage ('Checkout') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        stage ('Download lcov converter') {
+        stage('Download lcov converter') {
             steps {
                 sh "curl -O https://raw.githubusercontent.com/eriwen/lcov-to-cobertura-xml/master/lcov_cobertura/lcov_cobertura.py"
             }
         }
-        stage ('Flutter Doctor') {
+        stage('Flutter Doctor') {
             steps {
-                sh "flutter doctor"
+                sh "flutter doctor" // Ensure 'flutter' command is available in the Docker image
             }
         }
         stage('Test') {
