@@ -1,57 +1,31 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE = 'quiz_learn_app_ai/flutter_app'
-        APP_DIR = '/app'
-        APK_PATH = '/output/app-release.apk'
-    }
-
+    
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from the Git repository
                 checkout scm
             }
         }
-
-        stage('Build Docker Image') {
+        
+        stage('Build') {
             steps {
                 script {
-                    // Build the Docker image using the Dockerfile in the repository
-                    docker.build(DOCKER_IMAGE)
+                    // Ensure Flutter dependencies are installed
+                    sh 'flutter pub get'
+                    // Build debug APK
+                    sh 'flutter build apk --debug'
                 }
             }
         }
-
-        stage('Build and Test') {
+        
+        stage('Archive APK') {
             steps {
-                script {
-                    // Run the Docker container to build and test the Flutter project
-                    docker.image(DOCKER_IMAGE).inside('-u root:root') {
-                        sh 'flutter doctor -v'
-                        sh 'flutter pub get'
-                        sh 'flutter test'
-                        sh 'flutter build apk --release'
-                    }
-                }
-            }
-        }
-
-        stage('Archive Artifacts') {
-            steps {
-                script {
-                    // Copy the APK from the Docker container to the Jenkins workspace
-                    sh "docker create --name temp_container ${DOCKER_IMAGE}"
-                    sh "docker cp temp_container:${APK_PATH} ."
-                    sh "docker rm temp_container"
-                    // Archive the APK as an artifact
-                    archiveArtifacts artifacts: 'app-release.apk', fingerprint: true
-                }
+                archiveArtifacts artifacts: '**/build/app/outputs/flutter-apk/*.apk', allowEmptyArchive: true
             }
         }
     }
-
+    
     post {
         always {
             cleanWs()
