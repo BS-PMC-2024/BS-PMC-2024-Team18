@@ -11,14 +11,19 @@ pipeline {
         stage('Build and Test') {
             steps {
                 script {
-                    docker.image('cirrusci/flutter:stable').inside('-u root:root') {
-                        dir('quiz_learn_app_ai') {
-                            sh 'flutter doctor -v'
-                            sh 'flutter pub get'
-                            sh 'flutter test'
-                            sh 'flutter build apk --release'
-                        }
-                    }
+                    // Pull the Docker image
+                    sh 'sudo docker pull cirrusci/flutter:stable'
+                    // Run the Docker container and execute Flutter commands
+                    sh '''
+                        sudo docker run -u root:root \
+                        -v ${WORKSPACE}:/workspace \
+                        cirrusci/flutter:stable /bin/bash -c "
+                        cd /workspace/quiz_learn_app_ai && \
+                        flutter doctor -v && \
+                        flutter pub get && \
+                        flutter test && \
+                        flutter build apk --release"
+                    '''
                 }
             }
         }
