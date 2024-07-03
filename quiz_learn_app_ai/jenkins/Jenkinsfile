@@ -9,18 +9,16 @@ pipeline {
         }
 
         stage('Build and Test') {
-            agent {
-                docker {
-                    image 'cirrusci/flutter:stable'
-                    args '-u root:root'
-                }
-            }
             steps {
-                dir('quiz_learn_app_ai') {
-                    sh 'flutter doctor -v'
-                    sh 'flutter pub get'
-                    sh 'flutter test'
-                    sh 'flutter build apk --release'
+                script {
+                    docker.image('cirrusci/flutter:stable').inside('-u root:root') {
+                        dir('quiz_learn_app_ai') {
+                            sh 'flutter doctor -v'
+                            sh 'flutter pub get'
+                            sh 'flutter test'
+                            sh 'flutter build apk --release'
+                        }
+                    }
                 }
             }
         }
