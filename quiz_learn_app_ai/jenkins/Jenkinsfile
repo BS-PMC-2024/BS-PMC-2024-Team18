@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'cirrusci/flutter:stable'
-        APP_DIR = 'quiz_learn_app_ai'
-        APK_PATH = 'build/app/outputs/flutter-apk/app-release.apk'
+        DOCKER_IMAGE = 'quiz_learn_app_ai/flutter_app'
+        APP_DIR = '/app'
+        APK_PATH = '/output/app-release.apk'
     }
 
     stages {
@@ -15,18 +15,24 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image using the Dockerfile in the repository
+                    docker.build(DOCKER_IMAGE)
+                }
+            }
+        }
+
         stage('Build and Test') {
             steps {
                 script {
-                    // Pull the Flutter Docker image and run the build and test commands inside the container
+                    // Run the Docker container to build and test the Flutter project
                     docker.image(DOCKER_IMAGE).inside('-u root:root') {
-                        dir(APP_DIR) {
-                            // Run Flutter commands inside the Docker container
-                            sh 'flutter doctor -v'
-                            sh 'flutter pub get'
-                            sh 'flutter test'
-                            sh 'flutter build apk --release'
-                        }
+                        sh 'flutter doctor -v'
+                        sh 'flutter pub get'
+                        sh 'flutter test'
+                        sh 'flutter build apk --release'
                     }
                 }
             }
@@ -34,15 +40,20 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                // Archive the generated APK as an artifact
-                archiveArtifacts artifacts: "${APP_DIR}/${APK_PATH}", fingerprint: true
+                script {
+                    // Copy the APK from the Docker container to the Jenkins workspace
+                    sh "docker create --name temp_container ${DOCKER_IMAGE}"
+                    sh "docker cp temp_container:${APK_PATH} ."
+                    sh "docker rm temp_container"
+                    // Archive the APK as an artifact
+                    archiveArtifacts artifacts: 'app-release.apk', fingerprint: true
+                }
             }
         }
     }
 
     post {
         always {
-            // Clean the workspace after the build
             cleanWs()
         }
     }
