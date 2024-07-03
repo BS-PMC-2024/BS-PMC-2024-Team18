@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 
 class AdminHomePage extends StatefulWidget {
@@ -44,27 +45,122 @@ class AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Home'),
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue[800]!, Colors.blue[400]!],
+        ),
       ),
-      body: Center(
+      child: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Hello, $userEmail'),
-            const SizedBox(height: 10),
-            Text('User Type: $userType'),
-            const SizedBox(height: 20),
-             ElevatedButton(
-              onPressed: _signOut,
-              child: const Text('Sign Out'),
+            _buildAppBar(),
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: _buildContent(),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+Widget _buildAppBar() {
+  return Padding(
+    padding: const EdgeInsets.all(20.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Admin Home',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: _signOut,
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildContent() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.admin_panel_settings,
+          size: 100,
+          color: Colors.blue,
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Welcome, Admin',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue[800],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          userEmail!,
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'User Type: $userType',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 30),
+        ElevatedButton(
+          onPressed: () {
+           Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
+);
+
+          },
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.blue[800],
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+          child: const Text(
+            'User Management',
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 }

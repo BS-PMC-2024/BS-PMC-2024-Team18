@@ -95,157 +95,90 @@ void checkAdminPassword() {
 
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-         color: Colors.white24
+Widget build(BuildContext context) {
+  return Scaffold(
+    resizeToAvoidBottomInset: false,
+    body: Container(
+      height: MediaQuery.of(context).size.height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue[800]!, Colors.blue[400]!],
         ),
+      ),
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(25.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                height: 150,
-              ),
-              Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                      30.0), // Adjust the radius as needed
-                  border: Border.all(), // Add additional styling if needed
-                ),
-                child: TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    suffixIcon: Icon(
-                      Icons.email,
-                      color: Colors.black,
+              const SizedBox(height: 80.0),
+              Text(
+                'CampusQuest AI',
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 10.0,
+                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(2.0, 2.0),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                  ),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 10.0),
+              const Text(
+                'Join the Learning Revolution',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 50.0),
+              _buildInputField(
+                controller: emailController,
+                label: 'Email',
+                icon: Icons.email,
               ),
               const SizedBox(height: 16.0),
-              Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                      30.0), // Adjust the radius as needed
-                  border: Border.all(), // Add additional styling if needed
-                ),
-                child: TextField(
-                  controller: passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                    suffixIcon: Icon(
-                      Icons.password,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
+              _buildInputField(
+                controller: passwordController,
+                label: 'Password',
+                icon: Icons.lock,
+                isPassword: true,
               ),
               const SizedBox(height: 16.0),
-             DropdownButton<String>(
-                value: selectedUserType,
-                items: <String>['Student', 'Lecturer', 'Admin']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      if (newValue == 'Admin') {
-                        isAdminSelected = true;
-                        selectedUserType = isAdminPasswordCorrect ? 'Admin' : 'Student';
-                      } else {
-                        isAdminSelected = false;
-                        selectedUserType = newValue;
-                      }
-                    });
-                  }
-                },
-              ),
+              _buildDropdown(),
               if (isAdminSelected && !isAdminPasswordCorrect) ...[
                 const SizedBox(height: 16.0),
-                Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30.0),
-                    border: Border.all(),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: adminPasswordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Admin Password',
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                          ),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: checkAdminPassword,
-                        child: const Text('Check'),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildAdminPasswordField(),
               ],
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: () async {
                   String email = emailController.text.trim();
                   String password = passwordController.text.trim();
                   FocusScope.of(context).unfocus();
-                  // Validate that email and password are not empty
                   if (email.isEmpty || password.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter both email and password.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    _showErrorSnackBar('Please enter both email and password.');
                   } else if (!isValidEmail(email)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter a valid email address.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    _showErrorSnackBar('Please enter a valid email address.');
                   } else if (password.length < 6) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('Password must be at least 6 characters.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    _showErrorSnackBar('Password must be at least 6 characters.');
                   } else {
-                    // Proceed with sign-up if fields are not empty and pass validation
-                  await signUpWithEmailPassword();
+                    await signUpWithEmailPassword();
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        30.0), // Adjust the value for curviness
-                  ),
-                  minimumSize: const Size(
-                      double.infinity, 50.0), // Adjust the width and height
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue[800],
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  minimumSize: const Size(double.infinity, 50.0),
                 ),
                 child: const Text(
                   'Sign Up',
@@ -256,16 +189,10 @@ void checkAdminPassword() {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Already have an account?',
-                    style: TextStyle(color: Colors.black),
-                  ),
+                  const Text('Already have an account?', style: TextStyle(color: Colors.white70)),
                   TextButton(
-                             onPressed: () => widget.toggleView(),
-                    child: const Text(
-                      'Sign In',
-                      style: TextStyle(color: Colors.blue),
-                    ),
+                    onPressed: () => widget.toggleView(),
+                    child: const Text('Sign In', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -273,6 +200,111 @@ void checkAdminPassword() {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+Widget _buildInputField({
+  required TextEditingController controller,
+  required String label,
+  required IconData icon,
+  bool isPassword = false,
+}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(30.0),
+    ),
+    child: TextField(
+      controller: controller,
+      obscureText: isPassword,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white70),
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      ),
+    ),
+  );
+}
+
+Widget _buildDropdown() {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(30.0),
+    ),
+    child: DropdownButton<String>(
+      value: selectedUserType,
+      dropdownColor: Colors.blue[700],
+      style: const TextStyle(color: Colors.white),
+      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+      isExpanded: true,
+      underline: const SizedBox(),
+      items: <String>['Student', 'Lecturer', 'Admin']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          setState(() {
+            if (newValue == 'Admin') {
+              isAdminSelected = true;
+              selectedUserType = isAdminPasswordCorrect ? 'Admin' : 'Student';
+            } else {
+              isAdminSelected = false;
+              selectedUserType = newValue;
+            }
+          });
+        }
+      },
+    ),
+  );
+}
+
+Widget _buildAdminPasswordField() {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(30.0),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: adminPasswordController,
+            obscureText: true,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: 'Admin Password',
+              labelStyle: TextStyle(color: Colors.white70),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: checkAdminPassword,
+          child: const Text('Check', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showErrorSnackBar(String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    ),
+  );
+}
+
 }

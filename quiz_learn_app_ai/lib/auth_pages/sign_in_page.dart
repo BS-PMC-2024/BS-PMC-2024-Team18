@@ -94,157 +94,162 @@ Future<void> signInWithEmailAndPassword() async {
   }
 
   
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-          color: Colors.white24
-        
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    resizeToAvoidBottomInset: false,
+    body: Container(
+      height: MediaQuery.of(context).size.height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue[800]!, Colors.blue[400]!],
         ),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(25.0),
-              child: Column(
+      ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 80.0),
+              Text(
+                'CampusQuest AI',
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 10.0,
+                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(2.0, 2.0),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10.0),
+              const Text(
+                'Elevate Your Learning Journey',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 50.0),
+              _buildInputField(
+                controller: emailController,
+                label: 'Email',
+                icon: Icons.email,
+              ),
+              const SizedBox(height: 16.0),
+              _buildInputField(
+                controller: passwordController,
+                label: 'Password',
+                icon: Icons.lock,
+                isPassword: true,
+              ),
+              const SizedBox(height: 5.0),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () {
+                    if (emailController.text.isNotEmpty && isValidEmail(emailController.text.trim())) {
+                      sendPasswordResetEmail(emailController.text.trim(), context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Enter A Valid Email")),
+                      );
+                    }
+                  },
+                  child: const Text('Forgot Password?', style: TextStyle(color: Colors.white70)),
+                ),
+              ),
+              const SizedBox(height: 24.0),
+              ElevatedButton(
+                onPressed: () async {
+                  FocusScope.of(context).unfocus();
+                  if (emailController.text.trim().isEmpty || passwordController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter both email and password.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  } else {
+                    await signInWithEmailAndPassword();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue[800],
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  minimumSize: const Size(double.infinity, 50.0),
+                ),
+                child: const Text(
+                  'Log in',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 150.0),
-                  Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                          30.0), // Adjust the radius as needed
-                      border: Border.all(), // Add additional styling if needed
-                    ),
-                    child: TextField(
-                      controller: emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        suffixIcon: Icon(
-                          Icons.email,
-                          color: Colors.black,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                          30.0), // Adjust the radius as needed
-                      border: Border.all(), // Add additional styling if needed
-                    ),
-                    child: TextField(
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.black,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isPasswordVisible = !isPasswordVisible;
-                            });
-                          },
-                        ),
-                      ),
-                      obscureText: !isPasswordVisible,
-                    ),
-                  ),
-                  const SizedBox(height: 5.0),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          if( emailController.text.isNotEmpty &&  isValidEmail(emailController.text.trim())){
-    sendPasswordResetEmail(
-                              emailController.text.trim(), context);
-                          }
-                          else{
-                             if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Enter A Valid Email"),
-          ),
-        );
-      }
-                          }
-                      
-                        },
-                        child: const Text('Forgot Password?',
-                            style: TextStyle(color: Colors.black)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton(
-                    onPressed: () async {
-                      // Validate that email and password are not empty
-                      FocusScope.of(context).unfocus();
-                      if (emailController.text.trim().isEmpty ||
-                          passwordController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('Please enter both email and password.'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } else {
-                        // Proceed with sign-in if fields are not empty
-                       await  signInWithEmailAndPassword();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            30.0), // Adjust the value for curviness
-                      ),
-                      minimumSize: const Size(
-                          double.infinity, 50.0), // Adjust the width and height
-                    ),
-                    child: const Text(
-                      'Log in',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                  ),
-                  const SizedBox(height: 5.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Don\'t have an account?',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      TextButton(
-                        onPressed: () => widget.toggleView(),
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ),
-                    ],
+                  const Text('Don\'t have an account?', style: TextStyle(color: Colors.white70)),
+                  TextButton(
+                    onPressed: () => widget.toggleView(),
+                    child: const Text('Sign Up', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+Widget _buildInputField({
+  required TextEditingController controller,
+  required String label,
+  required IconData icon,
+  bool isPassword = false,
+}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(30.0),
+    ),
+    child: TextField(
+      controller: controller,
+      obscureText: isPassword ? !isPasswordVisible : false,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white70),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    isPasswordVisible = !isPasswordVisible;
+                  });
+                },
+              )
+            : null,
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      ),
+    ),
+  );
+}
+
 }
