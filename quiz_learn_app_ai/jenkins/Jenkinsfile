@@ -1,9 +1,9 @@
 pipeline {
-    agent any
-
-    environment {
-        FLUTTER_HOME = tool 'flutter'
-        PATH = "$FLUTTER_HOME/bin:$PATH"
+    agent {
+        docker {
+            image 'cirrusci/flutter:stable'
+            args '-u root:root'  // Run as root to avoid permission issues
+        }
     }
 
     stages {
@@ -21,25 +21,31 @@ pipeline {
 
         stage('Get Dependencies') {
             steps {
-                sh 'flutter pub get'
+                dir('quiz_learn_app_ai') {
+                    sh 'flutter pub get'
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'flutter test'
+                dir('quiz_learn_app_ai') {
+                    sh 'flutter test'
+                }
             }
         }
 
         stage('Build Android APK') {
             steps {
-                sh 'flutter build apk --release'
+                dir('quiz_learn_app_ai') {
+                    sh 'flutter build apk --release'
+                }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+                archiveArtifacts artifacts: 'quiz_learn_app_ai/build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
             }
         }
     }
