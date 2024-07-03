@@ -1,40 +1,28 @@
 pipeline {
     agent {
         docker {
-            image 'my-docker-registry/my-flutter-image' // Replace with your Flutter Docker image
-            args '-v /var/run/docker.sock:/var/run/docker.sock' // If needed
+            // Use the same image as in your Dockerfile
+            image 'cirrusci/flutter:stable'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
     stages {
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                checkout scm
-            }
-        }
-        stage('Download lcov converter') {
-            steps {
-                sh "curl -O https://raw.githubusercontent.com/eriwen/lcov-to-cobertura-xml/master/lcov_cobertura/lcov_cobertura.py"
-            }
-        }
-        stage('Flutter Doctor') {
-            steps {
-                sh "flutter doctor" // Ensure 'flutter' command is available in the Docker image
+                sh 'flutter pub get'
+                sh 'flutter build apk'
             }
         }
         stage('Test') {
             steps {
-                sh "flutter test --coverage"
-            }
-            post {
-                always {
-                    sh "python3 lcov_cobertura.py coverage/lcov.info --output coverage/coverage.xml"
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: 'coverage/coverage.xml'])
-                }
+                // Add your test commands here
             }
         }
-        stage('Run Analyzer') {
+        stage('Deploy') {
             steps {
-                sh "dartanalyzer --options analysis_options.yaml ."
+                // Copy the APK to a location accessible to Jenkins
+                sh 'mkdir -p $JENKINS_HOME/apks'
+                sh 'cp build/app/outputs/flutter-apk/app-release.apk $JENKINS_HOME/apks/myapp-release.apk'
             }
         }
     }

@@ -1,24 +1,21 @@
-# Setting the base image of which docker image is being created
-FROM jenkins/jenkins:lts
+# Use the cirrusci/flutter:stable image as base
+FROM cirrusci/flutter:stable
 
-LABEL maintainer="or6562@gmail.com"
-LABEL description="A docker image made from jenkins lts and flutter installed"
+# Set working directory
+WORKDIR /app
 
-# Switching to root user to install dependencies and flutter
-USER root
+# Copy pubspec.yaml and pubspec.lock
+COPY pubspec.* ./
 
-# Installing the different dependencies required for Flutter, installing flutter from beta channel from github and giving permissions to jenkins user to the folder
-RUN apt-get update && apt-get install -y --force-yes git wget unzip libgconf-2-4 gdb libstdc++6 libglu1-mesa fonts-droid-fallback lib32stdc++6 python3 \
-    && apt-get clean \
-    && git clone -b beta https://github.com/flutter/flutter.git /usr/local/flutter \
-    && chown -R jenkins:jenkins /usr/local/flutter
+# Install Flutter dependencies
+RUN flutter pub get
 
-# Switching to jenkins user - a good practice
-USER jenkins
+# Copy the entire project
+COPY . .
 
-# Running flutter doctor to check if flutter was installed correctly
-RUN /usr/local/flutter/bin/flutter doctor -v \
-    && rm -rfv /flutter/bin/cache/artifacts/gradle_wrapper
+# Build APK
+RUN flutter build apk
 
-# Setting flutter and dart-sdk to PATH so they are accessible from terminal
-ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+# Make the APK accessible outside the container
+RUN mkdir /output
+RUN cp build/app/outputs/flutter-apk/app-release.apk /output/app-release.apk
