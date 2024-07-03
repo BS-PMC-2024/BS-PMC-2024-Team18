@@ -1,9 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'cirrusci/flutter:stable'
+        APP_DIR = 'quiz_learn_app_ai'
+        APK_PATH = 'build/app/outputs/flutter-apk/app-release.apk'
+    }
+
     stages {
         stage('Checkout') {
             steps {
+                // Checkout the code from the Git repository
                 checkout scm
             }
         }
@@ -11,32 +18,31 @@ pipeline {
         stage('Build and Test') {
             steps {
                 script {
-                    // Pull the Docker image
-                    sh 'sudo docker pull cirrusci/flutter:stable'
-                    // Run the Docker container and execute Flutter commands
-                    sh '''
-                        sudo docker run -u root:root \
-                        -v ${WORKSPACE}:/workspace \
-                        cirrusci/flutter:stable /bin/bash -c "
-                        cd /workspace/quiz_learn_app_ai && \
-                        flutter doctor -v && \
-                        flutter pub get && \
-                        flutter test && \
-                        flutter build apk --release"
-                    '''
+                    // Pull the Flutter Docker image and run the build and test commands inside the container
+                    docker.image(DOCKER_IMAGE).inside('-u root:root') {
+                        dir(APP_DIR) {
+                            // Run Flutter commands inside the Docker container
+                            sh 'flutter doctor -v'
+                            sh 'flutter pub get'
+                            sh 'flutter test'
+                            sh 'flutter build apk --release'
+                        }
+                    }
                 }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'quiz_learn_app_ai/build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+                // Archive the generated APK as an artifact
+                archiveArtifacts artifacts: "${APP_DIR}/${APK_PATH}", fingerprint: true
             }
         }
     }
 
     post {
         always {
+            // Clean the workspace after the build
             cleanWs()
         }
     }
