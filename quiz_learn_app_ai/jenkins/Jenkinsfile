@@ -10,16 +10,8 @@ pipeline {
 
         stage('Build') {
             steps {
-                script {
-                    def customImage = docker.build("my-flutter-app:${env.BUILD_ID}", "-f quiz_learn_app_ai/Dockerfile .")
-                    
-                    customImage.inside {
-                        dir('quiz_learn_app_ai') {
-                            sh 'flutter pub get'
-                            sh 'flutter build apk --debug'
-                        }
-                    }
-                }
+                sh 'flutter pub get'
+                sh 'flutter build apk --debug'
             }
         }
 
