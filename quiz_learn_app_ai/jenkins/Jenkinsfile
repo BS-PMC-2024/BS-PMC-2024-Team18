@@ -1,31 +1,35 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
+
         stage('Build') {
             steps {
                 script {
-                    // Ensure Flutter dependencies are installed
-                    sh 'flutter pub get'
-                    // Build debug APK
-                    sh 'flutter build apk --debug'
+                    def customImage = docker.build("my-flutter-app:${env.BUILD_ID}", "-f quiz_learn_app_ai/Dockerfile .")
+                    
+                    customImage.inside {
+                        dir('quiz_learn_app_ai') {
+                            sh 'flutter pub get'
+                            sh 'flutter build apk --debug'
+                        }
+                    }
                 }
             }
         }
-        
+
         stage('Archive APK') {
             steps {
                 archiveArtifacts artifacts: '**/build/app/outputs/flutter-apk/*.apk', allowEmptyArchive: true
             }
         }
     }
-    
+
     post {
         always {
             cleanWs()
