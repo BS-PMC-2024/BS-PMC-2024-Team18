@@ -10,8 +10,15 @@ pipeline {
         stage('Setup Flutter') {
             steps {
                 sh '''
-                    # Download Flutter SDK
-                    git clone https://github.com/flutter/flutter.git -b stable ${FLUTTER_HOME}
+                    # Check if Flutter directory exists
+                    if [ -d "${FLUTTER_HOME}" ]; then
+                        echo "Flutter directory already exists. Updating..."
+                        cd ${FLUTTER_HOME}
+                        git pull
+                    else
+                        echo "Cloning Flutter repository..."
+                        git clone https://github.com/flutter/flutter.git -b stable ${FLUTTER_HOME}
+                    fi
                     
                     # Add Flutter to PATH
                     export PATH="$PATH:${FLUTTER_HOME}/bin"
@@ -24,25 +31,38 @@ pipeline {
 
         stage('Get Dependencies') {
             steps {
-                sh 'flutter pub get'
+                sh '''
+                    # Ensure we're in the project directory
+                    cd ${WORKSPACE}/quiz_learn_app_ai
+                    flutter pub get
+                '''
             }
         }
 
         stage('Analyze') {
             steps {
-                sh 'flutter analyze'
+                sh '''
+                    cd ${WORKSPACE}/quiz_learn_app_ai
+                    flutter analyze
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                sh 'flutter test'
+                sh '''
+                    cd ${WORKSPACE}/quiz_learn_app_ai
+                    flutter test
+                '''
             }
         }
 
         stage('Build') {
             steps {
-                sh 'flutter build apk'
+                sh '''
+                    cd ${WORKSPACE}/quiz_learn_app_ai
+                    flutter build apk
+                '''
             }
         }
     }
@@ -50,7 +70,8 @@ pipeline {
     post {
         always {
             // Clean up Flutter SDK to save space
-            sh 'rm -rf ${FLUTTER_HOME}'
+            // Commenting this out to preserve Flutter installation between builds
+            // sh 'rm -rf ${FLUTTER_HOME}'
         }
     }
 }
