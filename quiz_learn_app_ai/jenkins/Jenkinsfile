@@ -8,9 +8,10 @@ pipeline {
             }
         }
         
-        stage('Setup Flutter') {
+             stage('Setup Flutter') {
             steps {
                 sh '''
+                    rm -rf flutter  # Remove existing Flutter directory if it exists
                     git clone https://github.com/flutter/flutter.git -b stable
                     export PATH="$PATH:`pwd`/flutter/bin"
                     flutter precache
