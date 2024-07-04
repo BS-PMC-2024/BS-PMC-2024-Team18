@@ -19,22 +19,20 @@ pipeline {
                 '''
             }
         }
-        //    stage('Setup Android') {
-        //     steps {
-           
-        //    // Install Android SDK
-        //             sh '''
-        //                 mkdir -p $androidSdkRoot
-        //                 cd $androidSdkRoot
-        //                 wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
-        //                 unzip -q commandlinetools-linux-7302050_latest.zip
-        //                 yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
-        //             '''
 
-                
-        //     }
-        // }
-
+        
+           stage('Setup Android') {
+            steps {
+                sh '''
+                    rm -rf $androidSdkRoot  # Remove existing Android SDK directory if it exists
+                    mkdir -p $androidSdkRoot
+                    cd $androidSdkRoot
+                    wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
+                    unzip -q commandlinetools-linux-7302050_latest.zip
+                    yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
+                '''
+            }
+        }
         
         stage('Build') {
             steps {
