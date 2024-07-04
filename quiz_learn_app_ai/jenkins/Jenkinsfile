@@ -26,12 +26,12 @@ pipeline {
                     def androidSdkRoot = "/path/to/android/sdk"  // Replace with your desired Android SDK installation path
                     
                     sh '''
-                        rm -rf $androidSdkRoot  # Remove existing Android SDK directory if it exists
-                        mkdir -p $androidSdkRoot
-                        cd $androidSdkRoot
+                        rm -rf "$androidSdkRoot"  # Remove existing Android SDK directory if it exists
+                        mkdir -p "$androidSdkRoot"
+                        cd "$androidSdkRoot"
                         wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
                         unzip -q commandlinetools-linux-7302050_latest.zip
-                        yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
+                        yes | "$androidSdkRoot"/tools/bin/sdkmanager --sdk_root="$androidSdkRoot" "platforms;android-30" "build-tools;30.0.3"
                     '''
                 }
             }
