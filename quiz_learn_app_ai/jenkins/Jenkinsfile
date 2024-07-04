@@ -1,15 +1,31 @@
 pipeline {
-    agent {
-        docker {
-            image 'cirrusci/flutter:stable'
-        }
-    }
+    agent any
+    
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Setup Flutter') {
+            steps {
+                sh '''
+                    git clone https://github.com/flutter/flutter.git -b stable
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter precache
+                    flutter doctor
+                '''
+            }
+        }
+        
         stage('Build') {
             steps {
-                sh 'flutter doctor'
-                sh 'flutter pub get'
-                sh 'flutter build apk'
+                sh '''
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter pub get
+                    flutter build apk
+                '''
             }
         }
     }
