@@ -20,11 +20,12 @@ pipeline {
         //     }
         // }
 
-        stage('Setup Android') {
+         stage('Setup Android') {
+            environment {
+                androidSdkRoot = "/path/to/android/sdk"  // Replace with your desired Android SDK installation path
+            }
             steps {
                 script {
-                    def androidSdkRoot = "/path/to/android/sdk"  // Replace with your desired Android SDK installation path
-                    
                     sh '''
                         rm -rf "$androidSdkRoot"  # Remove existing Android SDK directory if it exists
                         mkdir -p "$androidSdkRoot"
