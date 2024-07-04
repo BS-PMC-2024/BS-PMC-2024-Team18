@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "876598819894",
+    "firebase_url": "https://quizlearnappai-default-rtdb.firebaseio.com",
     "project_id": "quizlearnappai",
     "storage_bucket": "quizlearnappai.appspot.com"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.quiz_learn_app_ai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "876598819894-hjvg4dmrc61e3rvbc435pl0bp9lc7cf3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quiz_learn_app_ai",
+            "certificate_hash": "965b3957cb3edc5b339e742c4bede8ab3fa5464d"
+          }
+        },
+        {
+          "client_id": "876598819894-qepisoq1d5ak33kcr4ju7ehac004rmuh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBX6gb6znrz1k3GWbUz3wHyo9TgmBehlCM"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "876598819894-qepisoq1d5ak33kcr4ju7ehac004rmuh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

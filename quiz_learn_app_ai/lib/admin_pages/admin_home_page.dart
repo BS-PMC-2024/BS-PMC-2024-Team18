@@ -28,14 +28,17 @@ class AdminHomePageState extends State<AdminHomePage> {
     if (user != null) {
       DatabaseEvent event = await _database.child('users').child(user.uid).once();
       Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
-      setState(() {
-        userEmail = user.email;
-        userType = userData?['userType'];
-      });
+
+      if (mounted) {
+        setState(() {
+          userEmail = user.email;
+          userType = userData?['userType'];
+        });
+      }
     }
   }
 
-   Future<void> _signOut() async {
+  Future<void> _signOut() async {
     await _auth.signOut();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -45,122 +48,126 @@ class AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.blue[800]!, Colors.blue[400]!],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: _buildContent(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: _buildContent(),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Admin Home',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: _signOut,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (userEmail == null || userType == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.admin_panel_settings,
+            size: 100,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Welcome, Admin',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue[800],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            userEmail!,
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'User Type: $userType',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.blue[800],
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
             ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _buildAppBar() {
-  return Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Admin Home',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.logout, color: Colors.white),
-          onPressed: _signOut,
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildContent() {
-  return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.admin_panel_settings,
-          size: 100,
-          color: Colors.blue,
-        ),
-        const SizedBox(height: 20),
-        Text(
-          'Welcome, Admin',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue[800],
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          userEmail!,
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'User Type: $userType',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 30),
-        ElevatedButton(
-          onPressed: () {
-           Navigator.push(
-  context,
-  MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
-);
-
-          },
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.blue[800],
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+            child: const Text(
+              'User Management',
+              style: TextStyle(fontSize: 18),
             ),
           ),
-          child: const Text(
-            'User Management',
-            style: TextStyle(fontSize: 18),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 }
