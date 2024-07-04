@@ -8,29 +8,32 @@ pipeline {
             }
         }
         
-             stage('Setup Flutter') {
-            steps {
-                sh '''
-                    rm -rf flutter  # Remove existing Flutter directory if it exists
-                    git clone https://github.com/flutter/flutter.git -b stable
-                    export PATH="$PATH:`pwd`/flutter/bin"
-                    flutter precache
-                    flutter doctor
-                '''
-            }
-        }
+        // stage('Setup Flutter') {
+        //     steps {
+        //         sh '''
+        //             rm -rf flutter  # Remove existing Flutter directory if it exists
+        //             git clone https://github.com/flutter/flutter.git -b stable
+        //             export PATH="$PATH:`pwd`/flutter/bin"
+        //             flutter precache
+        //             flutter doctor
+        //         '''
+        //     }
+        // }
 
-        
-           stage('Setup Android') {
+        stage('Setup Android') {
             steps {
-                sh '''
-                    rm -rf $androidSdkRoot  # Remove existing Android SDK directory if it exists
-                    mkdir -p $androidSdkRoot
-                    cd $androidSdkRoot
-                    wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
-                    unzip -q commandlinetools-linux-7302050_latest.zip
-                    yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
-                '''
+                script {
+                    def androidSdkRoot = "/path/to/android/sdk"  // Replace with your desired Android SDK installation path
+                    
+                    sh '''
+                        rm -rf $androidSdkRoot  # Remove existing Android SDK directory if it exists
+                        mkdir -p $androidSdkRoot
+                        cd $androidSdkRoot
+                        wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
+                        unzip -q commandlinetools-linux-7302050_latest.zip
+                        yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
+                    '''
+                }
             }
         }
         
