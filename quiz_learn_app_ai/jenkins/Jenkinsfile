@@ -1,34 +1,34 @@
 pipeline {
-    agent any
-    
+    agent {
+        docker {
+            image 'cirrusci/flutter:latest' // A Docker image that includes both Flutter and the Android SDK
+            args '-u root:root' // Run as root user to install Android SDK packages
+        }
+    }
+    environment {
+        ANDROID_HOME = "/opt/android-sdk"
+        PATH = "$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin"
+    }
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                checkout scm
+                git credentialsId: '58d656b9-abba-4fb4-8eea-a1cc309cf805', url: 'https://github.com/BS-PMC-2024/BS-PMC-2024-Team18.git'
             }
         }
-        
-        stage('Setup Flutter') {
+        stage('Setup Android SDK') {
             steps {
                 sh '''
-                    if [ -d "flutter" ]; then
-                        rm -rf flutter
-                    fi
-                    git clone https://github.com/flutter/flutter.git -b stable
-                    export PATH="$PATH:`pwd`/flutter/bin"
-                    flutter precache
-                    flutter doctor
+                yes | sdkmanager --licenses
+                sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
                 '''
             }
         }
-        
-        stage('Build') {
+        stage('Build Flutter App') {
             steps {
-                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
+                dir('quiz_learn_app_ai') {
                     sh '''
-                        export PATH="$PATH:`pwd`/../flutter/bin"
-                        flutter pub get
-                        flutter build apk
+                    flutter pub get
+                    flutter build apk
                     '''
                 }
             }
