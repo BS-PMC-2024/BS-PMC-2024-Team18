@@ -7,23 +7,15 @@ pipeline {
     }
 
     stages {
-        stage('Setup Flutter') {
+         stage('Setup Flutter') {
             steps {
                 sh '''
-                    # Check if Flutter directory exists
-                    if [ -d "${FLUTTER_HOME}" ]; then
-                        echo "Flutter directory already exists. Updating..."
-                        cd ${FLUTTER_HOME}
-                        git pull
-                    else
-                        echo "Cloning Flutter repository..."
-                        git clone https://github.com/flutter/flutter.git -b stable ${FLUTTER_HOME}
+                    if [ -d "flutter" ]; then
+                        rm -rf flutter
                     fi
-                    
-                    # Add Flutter to PATH
-                    export PATH="$PATH:${FLUTTER_HOME}/bin"
-                    
-                    # Run flutter doctor to download necessary components
+                    git clone https://github.com/flutter/flutter.git -b stable
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter precache
                     flutter doctor
                 '''
             }
@@ -31,38 +23,25 @@ pipeline {
 
         stage('Get Dependencies') {
             steps {
-                sh '''
-                    # Ensure we're in the project directory
-                    cd ${WORKSPACE}/quiz_learn_app_ai
-                    flutter pub get
-                '''
+                sh 'flutter pub get'
             }
         }
 
         stage('Analyze') {
             steps {
-                sh '''
-                    cd ${WORKSPACE}/quiz_learn_app_ai
-                    flutter analyze
-                '''
+                sh 'flutter analyze'
             }
         }
 
         stage('Test') {
             steps {
-                sh '''
-                    cd ${WORKSPACE}/quiz_learn_app_ai
-                    flutter test
-                '''
+                sh 'flutter test'
             }
         }
 
         stage('Build') {
             steps {
-                sh '''
-                    cd ${WORKSPACE}/quiz_learn_app_ai
-                    flutter build apk
-                '''
+                sh 'flutter build apk'
             }
         }
     }
@@ -70,8 +49,7 @@ pipeline {
     post {
         always {
             // Clean up Flutter SDK to save space
-            // Commenting this out to preserve Flutter installation between builds
-            // sh 'rm -rf ${FLUTTER_HOME}'
+            sh 'rm -rf ${FLUTTER_HOME}'
         }
     }
 }
