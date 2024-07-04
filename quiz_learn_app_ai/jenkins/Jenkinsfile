@@ -1,34 +1,53 @@
 pipeline {
-    agent {
-        docker {
-            image 'cirrusci/flutter:latest' // A Docker image that includes both Flutter and the Android SDK
-            args '-u root:root' // Run as root user to install Android SDK packages
-        }
-    }
+    agent any
+
     environment {
-        ANDROID_HOME = "/opt/android-sdk"
-        PATH = "$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin"
+        ANDROID_HOME = "${env.WORKSPACE}/android-sdk"
+        PATH = "$PATH:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin"
     }
+    
     stages {
-        stage('Checkout SCM') {
+        stage('Checkout') {
             steps {
-                git credentialsId: '58d656b9-abba-4fb4-8eea-a1cc309cf805', url: 'https://github.com/BS-PMC-2024/BS-PMC-2024-Team18.git'
+                checkout scm
             }
         }
-        stage('Setup Android SDK') {
+        
+        stage('Setup Flutter') {
             steps {
                 sh '''
-                yes | sdkmanager --licenses
-                sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
+                    if [ -d "flutter" ]; then
+                        rm -rf flutter
+                    fi
+                    git clone https://github.com/flutter/flutter.git -b stable
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter precache
+                    flutter doctor
                 '''
             }
         }
-        stage('Build Flutter App') {
+
+        stage('Setup Android SDK') {
             steps {
-                dir('quiz_learn_app_ai') {
+                sh '''
+                    mkdir -p $ANDROID_HOME
+                    wget https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip -O cmdline-tools.zip
+                    unzip cmdline-tools.zip -d $ANDROID_HOME
+                    mkdir -p $ANDROID_HOME/cmdline-tools/latest
+                    mv $ANDROID_HOME/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest
+                    yes | sdkmanager --licenses
+                    sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
+                '''
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
                     sh '''
-                    flutter pub get
-                    flutter build apk
+                        export PATH="$PATH:`pwd`/../flutter/bin"
+                        flutter pub get
+                        flutter build apk
                     '''
                 }
             }
