@@ -16,6 +16,15 @@ pipeline {
                     flutter precache
                     flutter doctor
                 '''
+
+                // Install Android SDK
+                    sh '''
+                        mkdir -p $ANDROID_SDK_ROOT
+                        cd $ANDROID_SDK_ROOT
+                        wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
+                        unzip -q commandlinetools-linux-7302050_latest.zip
+                        yes | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-30" "build-tools;30.0.3"
+                    '''
             }
         }
         
