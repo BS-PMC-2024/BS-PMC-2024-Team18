@@ -13,6 +13,7 @@ pipeline {
                 script {
                     // Set Flutter and Android SDK paths
                     def flutterHome = "${WORKSPACE}/flutter"
+                    def FLUTTER_HOME = flutterHome
                     def androidSdkRoot = "${WORKSPACE}/android-sdk"
                     
                     // Check if Flutter directory already exists
@@ -48,7 +49,7 @@ pipeline {
         
         stage('Build') {
             steps {
-                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
+                dir('quiz_learn_app_ai') {
                     sh '''
                         export PATH="$PATH:`pwd`/../flutter/bin"
                         flutter pub get
