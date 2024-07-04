@@ -10,26 +10,51 @@ pipeline {
         
         stage('Setup Flutter') {
             steps {
-                sh '''
-                    if [ -d "flutter" ]; then
-                        rm -rf flutter
-                    fi
-                    git clone https://github.com/flutter/flutter.git -b stable
-                    export PATH="$PATH:`pwd`/flutter/bin"
-                    flutter precache
-                    flutter doctor
-                '''
+                script {
+                    def flutterHome = "${WORKSPACE}/flutter"
+                    def androidSdkRoot = "${WORKSPACE}/android-sdk"
+                    
+                    sh '''
+                        if [ ! -d "${flutterHome}" ]; then
+                            git clone https://github.com/flutter/flutter.git -b stable "${flutterHome}"
+                        fi
+                        ${flutterHome}/bin/flutter precache
+                        ${flutterHome}/bin/flutter doctor
+                    '''
+                    
+                    // Set Flutter and Android SDK paths for subsequent stages
+                    env.PATH = "${flutterHome}/bin:${androidSdkRoot}/tools/bin:${env.PATH}"
+                    env.ANDROID_HOME = androidSdkRoot
+                }
             }
         }
         
-        stage('Build') {
+        stage('Install Android SDK') {
             steps {
-                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
+                script {
+                    def androidSdkRoot = "${WORKSPACE}/android-sdk"
+                    
                     sh '''
-                        export PATH="$PATH:`pwd`/../flutter/bin"
-                        flutter pub get
-                        flutter build apk
+                        mkdir -p ${androidSdkRoot}
+                        wget -O android_sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip
+                        unzip -q android_sdk.zip -d ${androidSdkRoot}
+                        yes | ${androidSdkRoot}/tools/bin/sdkmanager --sdk_root=${androidSdkRoot} "platform-tools" "build-tools;30.0.3" "platforms;android-30"
                     '''
+                }
+            }
+        }
+        
+        stage('Build APK') {
+            steps {
+                dir('quiz_learn_app_ai') { // Replace with your actual project directory
+                    script {
+                        def flutterHome = "${WORKSPACE}/flutter"
+                        
+                        sh '''
+                            ${flutterHome}/bin/flutter pub get
+                            ${flutterHome}/bin/flutter build apk
+                        '''
+                    }
                 }
             }
         }
