@@ -1,10 +1,15 @@
 pipeline {
-    agent any
-    
+    agent {
+        docker {
+            image 'cirrusci/flutter:stable'
+        }
+    }
     stages {
-        stage('Hello') {
+        stage('Build') {
             steps {
-                echo 'Hello, Jenkins! This is a simple test pipeline.'
+                sh 'flutter doctor'
+                sh 'flutter pub get'
+                sh 'flutter build apk'
             }
         }
     }
