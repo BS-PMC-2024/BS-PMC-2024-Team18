@@ -1,28 +1,53 @@
 pipeline {
-    agent {
-        docker {
-            // Use the Docker image with Flutter and necessary dependencies
-            image 'your-custom-flutter-image:latest'
-            args '-v $HOME/.pub-cache:/root/.pub-cache' // Optional: Cache pub packages
-        }
+    agent any
+    
+    environment {
+        FLUTTER_VERSION = '2.10.0'  // Update with the desired Flutter version
+        FLUTTER_HOME = "/var/lib/jenkins/flutter"
+        PATH = "$PATH:$FLUTTER_HOME/bin"
     }
     
     stages {
-        stage('Build') {
+        stage('Setup') {
             steps {
-                sh '''
-                    flutter pub get
-                    flutter build apk
-                '''
+                script {
+                    // Install necessary dependencies
+                    sh "apt-get update && apt-get install -y curl git unzip"
+                    
+                    // Download and install Flutter SDK
+                    sh """
+                        mkdir -p ${FLUTTER_HOME}
+                        curl -sSL https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ -C ${FLUTTER_HOME}
+                    """
+                    
+                    // Add Flutter binaries to PATH
+                    sh "echo 'export PATH=\$PATH:${FLUTTER_HOME}/bin' >> ~/.bashrc"
+                    sh "export PATH=\$PATH:${FLUTTER_HOME}/bin"
+                    
+                    // Initialize Flutter
+                    sh "flutter precache"
+                    sh "flutter doctor -v"
+                }
+            }
+        }
+        
+        stage('Build APK') {
+            steps {
+                script {
+                    // Run Flutter commands
+                    sh """
+                        flutter pub get
+                        flutter build apk
+                    """
+                }
             }
         }
     }
     
     post {
         always {
-            // Clean up workspace and Docker containers
+            // Clean up workspace
             cleanWs()
-            deleteDir()
         }
     }
 }
