@@ -1,55 +1,28 @@
 pipeline {
-    agent any
-
-    environment {
-        FLUTTER_HOME = "${WORKSPACE}/flutter"
-        PATH = "${FLUTTER_HOME}/bin:${PATH}"
+    agent {
+        docker {
+            // Use the Docker image with Flutter and necessary dependencies
+            image 'your-custom-flutter-image:latest'
+            args '-v $HOME/.pub-cache:/root/.pub-cache' // Optional: Cache pub packages
+        }
     }
-
+    
     stages {
-         stage('Setup Flutter') {
+        stage('Build') {
             steps {
                 sh '''
-                    if [ -d "flutter" ]; then
-                        rm -rf flutter
-                    fi
-                    git clone https://github.com/flutter/flutter.git -b stable
-                    export PATH="$PATH:`pwd`/flutter/bin"
-                    flutter precache
-                    flutter doctor
+                    flutter pub get
+                    flutter build apk
                 '''
             }
         }
-
-        stage('Get Dependencies') {
-            steps {
-                sh 'flutter pub get'
-            }
-        }
-
-        stage('Analyze') {
-            steps {
-                sh 'flutter analyze'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'flutter test'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'flutter build apk'
-            }
-        }
     }
-
+    
     post {
         always {
-            // Clean up Flutter SDK to save space
-            sh 'rm -rf ${FLUTTER_HOME}'
+            // Clean up workspace and Docker containers
+            cleanWs()
+            deleteDir()
         }
     }
 }

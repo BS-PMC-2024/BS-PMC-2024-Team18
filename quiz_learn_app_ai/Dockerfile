@@ -1,13 +1,13 @@
-# Use the cirrusci/flutter:stable image as base
+# Use an official Flutter image as a base
 FROM cirrusci/flutter:stable
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy pubspec.yaml and pubspec.lock
+# Copy pubspec.yaml and pubspec.lock to cache dependencies
 COPY pubspec.* ./
 
-# Install Flutter dependencies
+# Install Flutter packages
 RUN flutter pub get
 
 # Copy the entire project
@@ -15,7 +15,3 @@ COPY . .
 
 # Build APK
 RUN flutter build apk
-
-# Make the APK accessible outside the container
-RUN mkdir /output
-RUN cp build/app/outputs/flutter-apk/app-release.apk /output/app-release.apk
