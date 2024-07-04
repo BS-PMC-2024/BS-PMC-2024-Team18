@@ -8,34 +8,22 @@ pipeline {
             }
         }
         
-        stage('Setup Flutter and Android SDK') {
+        stage('Setup Flutter') {
             steps {
-                script {
-                    // Set Flutter and Android SDK paths
-                    def flutterHome = "${WORKSPACE}/flutter"
-                    def FLUTTER_HOME = flutterHome
-                    def androidSdkRoot = "${WORKSPACE}/android-sdk"
-                    
-                    // Check if Flutter directory already exists
-                    def flutterDir = file(flutterHome)
-                    if (!flutterDir.exists()) {
-                        // If not exists, clone Flutter
-                        sh '''
-                            git clone https://github.com/flutter/flutter.git -b stable $flutterHome
-                            $flutterHome/bin/flutter precache
-                            $flutterHome/bin/flutter doctor
-                        '''
-                    } else {
-                        // If exists, update Flutter
-                        sh '''
-                            cd $flutterHome
-                            git pull
-                            $flutterHome/bin/flutter precache
-                            $flutterHome/bin/flutter doctor
-                        '''
-                    }
-                    
-                    // Install Android SDK
+                sh '''
+                    git clone https://github.com/flutter/flutter.git -b stable
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter precache
+                    flutter doctor
+                '''
+
+                
+            }
+        }
+          stage('Setup Android') {
+            steps {
+           
+           // Install Android SDK
                     sh '''
                         mkdir -p $androidSdkRoot
                         cd $androidSdkRoot
@@ -43,13 +31,15 @@ pipeline {
                         unzip -q commandlinetools-linux-7302050_latest.zip
                         yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
                     '''
-                }
+
+                
             }
         }
+
         
         stage('Build') {
             steps {
-                dir('quiz_learn_app_ai') {
+                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
                     sh '''
                         export PATH="$PATH:`pwd`/../flutter/bin"
                         flutter pub get
