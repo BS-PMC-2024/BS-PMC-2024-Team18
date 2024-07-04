@@ -10,22 +10,21 @@ pipeline {
         
        
 
-        stage('Setup Android') {
-    steps {
-        script {
-            def androidSdkRoot = "$WORKSPACE/android-sdk"
-            sh '''
-                rm -rf "$androidSdkRoot"
-                mkdir -p "$androidSdkRoot"
-                cd "$androidSdkRoot"
-                curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
-                unzip -q commandlinetools.zip
-                yes | "$androidSdkRoot"/tools/bin/sdkmanager --sdk_root="$androidSdkRoot" "platforms;android-30" "build-tools;30.0.3"
-            '''
+    stage('Setup Android') {
+            steps {
+                script {
+                    def androidSdkRoot = "$WORKSPACE/android-sdk"
+                    sh '''
+                        rm -rf "$androidSdkRoot"
+                        mkdir -p "$androidSdkRoot"
+                        cd "$androidSdkRoot"
+                        curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
+                        unzip -q commandlinetools.zip
+                        yes | "$androidSdkRoot"/tools/bin/sdkmanager --sdk_root="$androidSdkRoot" "platforms;android-30" "build-tools;30.0.3"
+                    '''
+                }
+            }
         }
-    }
-}
-
 
          stage('Setup Flutter') {
             steps {
