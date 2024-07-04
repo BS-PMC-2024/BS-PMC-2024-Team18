@@ -11,32 +11,36 @@ pipeline {
         stage('Setup Flutter and Android SDK') {
             steps {
                 script {
+                    // Set Flutter and Android SDK paths
+                    def flutterHome = "${WORKSPACE}/flutter"
+                    def androidSdkRoot = "${WORKSPACE}/android-sdk"
+                    
                     // Check if Flutter directory already exists
-                    def flutterDir = file(FLUTTER_HOME)
+                    def flutterDir = file(flutterHome)
                     if (!flutterDir.exists()) {
                         // If not exists, clone Flutter
                         sh '''
-                            git clone https://github.com/flutter/flutter.git -b stable $FLUTTER_HOME
-                            $FLUTTER_HOME/bin/flutter precache
-                            $FLUTTER_HOME/bin/flutter doctor
+                            git clone https://github.com/flutter/flutter.git -b stable $flutterHome
+                            $flutterHome/bin/flutter precache
+                            $flutterHome/bin/flutter doctor
                         '''
                     } else {
                         // If exists, update Flutter
                         sh '''
-                            cd $FLUTTER_HOME
+                            cd $flutterHome
                             git pull
-                            $FLUTTER_HOME/bin/flutter precache
-                            $FLUTTER_HOME/bin/flutter doctor
+                            $flutterHome/bin/flutter precache
+                            $flutterHome/bin/flutter doctor
                         '''
                     }
                     
                     // Install Android SDK
                     sh '''
-                        mkdir -p $ANDROID_SDK_ROOT
-                        cd $ANDROID_SDK_ROOT
+                        mkdir -p $androidSdkRoot
+                        cd $androidSdkRoot
                         wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
                         unzip -q commandlinetools-linux-7302050_latest.zip
-                        yes | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-30" "build-tools;30.0.3"
+                        yes | $androidSdkRoot/tools/bin/sdkmanager --sdk_root=$androidSdkRoot "platforms;android-30" "build-tools;30.0.3"
                     '''
                 }
             }
