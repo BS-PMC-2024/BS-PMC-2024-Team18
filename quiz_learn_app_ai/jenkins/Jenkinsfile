@@ -8,19 +8,19 @@ pipeline {
             }
         }
         
-        // stage('Setup Flutter') {
-        //     steps {
-        //         sh '''
-        //             rm -rf flutter  # Remove existing Flutter directory if it exists
-        //             git clone https://github.com/flutter/flutter.git -b stable
-        //             export PATH="$PATH:`pwd`/flutter/bin"
-        //             flutter precache
-        //             flutter doctor
-        //         '''
-        //     }
-        // }
+        stage('Setup Flutter') {
+            steps {
+                sh '''
+                    rm -rf flutter  # Remove existing Flutter directory if it exists
+                    git clone https://github.com/flutter/flutter.git -b stable
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter precache
+                    flutter doctor
+                '''
+            }
+        }
 
-          stage('Setup Android') {
+        stage('Setup Android') {
             steps {
                 script {
                     def androidSdkRoot = "$WORKSPACE/android-sdk"
@@ -35,6 +35,7 @@ pipeline {
                 }
             }
         }
+
         stage('Build') {
             steps {
                 sh '''
