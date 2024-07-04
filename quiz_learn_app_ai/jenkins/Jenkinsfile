@@ -12,19 +12,20 @@ pipeline {
             steps {
                 script {
                     def flutterHome = "${WORKSPACE}/flutter"
-                    def androidSdkRoot = "${WORKSPACE}/android-sdk"
                     
-                    sh '''
-                        if [ ! -d "${flutterHome}" ]; then
-                            git clone https://github.com/flutter/flutter.git -b stable "${flutterHome}"
-                        fi
-                        ${flutterHome}/bin/flutter precache
-                        ${flutterHome}/bin/flutter doctor
-                    '''
+                    // Ensure Flutter directory exists
+                    sh "mkdir -p ${flutterHome}"
                     
-                    // Set Flutter and Android SDK paths for subsequent stages
-                    env.PATH = "${flutterHome}/bin:${androidSdkRoot}/tools/bin:${env.PATH}"
-                    env.ANDROID_HOME = androidSdkRoot
+                    // Clone Flutter if not already cloned
+                    if (!fileExists(flutterHome + "/bin/flutter")) {
+                        sh "git clone https://github.com/flutter/flutter.git -b stable ${flutterHome}"
+                    }
+                    
+                    // Add Flutter to PATH
+                    env.PATH = "${flutterHome}/bin:${env.PATH}"
+                    
+                    // Run flutter doctor to verify installation
+                    sh "flutter doctor"
                 }
             }
         }
@@ -34,12 +35,18 @@ pipeline {
                 script {
                     def androidSdkRoot = "${WORKSPACE}/android-sdk"
                     
-                    sh '''
-                        mkdir -p ${androidSdkRoot}
+                    // Ensure Android SDK directory exists
+                    sh "mkdir -p ${androidSdkRoot}"
+                    
+                    // Download and install Android SDK components
+                    sh """
                         wget -O android_sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip
                         unzip -q android_sdk.zip -d ${androidSdkRoot}
                         yes | ${androidSdkRoot}/tools/bin/sdkmanager --sdk_root=${androidSdkRoot} "platform-tools" "build-tools;30.0.3" "platforms;android-30"
-                    '''
+                    """
+                    
+                    // Set ANDROID_HOME for Flutter usage
+                    env.ANDROID_HOME = androidSdkRoot
                 }
             }
         }
@@ -48,15 +55,15 @@ pipeline {
             steps {
                 dir('quiz_learn_app_ai') { // Replace with your actual project directory
                     script {
-                        def flutterHome = "${WORKSPACE}/flutter"
-                        
-                        sh '''
-                            ${flutterHome}/bin/flutter pub get
-                            ${flutterHome}/bin/flutter build apk
-                        '''
+                        sh "flutter pub get"
+                        sh "flutter build apk"
                     }
                 }
             }
         }
     }
+}
+
+def fileExists(filePath) {
+    return file(filePath).exists()
 }
