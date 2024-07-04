@@ -27,6 +27,15 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    apt-get update
+                    apt-get install -y wget unzip
+                '''
+            }
+        }
+        
         stage('Setup Android SDK') {
             steps {
                 sh '''
