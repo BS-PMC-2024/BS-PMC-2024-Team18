@@ -2,33 +2,9 @@ pipeline {
     agent any
     
     stages {
-        stage('Initialize') {
+        stage('Hello') {
             steps {
-                // This stage can include steps like environment setup
-                echo 'Initializing...'
-            }
-        }
-        
-        stage('Build') {
-            steps {
-                // Steps to build your Flutter project
-                sh 'flutter pub get'
-                sh 'flutter build apk'
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                // Steps to run tests if applicable
-                echo 'Running tests...'
-            }
-        }
-        
-        stage('Deploy') {
-            steps {
-                // Steps to deploy your APK to a location accessible to Jenkins
-                sh 'mkdir -p $JENKINS_HOME/apks'
-                sh 'cp build/app/outputs/flutter-apk/app-release.apk $JENKINS_HOME/apks/myapp-release.apk'
+                echo 'Hello, Jenkins! This is a simple test pipeline.'
             }
         }
     }
