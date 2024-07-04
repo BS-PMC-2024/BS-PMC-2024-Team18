@@ -26,7 +26,7 @@ pipeline {
 
        stage('Build') {
             steps {
-                dir('BS-PMC-2024-Team18/quiz_learn_app_ai') {
+                dir('quiz_learn_app_ai') {
                     sh '''
                         export PATH="$PATH:`pwd`/flutter/bin"
                         flutter pub get
