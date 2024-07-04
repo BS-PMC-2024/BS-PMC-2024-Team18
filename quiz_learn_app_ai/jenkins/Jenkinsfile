@@ -1,59 +1,37 @@
 pipeline {
     agent any
-
+    
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/BS-PMC-2024/BS-PMC-2024-Team18.git'
+                checkout scm
             }
         }
-
-        stage('Install Flutter SDK') {
+        
+        stage('Setup Flutter') {
             steps {
-                script {
-                    def flutterVersion = "3.4.3" // Replace with the desired Flutter version
-                    sh """
-                    wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${flutterVersion}-stable.tar.xz
-                    tar xf flutter_linux_${flutterVersion}-stable.tar.xz
-                    export PATH=`pwd`/flutter/bin:$PATH
-                    flutter --version
-                    """
+                sh '''
+                    if [ -d "flutter" ]; then
+                        rm -rf flutter
+                    fi
+                    git clone https://github.com/flutter/flutter.git -b stable
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    flutter precache
+                    flutter doctor
+                '''
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
+                    sh '''
+                        export PATH="$PATH:`pwd`/../flutter/bin"
+                        flutter pub get
+                        flutter build apk
+                    '''
                 }
             }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh """
-                    export PATH=`pwd`/flutter/bin:$PATH
-                    flutter pub get
-                    """
-                }
-            }
-        }
-
-        stage('Build APK') {
-            steps {
-                script {
-                    sh """
-                    export PATH=`pwd`/flutter/bin:$PATH
-                    flutter build apk --release
-                    """
-                }
-            }
-        }
-
-        stage('Archive APK') {
-            steps {
-                archiveArtifacts artifacts: '**/build/app/outputs/flutter-apk/app-release.apk', allowEmptyArchive: false
-            }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
         }
     }
 }
