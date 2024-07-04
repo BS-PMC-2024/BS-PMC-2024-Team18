@@ -21,11 +21,13 @@ pipeline {
         
         stage('Build') {
             steps {
-                sh '''
-                    export PATH="$PATH:`pwd`/flutter/bin"
-                    flutter pub get
-                    flutter build apk
-                '''
+                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
+                    sh '''
+                        export PATH="$PATH:`pwd`/../flutter/bin"
+                        flutter pub get
+                        flutter build apk
+                    '''
+                }
             }
         }
     }
