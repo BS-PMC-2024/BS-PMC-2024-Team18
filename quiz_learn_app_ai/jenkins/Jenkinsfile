@@ -2,25 +2,25 @@ pipeline {
     agent any
 
     environment {
-        ANDROID_HOME = "${env.WORKSPACE}/android-sdk"
-        PATH = "$PATH:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin"
+        ANDROID_HOME = "${WORKSPACE}/android-sdk"
+        PATH = "${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${WORKSPACE}/flutter/bin:${env.PATH}"
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git credentialsId: '58d656b9-abba-4fb4-8eea-a1cc309cf805', url: 'https://github.com/BS-PMC-2024/BS-PMC-2024-Team18.git'
             }
         }
         
         stage('Setup Flutter') {
             steps {
                 sh '''
-                    if [ -d "flutter" ]; then
+                    if [ -d flutter ]; then
                         rm -rf flutter
                     fi
                     git clone https://github.com/flutter/flutter.git -b stable
-                    export PATH="$PATH:`pwd`/flutter/bin"
+                    export PATH="${WORKSPACE}/flutter/bin:${PATH}"
                     flutter precache
                     flutter doctor
                 '''
@@ -29,37 +29,26 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    apt-get update
-                    apt-get install -y wget unzip
-                '''
+                sh 'flutter pub get'
             }
         }
-        
-        stage('Setup Android SDK') {
-            steps {
-                sh '''
-                    mkdir -p $ANDROID_HOME
-                    wget https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip -O cmdline-tools.zip
-                    unzip cmdline-tools.zip -d $ANDROID_HOME
-                    mkdir -p $ANDROID_HOME/cmdline-tools/latest
-                    mv $ANDROID_HOME/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest
-                    yes | sdkmanager --licenses
-                    sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
-                '''
-            }
-        }
-        
+
         stage('Build') {
             steps {
-                dir('quiz_learn_app_ai') { // Change 'quiz_learn_app_ai' to your actual project directory name if different
-                    sh '''
-                        export PATH="$PATH:`pwd`/../flutter/bin"
-                        flutter pub get
-                        flutter build apk
-                    '''
-                }
+                sh 'flutter build apk --release'
             }
+        }
+
+        stage('Archive APK') {
+            steps {
+                archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', allowEmptyArchive: true
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
