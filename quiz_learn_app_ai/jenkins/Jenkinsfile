@@ -7,12 +7,8 @@ pipeline {
                 checkout scm
             }
         }
-        
-       
 
-
-
-         stage('Setup Flutter') {
+        stage('Setup Flutter') {
             steps {
                 sh '''
                     rm -rf flutter  # Remove existing Flutter directory if it exists
@@ -24,11 +20,11 @@ pipeline {
             }
         }
 
-       stage('Build') {
+        stage('Build') {
             steps {
                 dir('quiz_learn_app_ai') {
                     sh '''
-                        export PATH="$PATH:`pwd`/flutter/bin"
+                        export PATH="$PATH:`pwd`/../flutter/bin"
                         flutter pub get
                         flutter build apk
                     '''
