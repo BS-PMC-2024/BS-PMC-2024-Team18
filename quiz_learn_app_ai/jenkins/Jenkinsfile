@@ -1,57 +1,58 @@
 pipeline {
     agent any
+    
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/BS-PMC-2024/BS-PMC-2024-Team18.git'
+                checkout scm
             }
         }
-        stage('Setup Flutter') {
+
+        stage('Setup Flutter and Android SDK') {
             steps {
                 sh '''
-                    # Remove existing Flutter directory if present
-                    rm -rf flutter
+                    # Remove existing Flutter and Android SDK directories if they exist
+                    rm -rf flutter android-sdk
                     
-                    # Clone the Flutter SDK
+                    # Clone the Flutter repository
                     git clone https://github.com/flutter/flutter.git -b stable
-
-                    # Set Flutter SDK path
-                    export PATH=\$PATH:\$PWD/flutter/bin
-
-                    # Precache Flutter dependencies
+                    export PATH="$PATH:`pwd`/flutter/bin"
+                    
+                    # Install Flutter
                     flutter precache
+                    flutter doctor
 
-                    # Install Android SDK command-line tools
-                    mkdir -p android-sdk/cmdline-tools
-                    curl -o commandlinetools-linux.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-                    unzip -q commandlinetools-linux.zip -d android-sdk/cmdline-tools
-                    mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/tools
-                    rm commandlinetools-linux.zip
-
-                    # Set Android SDK path
-                    export ANDROID_HOME=\$PWD/android-sdk
-                    export PATH=\$PATH:\$ANDROID_HOME/cmdline-tools/tools/bin
-
-                    # Accept licenses
+                    # Download and install Android SDK
+                    ANDROID_SDK_ROOT=`pwd`/android-sdk
+                    mkdir -p $ANDROID_SDK_ROOT
+                    cd $ANDROID_SDK_ROOT
+                    wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip
+                    unzip commandlinetools-linux-6609375_latest.zip
+                    mkdir -p cmdline-tools/latest
+                    mv cmdline-tools/* cmdline-tools/latest/
+                    export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
                     yes | sdkmanager --licenses
-
-                    # Install essential SDK packages
                     sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
+                    
+                    # Set up environment variables
+                    export ANDROID_HOME=$ANDROID_SDK_ROOT
+                    export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+                    export PATH=$PATH:$ANDROID_SDK_ROOT/build-tools/30.0.3
+                    flutter doctor --android-licenses
+                    flutter doctor
                 '''
             }
         }
+
         stage('Build') {
             steps {
                 dir('quiz_learn_app_ai') {
                     sh '''
-                        # Set environment variables
-                        export PATH=\$PATH:\$PWD/../flutter/bin
-                        export ANDROID_HOME=\$PWD/../android-sdk
-
-                        # Get Flutter dependencies
+                        export PATH="$PATH:`pwd`/../flutter/bin"
+                        export ANDROID_HOME=`pwd`/../android-sdk
+                        export PATH=$PATH:$ANDROID_HOME/platform-tools
+                        export PATH=$PATH:$ANDROID_HOME/build-tools/30.0.3
                         flutter pub get
-
-                        # Build the APK
                         flutter build apk
                     '''
                 }
