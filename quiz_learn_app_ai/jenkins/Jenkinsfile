@@ -11,6 +11,10 @@ pipeline {
         stage('Setup Flutter and Android SDK') {
             steps {
                 sh '''
+                    # Install necessary packages
+                    apt-get update
+                    apt-get install -y wget unzip yes
+
                     # Remove existing Flutter and Android SDK directories if they exist
                     rm -rf flutter android-sdk
                     
