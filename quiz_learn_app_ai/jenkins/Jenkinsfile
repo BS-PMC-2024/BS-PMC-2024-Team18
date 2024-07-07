@@ -14,26 +14,43 @@ pipeline {
             }
         }
         
-        stage('Build') {
+        stage('Install Flutter and Dependencies') {
             steps {
-                // Steps to build your Flutter project
-                sh 'flutter pub get'
-                sh 'flutter build apk'
+                script {
+                    // Install Flutter
+                    sh '''
+                        git clone https://github.com/flutter/flutter.git ${FLUTTER_HOME}
+                        ${FLUTTER_HOME}/bin/flutter doctor -v
+                    '''
+                    
+                    // Install Android SDK
+                    sh '''
+                        mkdir -p ${ANDROID_SDK_ROOT}
+                        curl -o ${ANDROID_SDK_ROOT}/commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+                        unzip -q ${ANDROID_SDK_ROOT}/commandlinetools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools
+                        yes | ${ANDROID_SDK_ROOT}/cmdline-tools/tools/bin/sdkmanager --licenses
+                        ${ANDROID_SDK_ROOT}/cmdline-tools/tools/bin/sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
+                    '''
+                }
             }
         }
         
-        stage('Test') {
+        stage('Run Tests') {
             steps {
-                // Steps to run tests if applicable
-                echo 'Running tests...'
+                script {
+                    // Run Flutter tests
+                    sh '''
+                        ${FLUTTER_HOME}/bin/flutter pub get
+                        ${FLUTTER_HOME}/bin/flutter test
+                    '''
+                }
             }
         }
         
-        stage('Deploy') {
+        stage('Cleanup') {
             steps {
-                // Steps to deploy your APK to a location accessible to Jenkins
-                sh 'mkdir -p $JENKINS_HOME/apks'
-                sh 'cp build/app/outputs/flutter-apk/app-release.apk $JENKINS_HOME/apks/myapp-release.apk'
+                // Clean up any artifacts or temporary files if needed
+                deleteDir()
             }
         }
     }
