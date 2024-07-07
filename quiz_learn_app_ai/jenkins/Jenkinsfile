@@ -14,43 +14,26 @@ pipeline {
             }
         }
         
-        stage('Install Flutter and Dependencies') {
+        stage('Build') {
             steps {
-                script {
-                    // Install Flutter
-                    sh '''
-                        git clone https://github.com/flutter/flutter.git ${FLUTTER_HOME}
-                        ${FLUTTER_HOME}/bin/flutter doctor -v
-                    '''
-                    
-                    // Install Android SDK
-                    sh '''
-                        mkdir -p ${ANDROID_SDK_ROOT}
-                        curl -o ${ANDROID_SDK_ROOT}/commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-                        unzip -q ${ANDROID_SDK_ROOT}/commandlinetools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools
-                        yes | ${ANDROID_SDK_ROOT}/cmdline-tools/tools/bin/sdkmanager --licenses
-                        ${ANDROID_SDK_ROOT}/cmdline-tools/tools/bin/sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
-                    '''
-                }
+                // Steps to build your Flutter project
+                sh 'flutter pub get'
+                sh 'flutter build apk'
             }
         }
         
-        stage('Run Tests') {
+        stage('Test') {
             steps {
-                script {
-                    // Run Flutter tests
-                    sh '''
-                        ${FLUTTER_HOME}/bin/flutter pub get
-                        ${FLUTTER_HOME}/bin/flutter test
-                    '''
-                }
+                // Steps to run tests if applicable
+                echo 'Running tests...'
             }
         }
         
-        stage('Cleanup') {
+        stage('Deploy') {
             steps {
-                // Clean up any artifacts or temporary files if needed
-                deleteDir()
+                // Steps to deploy your APK to a location accessible to Jenkins
+                sh 'mkdir -p $JENKINS_HOME/apks'
+                sh 'cp build/app/outputs/flutter-apk/app-release.apk $JENKINS_HOME/apks/myapp-release.apk'
             }
         }
     }

@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../auth/secrets.dart';
+
+
 
 class QuestionGenerator {
-  final String apiKey = "sk-proj-H4gEPdqgr4TvG1LnAY2ZT3BlbkFJSFeVlkYaZB2HYPOECwxL";
+  final String apiKey = mySecretKey;
   final String apiUrl = 'https://api.openai.com/v1/chat/completions';
 
   Future<List<Map<String, dynamic>>> generateQuestions(String text) async {

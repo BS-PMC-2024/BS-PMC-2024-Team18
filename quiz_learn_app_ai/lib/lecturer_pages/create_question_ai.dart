@@ -252,18 +252,22 @@ Widget _buildAppBar() {
           onPressed: () => Navigator.of(context).pop(),
         ),
         const SizedBox(width: 8),
-        const Text(
-          'Create Questions with AI',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        const Flexible(
+          child: Text(
+            'Create Questions with AI',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     ),
   );
 }
+
 
 Widget _buildModeSelection() {
   return Container(
