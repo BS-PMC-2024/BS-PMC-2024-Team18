@@ -5,20 +5,25 @@ pipeline {
         stage('Pull Docker Image') {
             steps {
                 script {
-                    // Pull the latest Docker image
                     sh 'docker pull or6562/flutter-builder:latest'
                 }
+            }
+        }
+
+        stage('Checkout SCM') {
+            steps {
+                checkout scm // This will check out your project files from Git
             }
         }
 
         stage('Flutter Tests') {
             steps {
                 script {
-                    // Run flutter pub get and flutter build apk inside the Docker container
-                    docker.image('or6562/flutter-builder').inside('-u root:root') {
-                        sh 'flutter pub get' // Run flutter pub get with root permissions
-                        sh 'flutter build apk' // Build Flutter APK with root permissions
-                        // Add any additional test commands here if needed
+                    // Ensure that the working directory is correctly set to the Flutter project directory
+                    def projectDir = "/var/jenkins_home/jobs/Team-18/jobs/Pipeline/workspace" // Adjust if needed
+                    docker.image('or6562/flutter-builder').inside("-w ${projectDir} -u root:root") {
+                        sh 'flutter pub get' // Run flutter pub get inside the Docker container
+                        // Add additional Flutter test commands here if needed
                     }
                 }
             }
