@@ -5,31 +5,20 @@ pipeline {
         stage('Pull Docker Image') {
             steps {
                 script {
+                    // Pull the latest Docker image
                     sh 'docker pull or6562/flutter-builder:latest'
                 }
             }
         }
-        stage('List Docker Images') {
+
+        stage('Flutter Tests') {
             steps {
                 script {
-                    sh 'docker images'
-                }
-            }
-        }
-        stage('Flutter Pub Get') {
-            steps {
-                script {
+                    // Run flutter pub get and flutter build apk inside the Docker container
                     docker.image('or6562/flutter-builder').inside('-u root:root') {
                         sh 'flutter pub get' // Run flutter pub get with root permissions
-                    }
-                }
-            }
-        }
-        stage('Build APK') {
-            steps {
-                script {
-                    docker.image('or6562/flutter-builder').inside('-u root:root') {
                         sh 'flutter build apk' // Build Flutter APK with root permissions
+                        // Add any additional test commands here if needed
                     }
                 }
             }
