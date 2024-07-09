@@ -20,9 +20,9 @@ pipeline {
             steps {
                 script {
                     dir('quiz_learn_app_ai') {
-                        // Change to your actual directory name where the Flutter project is
-                        docker.image('or6562/flutter-builder').inside {
-                            sh 'flutter test' // Run flutter test
+                        docker.image('or6562/flutter-builder').inside('-u root:root') {
+                            // Run flutter test
+                            sh 'flutter test'
                         }
                     }
                 }
