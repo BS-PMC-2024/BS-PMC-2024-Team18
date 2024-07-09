@@ -13,6 +13,15 @@ class SignInPage extends StatefulWidget {
 
   @override
   State<SignInPage> createState() => _SignInPageState();
+
+   static bool isValidEmail(String email) {
+    // Define a regular expression for a valid email
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+
+    // Check if the provided email matches the regular expression
+    return emailRegex.hasMatch(email);
+  }
+
 }
 
 class _SignInPageState extends State<SignInPage> {
@@ -56,6 +65,9 @@ class _SignInPageState extends State<SignInPage> {
       }
     }
   }
+
+
+
 
  Future<String?> showUserTypeSelectionDialog() async {
     String? selectedUserType;
@@ -228,13 +240,6 @@ Future<void> signInWithGoogle() async {
     }
   }
 
-  bool isValidEmail(String email) {
-    // Define a regular expression for a valid email
-    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-
-    // Check if the provided email matches the regular expression
-    return emailRegex.hasMatch(email);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +303,7 @@ Future<void> signInWithGoogle() async {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     onPressed: () {
-                      if (emailController.text.isNotEmpty && isValidEmail(emailController.text.trim())) {
+                      if (emailController.text.isNotEmpty && SignInPage.isValidEmail(emailController.text.trim())) {
                         sendPasswordResetEmail(emailController.text.trim(), context);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
