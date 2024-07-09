@@ -1,47 +1,80 @@
+// pipeline {
+//     agent {
+//         docker {
+//             image 'or6562/flutter-builder' // Replace with your image name
+//             args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock' // Optional: Mount Docker socket and run as root
+//         }
+//     }
+//     stages {
+//         stage('Pull Image') {
+//             steps {
+//                 script {
+//                     // This step is optional since Jenkins pulls the image defined in the agent section
+//                     docker.image('or6562/flutter-builder').pull()
+//                 }
+//             }
+//         }
+//         stage('Flutter Version') {
+//             steps {
+//                 script {
+//                     docker.image('your-docker-username/flutter-builder').inside {
+//                         sh 'flutter --version' // Check Flutter version
+//                     }
+//                 }
+//             }
+//         }
+//         stage('Flutter Pub Get') {
+//             steps {
+//                 script {
+//                     docker.image('your-docker-username/flutter-builder').inside {
+//                         sh 'flutter pub get' // Run flutter pub get
+//                     }
+//                 }
+//             }
+//         }
+//         stage('Build APK') {
+//             steps {
+//                 script {
+//                     docker.image('your-docker-username/flutter-builder').inside {
+//                         sh 'flutter build apk' // Build Flutter APK
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     post {
+//         always {
+//             echo 'Pipeline finished.'
+//         }
+//     }
+// }
 pipeline {
-    agent {
-        docker {
-            image 'or6562/flutter-builder' // Replace with your image name
-            args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock' // Optional: Mount Docker socket and run as root
-        }
-    }
+    agent any
+
     stages {
-        stage('Pull Image') {
+        stage('Check Docker Version') {
             steps {
                 script {
-                    // This step is optional since Jenkins pulls the image defined in the agent section
-                    docker.image('or6562/flutter-builder').pull()
+                    sh 'docker --version'
                 }
             }
         }
-        stage('Flutter Version') {
+        stage('Pull Docker Image') {
             steps {
                 script {
-                    docker.image('your-docker-username/flutter-builder').inside {
-                        sh 'flutter --version' // Check Flutter version
-                    }
+                    sh 'docker pull or6562/flutter-builder:latest'
                 }
             }
         }
-        stage('Flutter Pub Get') {
+        stage('List Docker Images') {
             steps {
                 script {
-                    docker.image('your-docker-username/flutter-builder').inside {
-                        sh 'flutter pub get' // Run flutter pub get
-                    }
-                }
-            }
-        }
-        stage('Build APK') {
-            steps {
-                script {
-                    docker.image('your-docker-username/flutter-builder').inside {
-                        sh 'flutter build apk' // Build Flutter APK
-                    }
+                    sh 'docker images'
                 }
             }
         }
     }
+
     post {
         always {
             echo 'Pipeline finished.'
