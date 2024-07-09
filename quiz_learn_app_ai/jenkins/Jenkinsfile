@@ -1,7 +1,8 @@
 pipeline {
     agent any
+
     stages {
-          stage('Pull Docker Image') {
+        stage('Pull Docker Image') {
             steps {
                 script {
                     sh 'docker pull or6562/flutter-builder:latest'
@@ -18,8 +19,8 @@ pipeline {
         stage('Flutter Pub Get') {
             steps {
                 script {
-                    docker.image('or6562/flutter-builder').inside {
-                        sh 'flutter pub get' // Run flutter pub get
+                    docker.image('or6562/flutter-builder').inside('-u root:root') {
+                        sh 'flutter pub get' // Run flutter pub get with root permissions
                     }
                 }
             }
@@ -27,13 +28,14 @@ pipeline {
         stage('Build APK') {
             steps {
                 script {
-                    docker.image('or6562/flutter-builder').inside {
-                        sh 'flutter build apk' // Build Flutter APK
+                    docker.image('or6562/flutter-builder').inside('-u root:root') {
+                        sh 'flutter build apk' // Build Flutter APK with root permissions
                     }
                 }
             }
         }
     }
+
     post {
         always {
             echo 'Pipeline finished.'
