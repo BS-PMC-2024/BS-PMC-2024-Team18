@@ -16,14 +16,13 @@ pipeline {
                 }
             }
         }
-        stage('Flutter Tests') {
+        stage('Run Flutter Tests') {
             steps {
                 script {
-                    docker.image('or6562/flutter-builder').inside {
-                        // Navigate to your project directory
-                        dir('quiz_learn_app_ai') {
-                            sh 'flutter pub get'
-                            sh 'flutter test'  // Adjust this if your test command is different
+                    dir('quiz_learn_app_ai') {
+                        // Change to your actual directory name where the Flutter project is
+                        docker.image('or6562/flutter-builder').inside {
+                            sh 'flutter test' // Run flutter test
                         }
                     }
                 }
