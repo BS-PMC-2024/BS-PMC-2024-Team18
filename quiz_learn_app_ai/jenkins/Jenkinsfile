@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'or6562/flutter-builder' // Replace with your image name
-            args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock' // Optional: Mount Docker socket and run as root
-        }
-    }
+    agent any
     stages {
           stage('Pull Docker Image') {
             steps {
@@ -48,6 +43,39 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+    }
+}
+pipeline {
+    agent any
+
+    stages {
+        stage('Check Docker Version') {
+            steps {
+                script {
+                    sh 'docker --version'
+                }
+            }
+        }
+        stage('Pull Docker Image') {
+            steps {
+                script {
+                    sh 'docker pull or6562/flutter-builder:latest'
+                }
+            }
+        }
+        stage('List Docker Images') {
+            steps {
+                script {
+                    sh 'docker images'
+                }
+            }
+        }
+    }
+
     post {
         always {
             echo 'Pipeline finished.'
