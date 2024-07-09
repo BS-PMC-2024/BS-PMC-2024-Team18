@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     // This step is optional since Jenkins pulls the image defined in the agent section
-                    docker.image('your-docker-username/flutter-builder').pull()
+                    docker.image('or6562/flutter-builder').pull()
                 }
             }
         }
