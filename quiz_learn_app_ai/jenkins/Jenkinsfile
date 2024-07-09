@@ -9,21 +9,22 @@ pipeline {
                 }
             }
         }
-
-        stage('Checkout SCM') {
+        stage('List Docker Images') {
             steps {
-                checkout scm // This will check out your project files from Git
+                script {
+                    sh 'docker images'
+                }
             }
         }
-
         stage('Flutter Tests') {
             steps {
                 script {
-                    // Ensure that the working directory is correctly set to the Flutter project directory
-                    def projectDir = "/var/jenkins_home/jobs/Team-18/jobs/Pipeline/workspace" // Adjust if needed
-                    docker.image('or6562/flutter-builder').inside("-w ${projectDir} -u root:root") {
-                        sh 'flutter pub get' // Run flutter pub get inside the Docker container
-                        // Add additional Flutter test commands here if needed
+                    docker.image('or6562/flutter-builder').inside {
+                        // Navigate to your project directory
+                        dir('quiz_learn_app_ai') {
+                            sh 'flutter pub get'
+                            sh 'flutter test'  // Adjust this if your test command is different
+                        }
                     }
                 }
             }
