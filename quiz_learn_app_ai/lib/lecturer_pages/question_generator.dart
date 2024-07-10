@@ -1,16 +1,18 @@
+// lib/lecturer_pages/question_generator.dart
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../auth/realsecrets.dart';
 
-
-
 class QuestionGenerator {
   final String apiKey = mySecretKey;
   final String apiUrl = 'https://api.openai.com/v1/chat/completions';
+  final http.Client client;
+
+  QuestionGenerator({http.Client? client}) : client = client ?? http.Client();
 
   Future<List<Map<String, dynamic>>> generateQuestions(String text) async {
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse(apiUrl),
       headers: {
         'Authorization': 'Bearer $apiKey',
@@ -35,9 +37,8 @@ class QuestionGenerator {
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
       var content = jsonResponse['choices'][0]['message']['content'];
-       content = content.replaceAll('```json', '').replaceAll('```', '').trim();
+      content = content.replaceAll('```json', '').replaceAll('```', '').trim();
 
-      
       try {
         final List<dynamic> questions = jsonDecode(content);
         return questions.map((q) => Map<String, dynamic>.from(q)).toList();

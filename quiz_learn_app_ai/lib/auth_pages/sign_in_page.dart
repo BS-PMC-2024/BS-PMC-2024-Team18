@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // Import GoogleSignIn package
@@ -30,6 +31,24 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
+
+  Future<bool> signInWithEmailAndPasswordTest(String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Check if userCredential is not null
+      return userCredential.user != null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error: ${e.toString()}');
+      }
+      return false; // Return false to indicate sign-in failure
+    }
+  }
+
 
   Future<void> signInWithEmailAndPassword() async {
     try {
