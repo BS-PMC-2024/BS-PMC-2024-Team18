@@ -15,6 +15,7 @@ class CreateQuizPageState extends State<CreateQuizPage> {
   
   final TextEditingController _quizNameController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
+   String _selectedSubject = 'Other';
 
   final List<Map<String, dynamic>> _questions = [];
 @override
@@ -33,10 +34,131 @@ Widget build(BuildContext context) {
             decoration: const InputDecoration(labelText: 'Quiz Name'),
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: _subjectController,
-            decoration: const InputDecoration(labelText: 'Subject'),
-          ),
+        DropdownButtonFormField<String>(
+  value: _selectedSubject,
+  decoration: const InputDecoration(
+    labelText: 'Subject',
+    border: OutlineInputBorder(),
+  ),
+  items: [
+    'Accounting',
+    'Aerospace Engineering',
+    'African Studies',
+    'Agricultural Science',
+    'American Studies',
+    'Anatomy',
+    'Anthropology',
+    'Applied Mathematics',
+    'Arabic',
+    'Archaeology',
+    'Architecture',
+    'Art History',
+    'Artificial Intelligence',
+    'Asian Studies',
+    'Astronomy',
+    'Astrophysics',
+    'Biochemistry',
+    'Bioengineering',
+    'Biology',
+    'Biomedical Engineering',
+    'Biotechnology',
+    'Business Administration',
+    'Chemical Engineering',
+    'Chemistry',
+    'Chinese',
+    'Civil Engineering',
+    'Classical Studies',
+    'Cognitive Science',
+    'Communication Studies',
+    'Computer Engineering',
+    'Computer Science',
+    'Criminal Justice',
+    'Cybersecurity',
+    'Data Science',
+    'Dentistry',
+    'Earth Sciences',
+    'Ecology',
+    'Economics',
+    'Education',
+    'Electrical Engineering',
+    'English Literature',
+    'Environmental Science',
+    'Epidemiology',
+    'European Studies',
+    'Film Studies',
+    'Finance',
+    'Fine Arts',
+    'Food Science',
+    'Forensic Science',
+    'French',
+    'Gender Studies',
+    'Genetics',
+    'Geography',
+    'Geology',
+    'German',
+    'Graphic Design',
+    'Greek',
+    'Health Sciences',
+    'History',
+    'Human Resources',
+    'Industrial Engineering',
+    'Information Systems',
+    'International Relations',
+    'Italian',
+    'Japanese',
+    'Journalism',
+    'Kinesiology',
+    'Latin',
+    'Law',
+    'Linguistics',
+    'Management',
+    'Marine Biology',
+    'Marketing',
+    'Materials Science',
+    'Mathematics',
+    'Mechanical Engineering',
+    'Media Studies',
+    'Medicine',
+    'Microbiology',
+    'Middle Eastern Studies',
+    'Music',
+    'Nanotechnology',
+    'Neuroscience',
+    'Nuclear Engineering',
+    'Nursing',
+    'Nutrition',
+    'Oceanography',
+    'Philosophy',
+    'Physics',
+    'Political Science',
+    'Psychology',
+    'Public Health',
+    'Religious Studies',
+    'Russian',
+    'Social Work',
+    'Sociology',
+    'Software Engineering',
+    'Spanish',
+    'Statistics',
+    'Sustainable Development',
+    'Theatre',
+    'Urban Planning',
+    'Veterinary Science',
+    'Zoology',
+    'Other'
+  ].map<DropdownMenuItem<String>>((String value) {
+    return DropdownMenuItem<String>(
+      value: value,
+      child: Text(value),
+    );
+  }).toList(),
+  onChanged: (String? newValue) {
+    setState(() {
+      _selectedSubject = newValue!;
+    });
+  },
+),
+
           const SizedBox(height: 20),
           Text(
             'Questions:',
@@ -175,7 +297,7 @@ Widget _buildQuestionCard(Map<String, dynamic> question, int index) {
   }
 
   Future<void> _saveQuiz() async {
-  if (_quizNameController.text.isEmpty || _subjectController.text.isEmpty || _questions.isEmpty) {
+  if (_quizNameController.text.isEmpty || _selectedSubject.isEmpty || _questions.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Please enter a quiz name, subject, and add at least one question')),
     );
@@ -193,7 +315,7 @@ Widget _buildQuestionCard(Map<String, dynamic> question, int index) {
 
       await newQuizRef.set({
         'name': _quizNameController.text,
-        'subject': _subjectController.text,
+        'subject': _selectedSubject,
         'createdAt': ServerValue.timestamp,
         'questions': _questions,
       });

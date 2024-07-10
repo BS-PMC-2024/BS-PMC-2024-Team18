@@ -18,6 +18,7 @@ void main() {
     final googleSignIn = MockGoogleSignIn();
     final signInAccount = await googleSignIn.signIn();
     final googleAuth = await signInAccount!.authentication;
+    // ignore: unused_local_variable
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,

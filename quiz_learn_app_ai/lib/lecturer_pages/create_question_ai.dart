@@ -17,11 +17,11 @@ class CreateQuestionAIState extends State<CreateQuestionAI> {
  final TextEditingController _textController = TextEditingController();
   final TextEditingController _quizNameController = TextEditingController();
   final QuestionGenerator _questionGenerator = QuestionGenerator();
-  final TextEditingController _subjectController = TextEditingController();
+
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  
+    String _selectedSubject = 'Other';
   List<Map<String, dynamic>> _questions = [];
   bool _isLoading = false;
   String? _fileName;
@@ -31,8 +31,7 @@ class CreateQuestionAIState extends State<CreateQuestionAI> {
 void dispose() {
   _textController.dispose();
   _quizNameController.dispose();
-  _subjectController.dispose();
-  super.dispose();
+    super.dispose();
 }
 
 
@@ -54,13 +53,134 @@ Future<void> _saveQuiz() async {
           children: [
             TextField(
               controller: _quizNameController,
-              decoration: const InputDecoration(hintText: "Enter quiz name"),
+              decoration: const InputDecoration(hintText: "Enter Quiz name"),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _subjectController,
-              decoration: const InputDecoration(hintText: "Enter quiz subject"),
-            ),
+             DropdownButtonFormField<String>(
+  value: _selectedSubject,
+  decoration: const InputDecoration(
+    labelText: 'Enter Quiz Subject',
+    border: OutlineInputBorder(),
+  ),
+  items: [
+    'Accounting',
+    'Aerospace Engineering',
+    'African Studies',
+    'Agricultural Science',
+    'American Studies',
+    'Anatomy',
+    'Anthropology',
+    'Applied Mathematics',
+    'Arabic',
+    'Archaeology',
+    'Architecture',
+    'Art History',
+    'Artificial Intelligence',
+    'Asian Studies',
+    'Astronomy',
+    'Astrophysics',
+    'Biochemistry',
+    'Bioengineering',
+    'Biology',
+    'Biomedical Engineering',
+    'Biotechnology',
+    'Business Administration',
+    'Chemical Engineering',
+    'Chemistry',
+    'Chinese',
+    'Civil Engineering',
+    'Classical Studies',
+    'Cognitive Science',
+    'Communication Studies',
+    'Computer Engineering',
+    'Computer Science',
+    'Criminal Justice',
+    'Cybersecurity',
+    'Data Science',
+    'Dentistry',
+    'Earth Sciences',
+    'Ecology',
+    'Economics',
+    'Education',
+    'Electrical Engineering',
+    'English Literature',
+    'Environmental Science',
+    'Epidemiology',
+    'European Studies',
+    'Film Studies',
+    'Finance',
+    'Fine Arts',
+    'Food Science',
+    'Forensic Science',
+    'French',
+    'Gender Studies',
+    'Genetics',
+    'Geography',
+    'Geology',
+    'German',
+    'Graphic Design',
+    'Greek',
+    'Health Sciences',
+    'History',
+    'Human Resources',
+    'Industrial Engineering',
+    'Information Systems',
+    'International Relations',
+    'Italian',
+    'Japanese',
+    'Journalism',
+    'Kinesiology',
+    'Latin',
+    'Law',
+    'Linguistics',
+    'Management',
+    'Marine Biology',
+    'Marketing',
+    'Materials Science',
+    'Mathematics',
+    'Mechanical Engineering',
+    'Media Studies',
+    'Medicine',
+    'Microbiology',
+    'Middle Eastern Studies',
+    'Music',
+    'Nanotechnology',
+    'Neuroscience',
+    'Nuclear Engineering',
+    'Nursing',
+    'Nutrition',
+    'Oceanography',
+    'Philosophy',
+    'Physics',
+    'Political Science',
+    'Psychology',
+    'Public Health',
+    'Religious Studies',
+    'Russian',
+    'Social Work',
+    'Sociology',
+    'Software Engineering',
+    'Spanish',
+    'Statistics',
+    'Sustainable Development',
+    'Theatre',
+    'Urban Planning',
+    'Veterinary Science',
+    'Zoology',
+    'Other'
+  ].map<DropdownMenuItem<String>>((String value) {
+    return DropdownMenuItem<String>(
+      value: value,
+      child: Text(value),
+    );
+  }).toList(),
+  onChanged: (String? newValue) {
+    setState(() {
+      _selectedSubject = newValue!;
+    });
+  },
+),
+
           ],
         ),
       ),
@@ -72,7 +192,7 @@ Future<void> _saveQuiz() async {
         TextButton(
           child: const Text('Save'),
           onPressed: () async {
-            if (_quizNameController.text.isNotEmpty && _subjectController.text.isNotEmpty) {
+            if (_quizNameController.text.isNotEmpty && _selectedSubject.isNotEmpty) {
               Navigator.of(context).pop();
               await _saveQuizToFirebase();
             } else {
@@ -100,7 +220,7 @@ Future<void> _saveQuiz() async {
       final newQuizRef = _database.child('lecturers').child(user.uid).child('quizzes').push();
       await newQuizRef.set({
         'name': _quizNameController.text,
-        'subject': _subjectController.text,
+        'subject': _selectedSubject,
         'questions': _questions,
         'createdAt': ServerValue.timestamp,
       });

@@ -5,6 +5,8 @@ import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_question_ai.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_profile_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/my_quizzes_page.dart';
+import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
+
 
 class LecturerHomePage extends StatefulWidget {
   const LecturerHomePage({super.key});
@@ -120,6 +122,12 @@ class LecturerHomePageState extends State<LecturerHomePage> {
                             icon: Icons.person,
                             label: 'Lecturer Profile',
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LecturerProfilePage())),
+                          ),
+                            const SizedBox(height: 20),
+                          _buildButton(
+                            icon: Icons.person,
+                            label: 'Quiz Search',
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) =>  const QuizListScreen())),
                           ),
                         ],
                       ),
