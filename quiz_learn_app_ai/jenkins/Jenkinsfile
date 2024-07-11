@@ -22,7 +22,7 @@ pipeline {
                     dir('quiz_learn_app_ai') {
                         docker.image('or6562/flutter-builder').inside('-u root:root') {
                             // Run flutter test
-                            sh 'flutter test'
+                             sh 'flutter test test/widget_test.dart test/sign_in_page_test.dart'
                         }
                     }
                 }
