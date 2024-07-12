@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:quiz_learn_app_ai/student_pages/student_star_quiz_page.dart';
 
 class QuizListScreen extends StatefulWidget {
   const QuizListScreen({super.key});
@@ -58,6 +59,14 @@ Widget build(BuildContext context) {
                                 ElevatedButton(
                                   onPressed: () {
                                     // Navigate to quiz details or start quiz
+                                    Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => StudentStartQuizPage(
+                                        quizId: quiz['id'],
+                                      ),
+                                    ),
+                                  );
                                   },
                                   child: const Text('Enter Quiz'),
                                 ),
