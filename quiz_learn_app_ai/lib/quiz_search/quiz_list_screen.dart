@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/question_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_star_quiz_page.dart';
 
 class QuizListScreen extends StatefulWidget {
@@ -23,70 +24,74 @@ class QuizListScreenState extends State<QuizListScreen> {
     _loadAllQuizzes();
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(title: const Text('All Quizzes')),
-    body: Column(
-      children: [
-        QuizSearchBar(onSearch: _filterQuizzes),
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  itemCount: _filteredQuizzes.length,
-                  itemBuilder: (context, index) {
-                    final quiz = _filteredQuizzes[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(quiz['name'].toString(), style: Theme.of(context).textTheme.headlineMedium),
-                            const SizedBox(height: 4),
-                            Text('${quiz['subject'].toString()} - ${quiz['questionCount'].toString()} questions'),
-                            const SizedBox(height: 4),
-                            Text('Lecturer: ${quiz['lecturer'].toString()}'),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(DateFormat('MM/dd/yyyy').format(
-                                  DateTime.fromMillisecondsSinceEpoch(int.parse(quiz['createdAt'].toString()))
-                                )),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Navigate to quiz details or start quiz
-                                    Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => StudentStartQuizPage(
-                                        quizId: quiz['id'],
-                                      ),
-                                    ),
-                                  );
-                                  },
-                                  child: const Text('Enter Quiz'),
-                                ),
-                              ],
-                            ),
-                          ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('All Quizzes')),
+      body: Column(
+        children: [
+          QuizSearchBar(onSearch: _filterQuizzes),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _filteredQuizzes.length,
+                    itemBuilder: (context, index) {
+                      final quiz = _filteredQuizzes[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(quiz['name'].toString(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium),
+                              const SizedBox(height: 4),
+                              Text(
+                                  '${quiz['subject'].toString()} - ${quiz['questionCount'].toString()} questions'),
+                              const SizedBox(height: 4),
+                              Text('Lecturer: ${quiz['lecturer'].toString()}'),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(DateFormat('MM/dd/yyyy').format(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                          int.parse(
+                                              quiz['createdAt'].toString())))),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Navigate to quiz details or start quiz
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => QuestionScreen(
+                                            quizId: quiz['id'],
+                                            quizName: quiz['name'],
+                                          ),
+                                        ),
+                                      ).then((_) => _loadAllQuizzes());
+                                    },
+                                    child: const Text('Enter Quiz'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
-    ),
-  );
-}
-
-
-
-
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _loadAllQuizzes() async {
     setState(() {
@@ -95,7 +100,6 @@ Widget build(BuildContext context) {
 
     try {
       final snapshot = await _database.ref().child('lecturers').get();
-
 
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
@@ -133,25 +137,41 @@ Widget build(BuildContext context) {
     }
   }
 
-void _filterQuizzes(String searchTerm, String lecturer, String subject, DateTime? startDate, DateTime? endDate) {
-  setState(() {
-    _filteredQuizzes = _allQuizzes.where((quiz) {
-      bool matchesSearch = quiz['name'].toString().toLowerCase().contains(searchTerm.toLowerCase()) ||
-          quiz['subject'].toString().toLowerCase().contains(searchTerm.toLowerCase()) ||
-          quiz['lecturer'].toString().toLowerCase().contains(searchTerm.toLowerCase());
-      bool matchesLecturer = lecturer == 'All' || quiz['lecturer'].toString() == lecturer;
-      bool matchesSubject = subject == 'All' || quiz['subject'].toString() == subject;
-      bool matchesDate = true;
-      if (startDate != null && endDate != null) {
-        // Parse the timestamp to DateTime
-        DateTime quizDate = DateTime.fromMillisecondsSinceEpoch(int.parse(quiz['createdAt'].toString()));
-        matchesDate = quizDate.isAfter(startDate) && quizDate.isBefore(endDate.add(const Duration(days: 1)));
-      }
-      return matchesSearch && matchesLecturer && matchesSubject && matchesDate;
-    }).toList();
-  });
-}
-
+  void _filterQuizzes(String searchTerm, String lecturer, String subject,
+      DateTime? startDate, DateTime? endDate) {
+    setState(() {
+      _filteredQuizzes = _allQuizzes.where((quiz) {
+        bool matchesSearch = quiz['name']
+                .toString()
+                .toLowerCase()
+                .contains(searchTerm.toLowerCase()) ||
+            quiz['subject']
+                .toString()
+                .toLowerCase()
+                .contains(searchTerm.toLowerCase()) ||
+            quiz['lecturer']
+                .toString()
+                .toLowerCase()
+                .contains(searchTerm.toLowerCase());
+        bool matchesLecturer =
+            lecturer == 'All' || quiz['lecturer'].toString() == lecturer;
+        bool matchesSubject =
+            subject == 'All' || quiz['subject'].toString() == subject;
+        bool matchesDate = true;
+        if (startDate != null && endDate != null) {
+          // Parse the timestamp to DateTime
+          DateTime quizDate = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(quiz['createdAt'].toString()));
+          matchesDate = quizDate.isAfter(startDate) &&
+              quizDate.isBefore(endDate.add(const Duration(days: 1)));
+        }
+        return matchesSearch &&
+            matchesLecturer &&
+            matchesSubject &&
+            matchesDate;
+      }).toList();
+    });
+  }
 }
 
 class QuizSearchBar extends StatefulWidget {
@@ -169,7 +189,7 @@ class QuizSearchBarState extends State<QuizSearchBar> {
   String _selectedSubject = 'All';
   DateTime? _startDate;
   DateTime? _endDate;
-    final FirebaseDatabase _database = FirebaseDatabase.instance;
+  final FirebaseDatabase _database = FirebaseDatabase.instance;
   late Future<List<String>> _lecturersFuture;
 
   @override
@@ -184,7 +204,7 @@ class QuizSearchBarState extends State<QuizSearchBar> {
 
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
-        List<String> lecturers = ['All'];  // Add 'All' as the first option
+        List<String> lecturers = ['All']; // Add 'All' as the first option
 
         data.forEach((lecturerId, lecturerData) {
           lecturers.add(lecturerData['name'] ?? 'Unknown Lecturer');
@@ -238,15 +258,15 @@ class QuizSearchBarState extends State<QuizSearchBar> {
           FutureBuilder<List<String>>(
             future: _lecturersFuture,
             builder: (context, snapshot) {
-             if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: CircularProgressIndicator(strokeWidth: 3),
-        ),
-      );
-    } else if (snapshot.hasError) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  ),
+                );
+              } else if (snapshot.hasError) {
                 return const Text('Error loading lecturers');
               } else {
                 return DropdownButtonFormField<String>(
