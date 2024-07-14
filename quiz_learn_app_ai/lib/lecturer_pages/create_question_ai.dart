@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'question_generator.dart';
 
@@ -19,7 +18,7 @@ class CreateQuestionAIState extends State<CreateQuestionAI> {
   final TextEditingController _quizNameController = TextEditingController();
   final QuestionGenerator _questionGenerator = QuestionGenerator();
 
-final FirebaseService _firebaseService = FirebaseService();
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
     String _selectedSubject = 'Other';
@@ -209,35 +208,43 @@ Future<void> _saveQuiz() async {
 }
 
 
-  Future<void> _saveQuizToFirebase() async {
-    setState(() {
-      FocusScope.of(context).unfocus();
-      _isLoading = true;
-    });
+ Future<void> _saveQuizToFirebase() async {
+  setState(() {
+    FocusScope.of(context).unfocus();
+    _isLoading = true;
+  });
 
-    try {
-      await _firebaseService.saveQuizToFirebase(
-        _quizNameController.text,
-        _selectedSubject,
-        _questions,
-      );
-      if (mounted) {
+  try {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      final newQuizRef = _database.child('lecturers').child(user.uid).child('quizzes').push();
+      await newQuizRef.set({
+        'name': _quizNameController.text,
+        'subject': _selectedSubject,
+        'questions': _questions,
+        'createdAt': ServerValue.timestamp,
+      });
+      if(mounted){
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Quiz saved successfully')),
         );
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
-        );
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    } else {
+      throw Exception('User not logged in');
     }
+  } catch (e) {
+    if(mounted){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+      );
+    }
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
   Future<void> _pickPDFAndExtractText() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(

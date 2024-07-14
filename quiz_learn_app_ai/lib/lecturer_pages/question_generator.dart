@@ -45,7 +45,7 @@ class QuestionGenerator {
          final Map<String, dynamic> quiz = jsonDecode(content);
          final List<dynamic> questions = quiz['questions'];
          final List<Map<String, dynamic>> result = questions.map((q) => Map<String, dynamic>.from(q)).toList();
-         result.add({'description': quiz['description']});
+         //result.add({'description': quiz['description']});
 
         return result;
       } catch (e) {

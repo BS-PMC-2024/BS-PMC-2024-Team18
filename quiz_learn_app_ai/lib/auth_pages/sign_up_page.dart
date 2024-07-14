@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_home_page.dart';
-import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_home_page.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_home_page.dart';
 class SignUpPage extends StatefulWidget {
@@ -16,8 +15,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-
-    final Auth _auth = Auth(auth: FirebaseAuth.instance);
+  final FirebaseAuth _auth = FirebaseAuth.instance;
     final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -26,60 +24,47 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isAdminPasswordCorrect = false;
   bool isAdminSelected = false;
 
-Future<void> signUpWithEmailAndPassword() async {
+
+Future<void> signUpWithEmailPassword() async {
   try {
-    String result = await _auth.createAccount(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
+    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
     );
 
-    if (result == "Success") {
-      User? user = _auth.auth!.currentUser;
+    // Add user data to Realtime Database
+    await _database.child('users').child(userCredential.user!.uid).set({
+      'email': emailController.text,
+      'userType': selectedUserType,
+    });
 
-      if (user != null) {
-        // Set user type in the database
-        await _database.child('users').child(user.uid).set({
-          'email': emailController.text.trim(),
-          'userType': selectedUserType,
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created successfully')),
-          );
-
-          // Navigate to the appropriate home page
-          switch (selectedUserType) {
-            case 'Admin':
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AdminHomePage()));
-              break;
-            case 'Student':
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
-              break;
-            case 'Lecturer':
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LecturerHomePage()));
-              break;
-            default:
-              throw Exception("Invalid user type: $selectedUserType");
-          }
-        }
-      } else {
-        throw Exception("User is null after successful account creation");
-      }
-    } else {
-      throw Exception("Failed to create account: $result");
-    }
-  } catch (e) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        const SnackBar(content: Text('User created successfully')),
       );
+      
+      // Navigate to the appropriate home page
+      if (selectedUserType == 'Admin') {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AdminHomePage()));
+      } else if (selectedUserType == 'Student') {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
+      } else if (selectedUserType == 'Lecturer') {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LecturerHomePage()));
+      }
     }
+  } catch (e) {
+        if(mounted){
+           ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An unexpected error occurred: $e')),
+    );
+        }
     if (kDebugMode) {
-      print("Detailed error: $e");
-    } // For debugging
+      print('Unexpected error: $e');
+    }
+   
   }
 }
+
 
 void checkAdminPassword() {
     if (adminPasswordController.text == "gilIsLove") {
@@ -185,7 +170,7 @@ Widget build(BuildContext context) {
                   } else if (password.length < 6) {
                     _showErrorSnackBar('Password must be at least 6 characters.');
                   } else {
-                    await signUpWithEmailAndPassword();
+                    await signUpWithEmailPassword();
                   }
                 },
                 style: ElevatedButton.styleFrom(

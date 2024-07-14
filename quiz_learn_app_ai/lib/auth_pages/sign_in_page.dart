@@ -1,12 +1,11 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // Import GoogleSignIn package
 import 'package:quiz_learn_app_ai/admin_pages/admin_home_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_home_page.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_home_page.dart';
-import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
-
 
 class SignInPage extends StatefulWidget {
   final Function toggleView;
@@ -27,51 +26,54 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final Auth auth = Auth(auth: FirebaseAuth.instance);
-      final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
 
+  Future<bool> signInWithEmailAndPasswordTest(String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Check if userCredential is not null
+      return userCredential.user != null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error: ${e.toString()}');
+      }
+      return false; // Return false to indicate sign-in failure
+    }
+  }
 
 
   Future<void> signInWithEmailAndPassword() async {
     try {
-      String result = await auth.login(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      if (result == "Success") {
-        User? user = auth.auth!.currentUser;
+      // Fetch user type from database
+      DatabaseEvent event = await _database.child('users').child(userCredential.user!.uid).once();
+      Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
+      String? userType = userData?['userType'];
 
-        if (user != null) {
-          // Fetch user type from database
-          DatabaseEvent event = await _database.child('users').child(user.uid).once();
-          Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
-          String? userType = userData?['userType'];
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signed in successfully')),
+        );
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Signed in successfully')),
-            );
-
-            // Navigate to the appropriate home page
-            if (userType == 'Admin') {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AdminHomePage()));
-            } else if (userType == 'Student') {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
-            } else if (userType == 'Lecturer') {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LecturerHomePage()));
-            }
-          }
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $result')),
-          );
+        // Navigate to the appropriate home page
+        if (userType == 'Admin') {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AdminHomePage()));
+        } else if (userType == 'Student') {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
+        } else if (userType == 'Lecturer') {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LecturerHomePage()));
         }
       }
     } catch (e) {
@@ -82,6 +84,9 @@ class _SignInPageState extends State<SignInPage> {
       }
     }
   }
+
+
+
 
  Future<String?> showUserTypeSelectionDialog() async {
     String? selectedUserType;

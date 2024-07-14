@@ -1,38 +1,59 @@
-import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'package:quiz_learn_app_ai/quiz_pages/configs/ui_parameters.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/test_overwiew_screen.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/widgets/answer_card.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/widgets/content_area.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/widgets/countdown_timer.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/widgets/custom_app_bar.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/widgets/main_button.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/widgets/question_place_holder.dart';
 
 class QuestionScreen extends StatefulWidget {
   final String quizId;
   final String quizName;
+ 
   const QuestionScreen(
-      {super.key, required this.quizId, required this.quizName});
+      {super.key,
+       required this.quizId,
+        required this.quizName,
+        });
 
   @override
   QuestionScreenState createState() => QuestionScreenState();
 }
 
 class QuestionScreenState extends State<QuestionScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-
-  late TextEditingController _quizNameController;
-  //late TextEditingController _descriptionController;
-  List<Map<dynamic, dynamic>> _questions = [];
-  Map<dynamic, dynamic> _quizData = {};
-  List<Map<dynamic, dynamic>> _allQuizzes = [];
+  String _selectedAnswer = '';
+  //late TextEditingController _quizNameController;
+  late List<Map<dynamic, dynamic>> _questions = [];
+  late Map<dynamic, dynamic> _quizData = {};
+  late List<Map<dynamic, dynamic>> _allQuizzes = [];
   bool _isLoading = true;
   bool _isCompleted = false;
-  String _quizId = '';
+  Map<dynamic, dynamic> _currentQuestion = {};
+  int _currentQuestionIndex = 0;
+  bool get isFirstQuestion => _currentQuestionIndex > 0;
+  bool get isLastQuestion => _currentQuestionIndex >= _questions.length - 1;
+  Timer? _timer;
+  int remainSeconds = 1;
+  var time = '00.00';
+  final List<String> _rightAnswers = [];
+  final List<String> _wrongAnswers = [];
+  
+  
+
+   
 
   @override
   void initState() {
     super.initState();
-    _quizNameController = TextEditingController(text: widget.quizName);
-    //_descriptionController = TextEditingController();
+    //_quizNameController = TextEditingController(text: widget.quizName);
     _loadQuizDetails();
   }
 
@@ -45,6 +66,7 @@ class QuestionScreenState extends State<QuestionScreen> {
       final snapshot = await _database.child('lecturers').get();
 
       if (snapshot.exists) {
+         _currentQuestionIndex = 0;
         final data = snapshot.value as Map<dynamic, dynamic>;
         _allQuizzes = [];
         data.forEach((lecturerId, lecturerData) {
@@ -67,6 +89,7 @@ class QuestionScreenState extends State<QuestionScreen> {
         _quizData =
             _allQuizzes.firstWhere((element) => element['id'] == widget.quizId);
         _questions = List<Map<dynamic, dynamic>>.from(_quizData['questions']);
+        
       }
     } catch (e) {
       if (mounted) {
@@ -81,6 +104,9 @@ class QuestionScreenState extends State<QuestionScreen> {
     } finally {
       setState(() {
         _isLoading = false;
+
+        _currentQuestion = _questions[_currentQuestionIndex];
+        _startTimer(900);
       });
     }
   }
@@ -90,28 +116,216 @@ class QuestionScreenState extends State<QuestionScreen> {
     // final List<Map<dynamic, dynamic>> question =
     //     List<Map<dynamic, dynamic>>.from(_questions);
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: CustomAppBar(
+        rightAnswers: _rightAnswers,
+        wrongAnswers: _wrongAnswers,
+        allQuestions: _questions,
+        time: time,
+        leading: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+             decoration: const ShapeDecoration
+             (shape: StadiumBorder(
+                side: BorderSide(color: Colors.white, width: 2),
+             ),
+             ),
+          child:   CountdownTimer(
+            time: time,
+            color: Colors.white,
+          )
+             
+        ),
+        showActionIcon: true,
+        titleWidget: Text(
+            '   Q. ${(_currentQuestionIndex + 1).toString().padLeft(2, '0')}/${_questions.length } - ${_quizData['name']}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              letterSpacing: 0.5,
+            ),
+          ),
+        
+      ),
       body: BackgroundDecoration(
-        child: Center(
-          child: Column(
-            children: [
-              if (_isLoading)
-                const Expanded(
-                  child: CircularProgressIndicator(),
-                ),
-              if (!_isLoading)
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Text(_questions[0].toString()),
-                      ],
+        
+          child: Center(
+            child: Column(
+              children: [
+                if (_isLoading)
+                   const Expanded(
+                    child: ContentArea(
+                      child:  QuestionScreenHolder(),
+                      ),
+                  ),
+                if (!_isLoading)
+                  Expanded(
+                    child: ContentArea(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(25.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_questions[_currentQuestionIndex]['question'].toString(),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                            ),
+                            ListView.separated(
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.only(top:25),
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (BuildContext context, int index) {
+                                final answer = _currentQuestion['options'][index];
+                                
+                                return AnswerCard(answer: answer, onTap: () {
+                                  selectedAnswer(answer);
+                                },
+                                isSelected: _selectedAnswer == answer);
+                              },
+                              separatorBuilder: (BuildContext context, int index) {
+                                return const SizedBox(height: 10);
+                              },
+                              itemCount: _questions[_currentQuestionIndex]['options'].length,),
+                              
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-            ],
+                  ColoredBox(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                child: Padding(
+                                  padding: UiParameters.mobileScreenPadding,
+                                  child: Row(
+                                    children: [
+                                      Visibility(
+                                        visible: isFirstQuestion,
+                                        child: SizedBox(
+                                          width: 55,
+                                          height: 55,
+                                          child: MainButton(
+                                            onTap: previousQuestion,
+                                            child: Icon(
+                                              Icons.arrow_back_ios_new,
+                                              color: Theme.of(context).primaryColor,
+                                            ),
+                                            
+                                          ),
+                                        ),
+                                     ),
+                                     Expanded(
+                                       child: Visibility(
+                                        visible: !_isCompleted,
+                                        child: MainButton(
+                                        onTap: isLastQuestion ? () {
+                                            submitTest();
+                                            Navigator.push(
+                                              context,
+                                                MaterialPageRoute(builder: (context) =>  TestOverviewScreen(
+                                                  titleText: completedTest,
+                                                  timeRemaining: time,
+                                                  rightAnswers: _rightAnswers,
+                                                  wrongAnswers: _wrongAnswers,
+                                                  allQuestions: _questions,
+                                                  quizData: _quizData,
+                                                ),
+                                                ),
+                                            );
+                                          }
+                                          : nextQuestion,
+                                        title: isLastQuestion
+                                            ? 'Submit Quiz'
+                                            : 'Next Question',
+                                            
+                                       )),
+                                     )
+                                    ],
+                                  ),
+                                  ),
+
+                                ),
+              ],
+            ),
           ),
-        ),
+        
       ),
     );
+  }
+
+  void selectedAnswer(String? answer) {
+    setState(() {
+      _selectedAnswer = answer!;
+      
+    });
+  }
+
+  void submitTest(){
+    setState(() {
+        if (_selectedAnswer == _currentQuestion['answer']) {
+        _rightAnswers.add(_selectedAnswer);
+      }
+      if (_selectedAnswer != _currentQuestion['answer']) {
+        _wrongAnswers.add(_selectedAnswer);
+      }
+      });
+  }
+
+  void nextQuestion() {
+    if(_currentQuestionIndex >= _questions.length - 1){
+      return;
+    }
+
+    if (_currentQuestionIndex < _questions.length - 1) {
+      setState(() {
+        if (_selectedAnswer == _currentQuestion['answer']) {
+        _rightAnswers.add(_selectedAnswer);
+      }
+      if (_selectedAnswer != _currentQuestion['answer']) {
+        _wrongAnswers.add(_selectedAnswer);
+      }
+        _currentQuestionIndex++;
+        _currentQuestion = _questions[_currentQuestionIndex];
+        _selectedAnswer = '';
+      });
+    } else {
+      setState(() {
+        _isCompleted = true;
+      });
+    }
+  }
+
+  void previousQuestion() {
+    if(_currentQuestionIndex <= 0){
+      return;
+    }
+    if (isFirstQuestion) {
+      setState(() {
+        _currentQuestionIndex--;
+        _currentQuestion = _questions[_currentQuestionIndex];
+        _selectedAnswer = '';
+      });
+    }
+  }
+  _startTimer(int seconds){
+    const duration = Duration(seconds: 1);
+    remainSeconds = seconds;
+    _timer = Timer.periodic(duration, (timer) {
+      setState(() {
+        if(remainSeconds == 0){
+          timer.cancel();
+        }else{
+          int minutes = remainSeconds ~/ 60;
+          int seconds = remainSeconds%60;
+          time = "${minutes.toString().padLeft(2,"0")}:${seconds.toString().padLeft(2, "0")}";
+          remainSeconds--;
+        }
+      });
+    });
+  }
+
+  String get completedTest{
+    final answered = _rightAnswers.length.toString();
+    return '$answered out of ${_questions.length} answered';
   }
 }

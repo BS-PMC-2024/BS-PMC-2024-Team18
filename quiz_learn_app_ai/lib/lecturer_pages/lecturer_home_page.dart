@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_question_ai.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_profile_page.dart';
@@ -22,7 +20,6 @@ class LecturerHomePageState extends State<LecturerHomePage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   String? userEmail;
   String? userType;
-    final Auth auth = Auth(auth: FirebaseAuth.instance);
 
   @override
   void initState() {
@@ -30,51 +27,28 @@ class LecturerHomePageState extends State<LecturerHomePage> {
     _loadUserData();
   }
 
- Future<void> _loadUserData() async {
+  Future<void> _loadUserData() async {
     User? user = _auth.currentUser;
     if (user != null) {
       DatabaseEvent event = await _database.child('users').child(user.uid).once();
       Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
-      if (mounted) { // Check if the widget is still mounted
-        setState(() {
-          userEmail = user.email;
-          userType = userData?['userType'];
-        });
-      }
+      setState(() {
+        userEmail = user.email;
+        userType = userData?['userType'];
+      });
     }
   }
 
-Future<void> _signOut() async {
-  try {
-    String result = await auth.signOut();
-    
-    if (result == "Success") {
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AuthPage()),
-          (route) => false,
-        );
-      }
-    } else {
-      // Handle sign out failure
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign out failed: $result')),
-        );
-      }
-    }
-  } catch (e) {
-    // Handle any unexpected errors
+  Future<void> _signOut() async {
+    await _auth.signOut();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during sign out: $e')),
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthPage()),
+        (route) => false,
       );
     }
-    if (kDebugMode) {
-      print("Detailed sign out error: $e");
-    } // For debugging
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

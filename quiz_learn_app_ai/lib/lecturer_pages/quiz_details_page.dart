@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class QuizDetailsPage extends StatefulWidget {
   final String quizId;
@@ -23,9 +22,9 @@ class QuizDetailsPage extends StatefulWidget {
 class QuizDetailsPageState extends State<QuizDetailsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-   final FirebaseService _firebaseService = FirebaseService();
+  
   late TextEditingController _quizNameController;
-  late TextEditingController _descriptionController;
+  //late TextEditingController _descriptionController;
   List<Map<dynamic, dynamic>> _questions = [];
   bool _isLoading = true;
   bool _isEditing = false;
@@ -34,7 +33,7 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
   void initState() {
     super.initState();
     _quizNameController = TextEditingController(text: widget.initialQuizName);
-    _descriptionController = TextEditingController();
+    //_descriptionController = TextEditingController();
     _loadQuizDetails();
   }
 
@@ -58,11 +57,11 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
           setState(() {
             _questions = List<Map<dynamic, dynamic>>.from(data['questions']);
             // Update description controller text if available in the data
-            if (_questions.length > 5 && _questions[5]['description'] != null) {
-               _descriptionController.text = _questions[5]['description'];
-            } else {
-            _descriptionController.text = '';
-            }
+            // if (_questions.length > 5 && _questions[5]['description'] != null) {
+            //    _descriptionController.text = _questions[5]['description'];
+            // } else {
+            // _descriptionController.text = '';
+            // }
           });
         }
       }
@@ -83,30 +82,40 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
     }
   }
 
- Future<void> _saveQuiz() async {
+  Future<void> _saveQuiz() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await _firebaseService.saveQuiz(
-        widget.quizId,
-        _quizNameController.text,
-        _questions,
-        _descriptionController.text,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      final User? user = _auth.currentUser;
+      if (user != null) {
+        await _database
+            .child('lecturers')
+            .child(user.uid)
+            .child('quizzes')
+            .child(widget.quizId)
+            .update({
+          'name': _quizNameController.text,
+          'questions': _questions,
+          //'description': _descriptionController.text,
+        });
+ if(mounted){
+    ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Quiz saved successfully')),
         );
+  
+ }
+      
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
-        );
+      if(mounted){
+         ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+      );
+
       }
+     
     } finally {
       setState(() {
         _isLoading = false;
@@ -115,7 +124,6 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
     }
   }
 
-  
   void _editQuestion(int index) {
     showDialog(
       context: context,
@@ -265,8 +273,8 @@ Widget _buildQuizContent() {
       children: [
         _buildQuizNameField(),
         const SizedBox(height: 20),
-        _buildDescriptionField(), // New description field
-        const SizedBox(height: 10),
+        // _buildDescriptionField(), // New description field
+        // const SizedBox(height: 10),
         Text(
           'Questions:',
           style: TextStyle(
@@ -310,27 +318,27 @@ Widget _buildQuizNameField() {
   );
 }
 
-// Edit starts here
-Widget _buildDescriptionField() {
-  return TextFormField(
-    controller: _descriptionController, // Make sure you define this controller
-    decoration: InputDecoration(
-      labelText: 'Quiz Description',
-      enabled: _isEditing,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue[800]!),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
-      ),
-    ),
-    style: const TextStyle(fontSize: 18),
-    maxLines: null, // Allow the description to be multiple lines
-  );
-}
-// Edit ends here
+
+// Widget _buildDescriptionField() {
+//   return TextFormField(
+//     controller: _descriptionController, // Make sure you define this controller
+//     decoration: InputDecoration(
+//       labelText: 'Quiz Description',
+//       enabled: _isEditing,
+//       border: OutlineInputBorder(
+//         borderRadius: BorderRadius.circular(15),
+//         borderSide: BorderSide(color: Colors.blue[800]!),
+//       ),
+//       focusedBorder: OutlineInputBorder(
+//         borderRadius: BorderRadius.circular(15),
+//         borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+//       ),
+//     ),
+//     style: const TextStyle(fontSize: 18),
+//     maxLines: null, // Allow the description to be multiple lines
+//   );
+// }
+
 
 Widget _buildQuestionCard(Map<dynamic, dynamic> question, int index) {
   // Cast the Map<dynamic, dynamic> to Map<String, dynamic>
@@ -420,7 +428,7 @@ Widget _buildQuestionCard(Map<dynamic, dynamic> question, int index) {
   @override
   void dispose() {
     _quizNameController.dispose();
-    _descriptionController.dispose(); // Dispose of the description controller
+    //_descriptionController.dispose(); // Dispose of the description controller
     super.dispose();
   }
 }
