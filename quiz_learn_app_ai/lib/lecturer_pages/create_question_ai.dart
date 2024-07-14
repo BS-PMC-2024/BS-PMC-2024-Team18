@@ -533,7 +533,23 @@ Widget _buildQuestionsList() {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _questions.length,
           itemBuilder: (context, index) {
-            final question = _questions[index];
+            if (index == 0) {
+              // The first item is the description
+              final description = _questions[_questions.length - 1]['description'] ?? 'No description available';
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            }else{
+            final question = _questions[index - 1]; // Adjust index to account for description
             return Card(
               elevation: 3,
               margin: const EdgeInsets.only(bottom: 16),
@@ -546,7 +562,7 @@ Widget _buildQuestionsList() {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Q${index + 1}: ${question['question'] ?? 'No question text'}',
+                      'Q$index: ${question['question'] ?? 'No question text'}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -593,6 +609,7 @@ Widget _buildQuestionsList() {
                 ),
               ),
             );
+            }
           },
         );
 }

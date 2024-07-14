@@ -1,1 +1,0 @@
-var mySecretKey = 'test';

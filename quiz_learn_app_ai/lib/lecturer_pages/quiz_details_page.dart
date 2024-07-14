@@ -6,11 +6,13 @@ import 'package:firebase_database/firebase_database.dart';
 class QuizDetailsPage extends StatefulWidget {
   final String quizId;
   final String initialQuizName;
+  
 
   const QuizDetailsPage({
     super.key,
     required this.quizId,
     required this.initialQuizName,
+    
   });
 
   @override
@@ -22,6 +24,7 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   
   late TextEditingController _quizNameController;
+  late TextEditingController _descriptionController;
   List<Map<dynamic, dynamic>> _questions = [];
   bool _isLoading = true;
   bool _isEditing = false;
@@ -30,6 +33,7 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
   void initState() {
     super.initState();
     _quizNameController = TextEditingController(text: widget.initialQuizName);
+    _descriptionController = TextEditingController();
     _loadQuizDetails();
   }
 
@@ -52,6 +56,12 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
           final data = snapshot.value as Map<dynamic, dynamic>;
           setState(() {
             _questions = List<Map<dynamic, dynamic>>.from(data['questions']);
+            // Update description controller text if available in the data
+            if (_questions.length > 5 && _questions[5]['description'] != null) {
+               _descriptionController.text = _questions[5]['description'];
+            } else {
+            _descriptionController.text = '';
+            }
           });
         }
       }
@@ -88,6 +98,7 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
             .update({
           'name': _quizNameController.text,
           'questions': _questions,
+          'description': _descriptionController.text,
         });
  if(mounted){
     ScaffoldMessenger.of(context).showSnackBar(
@@ -124,49 +135,51 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
         final TextEditingController answerController = TextEditingController(text: question['answer']);
 
         return AlertDialog(
-          title: Text('Edit Question ${index + 1}'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: questionController,
-                  decoration: const InputDecoration(labelText: 'Question'),
-                ),
-                const SizedBox(height: 10),
-                ...List.generate(optionControllers.length, (i) => 
+          
+            title: Text('Edit Question ${index + 1}'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   TextField(
-                    controller: optionControllers[i],
-                    decoration: InputDecoration(labelText: 'Option ${String.fromCharCode(65 + i)}'),
-                  )
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: answerController,
-                  decoration: const InputDecoration(labelText: 'Correct Answer'),
-                ),
-              ],
+                    controller: questionController,
+                    decoration: const InputDecoration(labelText: 'Question'),
+                  ),
+                  const SizedBox(height: 10),
+                  ...List.generate(optionControllers.length, (i) => 
+                    TextField(
+                      controller: optionControllers[i],
+                      decoration: InputDecoration(labelText: 'Option ${String.fromCharCode(65 + i)}'),
+                    )
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: answerController,
+                    decoration: const InputDecoration(labelText: 'Correct Answer'),
+                  ),
+                ],
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () {
-                setState(() {
-                  _questions[index] = {
-                    'question': questionController.text,
-                    'options': optionControllers.map((controller) => controller.text).toList(),
-                    'answer': answerController.text,
-                  };
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              TextButton(
+                child: const Text('Save'),
+                onPressed: () {
+                  setState(() {
+                    _questions[index] = {
+                      'question': questionController.text,
+                      'options': optionControllers.map((controller) => controller.text).toList(),
+                      'answer': answerController.text,
+                    };
+                  });
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          
         );
       },
     );
@@ -260,6 +273,8 @@ Widget _buildQuizContent() {
       children: [
         _buildQuizNameField(),
         const SizedBox(height: 20),
+        _buildDescriptionField(), // New description field
+        const SizedBox(height: 10),
         Text(
           'Questions:',
           style: TextStyle(
@@ -272,7 +287,7 @@ Widget _buildQuizContent() {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: _questions.length,
+          itemCount: _questions.length -1,
           itemBuilder: (context, index) {
             final question = _questions[index];
             return _buildQuestionCard(question, index);
@@ -302,6 +317,29 @@ Widget _buildQuizNameField() {
     style: const TextStyle(fontSize: 18),
   );
 }
+
+// Edit starts here
+Widget _buildDescriptionField() {
+  return TextFormField(
+    controller: _descriptionController, // Make sure you define this controller
+    decoration: InputDecoration(
+      labelText: 'Quiz Description',
+      enabled: _isEditing,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: Colors.blue[800]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+      ),
+    ),
+    style: const TextStyle(fontSize: 18),
+    maxLines: null, // Allow the description to be multiple lines
+  );
+}
+// Edit ends here
+
 Widget _buildQuestionCard(Map<dynamic, dynamic> question, int index) {
   // Cast the Map<dynamic, dynamic> to Map<String, dynamic>
   final Map<String, dynamic> typedQuestion = Map<String, dynamic>.from(question);
@@ -390,6 +428,7 @@ Widget _buildQuestionCard(Map<dynamic, dynamic> question, int index) {
   @override
   void dispose() {
     _quizNameController.dispose();
+    _descriptionController.dispose(); // Dispose of the description controller
     super.dispose();
   }
 }
