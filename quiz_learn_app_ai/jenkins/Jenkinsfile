@@ -25,7 +25,7 @@ pipeline {
                              sh 'flutter pub get'
 
                             // Run flutter test
-                             sh 'flutter test test/widget_test.dart test/user_test.dart ' 
+                             sh 'flutter test test/widget_test.dart test/user_test.dart test/auth_unit_test.dart' 
                         }
                     }
                 }
