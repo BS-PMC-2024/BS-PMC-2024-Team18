@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class QuizDetailsPage extends StatefulWidget {
   final String quizId;
@@ -22,7 +23,7 @@ class QuizDetailsPage extends StatefulWidget {
 class QuizDetailsPageState extends State<QuizDetailsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  
+   final FirebaseService _firebaseService = FirebaseService();
   late TextEditingController _quizNameController;
   late TextEditingController _descriptionController;
   List<Map<dynamic, dynamic>> _questions = [];
@@ -82,40 +83,30 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
     }
   }
 
-  Future<void> _saveQuiz() async {
+ Future<void> _saveQuiz() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final User? user = _auth.currentUser;
-      if (user != null) {
-        await _database
-            .child('lecturers')
-            .child(user.uid)
-            .child('quizzes')
-            .child(widget.quizId)
-            .update({
-          'name': _quizNameController.text,
-          'questions': _questions,
-          'description': _descriptionController.text,
-        });
- if(mounted){
-    ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quiz saved successfully')),
-        );
-  
- }
-      
-      }
-    } catch (e) {
-      if(mounted){
-         ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+      await _firebaseService.saveQuiz(
+        widget.quizId,
+        _quizNameController.text,
+        _questions,
+        _descriptionController.text,
       );
 
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz saved successfully')),
+        );
       }
-     
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -124,6 +115,7 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
     }
   }
 
+  
   void _editQuestion(int index) {
     showDialog(
       context: context,

@@ -13,8 +13,8 @@ import 'package:mockito/mockito.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 // import './user_test.mocks.dart';
-import './mock.dart';
-import './firebase_auth_test.dart';
+import 'mock.dart';
+import 'firebase_auth_test.dart';
 
 Map<String, dynamic> kMockUser1 = <String, dynamic>{
   'isAnonymous': true,
