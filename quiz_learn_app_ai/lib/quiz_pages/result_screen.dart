@@ -12,14 +12,14 @@ class ResultScreen extends StatefulWidget {
   final Map<dynamic, dynamic>? quizData;
   final List<String>? rightAnswers;
   final List<String>? wrongAnswers;
-  final List<Map<dynamic, dynamic>>? allQuestions;
+  final List<Map<dynamic, dynamic>> allQuestions;
 
   const ResultScreen({
     super.key,
     this.quizData,
     this.rightAnswers,
     this.wrongAnswers,
-    this.allQuestions,
+    required this.allQuestions,
   });
 
   @override
@@ -46,6 +46,7 @@ final FirebaseService _firebaseService = FirebaseService();
         _rightAnswers,
         widget.wrongAnswers,
         points,
+        widget.allQuestions
       );
       if(mounted){ ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Quiz results saved successfully')),

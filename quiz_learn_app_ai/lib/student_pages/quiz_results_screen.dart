@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'quiz_detail_screen.dart';
 
 class QuizResultsScreen extends StatefulWidget {
   const QuizResultsScreen({super.key});
@@ -41,10 +42,8 @@ class QuizResultsScreenState extends State<QuizResultsScreen> {
             itemCount: results.length,
             itemBuilder: (context, index) {
               final result = results[index];
-
-              // Safely access the properties
-              final rightAnswers = result['rightAnswers'] ?? [];
-              final wrongAnswers = result['wrongAnswers'] ?? [];
+              final rightAnswers = result['rightAnswers'] is List ? result['rightAnswers'] : [];
+              final wrongAnswers = result['wrongAnswers'] is List ? result['wrongAnswers'] : [];
 
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -60,6 +59,14 @@ class QuizResultsScreenState extends State<QuizResultsScreen> {
                         ? Colors.green
                         : Colors.red,
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QuizDetailScreen(quizId: result['quizId']),
+                      ),
+                    );
+                  },
                 ),
               );
             },
