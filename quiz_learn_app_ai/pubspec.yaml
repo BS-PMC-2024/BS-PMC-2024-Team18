@@ -47,6 +47,9 @@ dependencies:
   cloud_firestore: ^5.0.2
   google_sign_in: ^6.2.1
   async: ^2.11.0
+  get: ^4.6.6
+  easy_separator: ^1.0.1
+  shimmer: ^3.0.0
  
 
 dev_dependencies:

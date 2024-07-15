@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
+import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_profile_page.dart';
 
 class StudentHomePage extends StatefulWidget {
@@ -108,9 +109,14 @@ class StudentHomePageState extends State<StudentHomePage> {
                           const SizedBox(height: 40),
                           _buildButton(
                             icon: Icons.create,
-                            label: 'Create Questions with AI',
-                            onPressed: () {},
-                            //Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateQuestionAI())),
+                            label: 'View Quiz Results',
+                            onPressed: () {
+                              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const QuizResultsScreen()),
+                );
+                            },
+                        
                           ),
                           const SizedBox(height: 20),
                           _buildButton(

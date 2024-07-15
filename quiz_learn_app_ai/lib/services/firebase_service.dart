@@ -251,5 +251,62 @@ Future<List<UserData>> loadUsers() async {
       throw Exception('Error loading users: $e');
     }
   }
+
+   Future<void> saveQuizResults(String quizId, String quizName, List<String>? rightAnswers, List<String>? wrongAnswers, String points) async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      try {
+        final quizResult = {
+          'quizId': quizId,
+          'quizName': quizName,
+          'rightAnswers': rightAnswers,
+          'wrongAnswers': wrongAnswers,
+          'points': points,
+          'date': DateTime.now().toIso8601String(),
+        };
+
+        await _database.child('students').child(user.uid).child('quizResults').push().set(quizResult);
+      } catch (e) {
+        throw Exception('Error saving quiz results: ${e.toString()}');
+      }
+    } else {
+      throw Exception('User not logged in');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> loadQuizResults() async {
+  final User? user = _auth.currentUser;
+  if (user != null) {
+    try {
+      final snapshot = await _database
+          .child('students')
+          .child(user.uid)
+          .child('quizResults')
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> results = data.entries.map((entry) {
+          final result = entry.value as Map<dynamic, dynamic>;
+          return {
+            'quizId': result['quizId'],
+            'quizName': result['quizName'],
+            'rightAnswers': result['rightAnswers'],
+            'wrongAnswers': result['wrongAnswers'],
+            'points': result['points'],
+            'date': result['date'],
+          };
+        }).toList();
+
+        results.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+        return results;
+      }
+    } catch (e) {
+      throw Exception('Error loading quiz results: ${e.toString()}');
+    }
+  }
+  throw Exception('User not logged in');
+}
+
 }
 
