@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/question_screen.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:quiz_learn_app_ai/student_pages/student_star_quiz_page.dart';
 
 class QuizListScreen extends StatefulWidget {
   const QuizListScreen({super.key});

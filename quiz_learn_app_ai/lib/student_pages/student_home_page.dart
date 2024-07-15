@@ -109,14 +109,14 @@ class StudentHomePageState extends State<StudentHomePage> {
                           _buildButton(
                             icon: Icons.create,
                             label: 'Create Questions with AI',
-                            onPressed: () => null,
+                            onPressed: () {},
                             //Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateQuestionAI())),
                           ),
                           const SizedBox(height: 20),
                           _buildButton(
                             icon: Icons.quiz,
                             label: 'My Quizzes',
-                            onPressed: () => null, 
+                            onPressed: () {}, 
                             //Navigator.push(context, MaterialPageRoute(builder: (context) => const MyQuizzesPage())),
                           ),
                           const SizedBox(height: 20),

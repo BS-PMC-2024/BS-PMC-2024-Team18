@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,19 +16,15 @@ class QuestionScreen extends StatefulWidget {
 class QuestionScreenState extends State<QuestionScreen> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
 
-  late TextEditingController _quizNameController;
   //late TextEditingController _descriptionController;
   List<Map<dynamic, dynamic>> _questions = [];
   Map<dynamic, dynamic> _quizData = {};
   List<Map<dynamic, dynamic>> _allQuizzes = [];
   bool _isLoading = true;
-  bool _isCompleted = false;
-  String _quizId = '';
 
   @override
   void initState() {
     super.initState();
-    _quizNameController = TextEditingController(text: widget.quizName);
     //_descriptionController = TextEditingController();
     _loadQuizDetails();
   }
