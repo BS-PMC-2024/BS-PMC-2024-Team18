@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_quiz_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/quiz_details_page.dart';
 import 'package:intl/intl.dart';
@@ -14,8 +12,6 @@ class MyQuizzesPage extends StatefulWidget {
 }
 
 class MyQuizzesPageState extends State<MyQuizzesPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> _quizzes = [];
   bool _isLoading = true;
      final FirebaseService _firebaseService = FirebaseService();
