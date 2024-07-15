@@ -250,6 +250,7 @@ class QuizSearchBarState extends State<QuizSearchBar> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
+              isExpanded: true,
             value: _selectedSubject,
             decoration: const InputDecoration(
               labelText: 'Subject',
