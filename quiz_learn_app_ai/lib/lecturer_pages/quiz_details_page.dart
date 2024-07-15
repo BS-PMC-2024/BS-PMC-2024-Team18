@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class QuizDetailsPage extends StatefulWidget {
@@ -21,8 +19,6 @@ class QuizDetailsPage extends StatefulWidget {
 }
 
 class QuizDetailsPageState extends State<QuizDetailsPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
    final FirebaseService _firebaseService = FirebaseService();
   late TextEditingController _quizNameController;
   late TextEditingController _descriptionController;
@@ -39,57 +35,49 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
   }
 
   Future<void> _loadQuizDetails() async {
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      final User? user = _auth.currentUser;
-      if (user != null) {
-        final snapshot = await _database
-            .child('lecturers')
-            .child(user.uid)
-            .child('quizzes')
-            .child(widget.quizId)
-            .get();
-
-        if (snapshot.exists) {
-          final data = snapshot.value as Map<dynamic, dynamic>;
-          setState(() {
-            _questions = List<Map<dynamic, dynamic>>.from(data['questions']);
-            // Update description controller text if available in the data
-            if (_questions.length > 5 && _questions[5]['description'] != null) {
-               _descriptionController.text = _questions[5]['description'];
-            } else {
-            _descriptionController.text = '';
-            }
-          });
+  try {
+    final quizData = await _firebaseService.loadQuizDetails(widget.quizId);
+    
+    if (quizData != null) {
+      setState(() {
+        _quizNameController.text = quizData['name'] ?? '';
+        _questions = List<Map<dynamic, dynamic>>.from(quizData['questions'] ?? []);
+        
+        // Update description if available
+        if (_questions.isNotEmpty && _questions.last.containsKey('description')) {
+          _descriptionController.text = _questions.last['description'];
+        } else {
+          _descriptionController.text = quizData['description'] ?? '';
         }
-      }
-    } catch (e) {
-      if(mounted){
-        ScaffoldMessenger.of(context).showSnackBar(
+      });
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading quiz details: ${e.toString()}')),
       );
       if (kDebugMode) {
         print("Error loading quiz details: ${e.toString()}");
       }
-      }
-      
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
- Future<void> _saveQuiz() async {
+ Future<void> _updateQuiz() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await _firebaseService.saveQuiz(
+      await _firebaseService.updateQuiz(
         widget.quizId,
         _quizNameController.text,
         _questions,
@@ -243,7 +231,7 @@ Widget _buildAppBar() {
           icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white),
           onPressed: () {
             if (_isEditing) {
-              _saveQuiz();
+              _updateQuiz();
             } else {
               setState(() {
                 _isEditing = true;

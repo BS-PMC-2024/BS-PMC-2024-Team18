@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/question_screen.dart';
+import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_star_quiz_page.dart';
 
 class QuizListScreen extends StatefulWidget {
@@ -12,12 +13,11 @@ class QuizListScreen extends StatefulWidget {
 }
 
 class QuizListScreenState extends State<QuizListScreen> {
-  final FirebaseDatabase _database = FirebaseDatabase.instance;
 
   List<Map<String, dynamic>> _allQuizzes = [];
   List<Map<String, dynamic>> _filteredQuizzes = [];
   bool _isLoading = false;
-
+     final FirebaseService _firebaseService = FirebaseService();
   @override
   void initState() {
     super.initState();
@@ -51,8 +51,10 @@ class QuizListScreenState extends State<QuizListScreen> {
                                       .textTheme
                                       .headlineMedium),
                               const SizedBox(height: 4),
-                              Text(
-                                  '${quiz['subject'].toString()} - ${quiz['questionCount'].toString()} questions'),
+                          Text(
+  '${quiz['subject'].toString()} - ${(quiz['questionCount'] - 1).toString()} questions'
+),
+
                               const SizedBox(height: 4),
                               Text('Lecturer: ${quiz['lecturer'].toString()}'),
                               const SizedBox(height: 8),
@@ -92,86 +94,41 @@ class QuizListScreenState extends State<QuizListScreen> {
       ),
     );
   }
+Future<void> _loadAllQuizzes() async {
+  setState(() {
+    _isLoading = true;
+  });
 
-  Future<void> _loadAllQuizzes() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final snapshot = await _database.ref().child('lecturers').get();
-
-      if (snapshot.exists) {
-        final data = snapshot.value as Map<dynamic, dynamic>;
-        _allQuizzes = [];
-
-        data.forEach((lecturerId, lecturerData) {
-          if (lecturerData['quizzes'] != null) {
-            final quizzes = lecturerData['quizzes'] as Map<dynamic, dynamic>;
-            quizzes.forEach((quizId, quizData) {
-              _allQuizzes.add({
-                'id': quizId,
-                'name': quizData['name'],
-                'subject': quizData['subject'],
-                'createdAt': quizData['createdAt'],
-                'questionCount': (quizData['questions'] as List).length,
-                'lecturer': lecturerData['name'] ?? 'Unknown Lecturer',
-              });
-            });
-          }
-        });
-
-        _allQuizzes.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
-        _filteredQuizzes = List.from(_allQuizzes);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading quizzes: ${e.toString()}')),
-        );
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+  try {
+    // Assuming you have an instance of FirebaseService called _firebaseService
+    _allQuizzes = await _firebaseService.loadAllQuizzes();
+    _filteredQuizzes = List.from(_allQuizzes);
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading quizzes: ${e.toString()}')),
+      );
     }
-  }
-
-  void _filterQuizzes(String searchTerm, String lecturer, String subject,
-      DateTime? startDate, DateTime? endDate) {
+  } finally {
     setState(() {
-      _filteredQuizzes = _allQuizzes.where((quiz) {
-        bool matchesSearch = quiz['name']
-                .toString()
-                .toLowerCase()
-                .contains(searchTerm.toLowerCase()) ||
-            quiz['subject']
-                .toString()
-                .toLowerCase()
-                .contains(searchTerm.toLowerCase()) ||
-            quiz['lecturer']
-                .toString()
-                .toLowerCase()
-                .contains(searchTerm.toLowerCase());
-        bool matchesLecturer =
-            lecturer == 'All' || quiz['lecturer'].toString() == lecturer;
-        bool matchesSubject =
-            subject == 'All' || quiz['subject'].toString() == subject;
-        bool matchesDate = true;
-        if (startDate != null && endDate != null) {
-          // Parse the timestamp to DateTime
-          DateTime quizDate = DateTime.fromMillisecondsSinceEpoch(
-              int.parse(quiz['createdAt'].toString()));
-          matchesDate = quizDate.isAfter(startDate) &&
-              quizDate.isBefore(endDate.add(const Duration(days: 1)));
-        }
-        return matchesSearch &&
-            matchesLecturer &&
-            matchesSubject &&
-            matchesDate;
-      }).toList();
+      _isLoading = false;
     });
   }
+}
+
+void _filterQuizzes(String searchTerm, String lecturer, String subject,
+    DateTime? startDate, DateTime? endDate) {
+  setState(() {
+    _filteredQuizzes = _firebaseService.filterQuizzes(
+      _allQuizzes,
+      searchTerm,
+      lecturer,
+      subject,
+      startDate,
+      endDate
+    );
+  });
+}
 }
 
 class QuizSearchBar extends StatefulWidget {

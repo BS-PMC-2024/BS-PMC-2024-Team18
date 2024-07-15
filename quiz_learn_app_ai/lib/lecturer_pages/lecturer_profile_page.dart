@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
+
+import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class LecturerProfilePage extends StatefulWidget {
   const LecturerProfilePage({super.key});
@@ -11,9 +11,8 @@ class LecturerProfilePage extends StatefulWidget {
 
 class LecturerProfilePageState extends State<LecturerProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final _auth = FirebaseAuth.instance;
-  final _database = FirebaseDatabase.instance.ref();
 
+   final FirebaseService _firebaseService = FirebaseService();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -31,22 +30,17 @@ class LecturerProfilePageState extends State<LecturerProfilePage> {
   }
 
 Future<void> _loadUserData() async {
-  final user = _auth.currentUser;
-  if (user != null) {
     try {
-      final snapshot = await _database.child('lecturers').child(user.uid).get();
-      if (snapshot.exists) {
-        final data = snapshot.value as Map<dynamic, dynamic>;
-        setState(() {
-          _nameController.text = data['name']?.toString() ?? '';
-          _emailController.text = data['email']?.toString() ?? '';
-          _phoneController.text = data['phone']?.toString() ?? '';
-          _workplaceController.text = data['workplace']?.toString() ?? '';
-          _qualificationsController.text = data['qualifications']?.toString() ?? '';
-          _bioController.text = data['bio']?.toString() ?? '';
-          _courses = List<String>.from(data['courses'] ?? []);
-        });
-      }
+      final userData = await _firebaseService.loadUserData_2();
+      setState(() {
+        _nameController.text = userData['name'];
+        _emailController.text = userData['email'];
+        _phoneController.text = userData['phone'];
+        _workplaceController.text = userData['workplace'];
+        _qualificationsController.text = userData['qualifications'];
+        _bioController.text = userData['bio'];
+        _courses = userData['courses'];
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,22 +49,11 @@ Future<void> _loadUserData() async {
       }
     }
   }
-}
 
   Future<void> _saveProfile() async {
-  if (_formKey.currentState!.validate()) {
-    final user = _auth.currentUser;
-    if (user != null) {
+    if (_formKey.currentState!.validate()) {
       try {
-        // First, get the current data
-        final snapshot = await _database.child('lecturers').child(user.uid).get();
-        Map<String, dynamic> currentData = {};
-        if (snapshot.exists) {
-          currentData = Map<String, dynamic>.from(snapshot.value as Map);
-        }
-
-        // Update only the fields managed in this profile page
-        currentData.addAll({
+        await _firebaseService.saveProfile({
           'name': _nameController.text,
           'email': _emailController.text,
           'phone': _phoneController.text,
@@ -79,9 +62,6 @@ Future<void> _loadUserData() async {
           'bio': _bioController.text,
           'courses': _courses,
         });
-
-        // Save the updated data
-        await _database.child('lecturers').child(user.uid).update(currentData);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +77,6 @@ Future<void> _loadUserData() async {
       }
     }
   }
-}
   void _addCourse() {
     if (_newCourseController.text.isNotEmpty) {
       setState(() {

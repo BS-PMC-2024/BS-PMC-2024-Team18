@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_quiz_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/quiz_details_page.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
+import 'package:intl/intl.dart';
+import 'package:quiz_learn_app_ai/services/firebase_service.dart'; // Add this import for date formatting
 
 class MyQuizzesPage extends StatefulWidget {
   const MyQuizzesPage({super.key});
@@ -17,7 +18,7 @@ class MyQuizzesPageState extends State<MyQuizzesPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> _quizzes = [];
   bool _isLoading = true;
-  
+     final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void initState() {
@@ -25,46 +26,19 @@ class MyQuizzesPageState extends State<MyQuizzesPage> {
     _loadQuizzes();
   }
 
-  
-
-  Future<void> _loadQuizzes() async {
+Future<void> _loadQuizzes() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final User? user = _auth.currentUser;
-      if (user != null) {
-        final snapshot = await _database
-            .child('lecturers')
-            .child(user.uid)
-            .child('quizzes')
-            .get();
-
-        if (snapshot.exists) {
-          final data = snapshot.value as Map<dynamic, dynamic>;
-          _quizzes = data.entries.map((entry) {
-            final quiz = entry.value as Map<dynamic, dynamic>;
-            return {
-              'id': entry.key,
-              'name': quiz['name'],
-               'subject': quiz['subject'],
-              'createdAt': quiz['createdAt'],
-              'questionCount': (quiz['questions'] as List).length,
-            };
-          }).toList();
-
-          _quizzes.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
-        }
-      }
+      _quizzes = await _firebaseService.loadQuizzes();
     } catch (e) {
-      if(mounted){
-         ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading quizzes: ${e.toString()}')),
-      );
-
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading quizzes: ${e.toString()}')),
+        );
       }
-     
     } finally {
       setState(() {
         _isLoading = false;
@@ -72,37 +46,27 @@ class MyQuizzesPageState extends State<MyQuizzesPage> {
     }
   }
 
-  Future<void> _deleteQuiz(String quizId) async {
+ Future<void> _deleteQuiz(String quizId) async {
     try {
-      final User? user = _auth.currentUser;
-      if (user != null) {
-        await _database
-            .child('lecturers')
-            .child(user.uid)
-            .child('quizzes')
-            .child(quizId)
-            .remove();
-
-        setState(() {
-          _quizzes.removeWhere((quiz) => quiz['id'] == quizId);
-        });
-        if(mounted){
-           ScaffoldMessenger.of(context).showSnackBar(
+      await _firebaseService.deleteQuiz(quizId);
+      
+      setState(() {
+        _quizzes.removeWhere((quiz) => quiz['id'] == quizId);
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Quiz deleted successfully')),
         );
-        }
-       
       }
     } catch (e) {
-      if(mounted){
- ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting quiz: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting quiz: ${e.toString()}')),
+        );
       }
-     
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +200,7 @@ class MyQuizzesPageState extends State<MyQuizzesPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${quiz['questionCount']} questions',
+              '${quiz['questionCount'] - 1} questions',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],

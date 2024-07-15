@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
@@ -20,8 +18,6 @@ class CreateQuestionAIState extends State<CreateQuestionAI> {
   final QuestionGenerator _questionGenerator = QuestionGenerator();
 
 final FirebaseService _firebaseService = FirebaseService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
     String _selectedSubject = 'Other';
   List<Map<String, dynamic>> _questions = [];
   bool _isLoading = false;
@@ -58,6 +54,7 @@ Future<void> _saveQuiz() async {
             ),
             const SizedBox(height: 16),
              DropdownButtonFormField<String>(
+                isExpanded: true,
   value: _selectedSubject,
   decoration: const InputDecoration(
     labelText: 'Enter Quiz Subject',

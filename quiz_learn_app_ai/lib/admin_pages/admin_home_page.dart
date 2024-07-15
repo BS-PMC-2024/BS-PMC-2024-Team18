@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
+
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
+import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -14,10 +15,11 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class AdminHomePageState extends State<AdminHomePage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+
   String? userEmail;
   String? userType;
+  
+   final FirebaseService _firebaseService = FirebaseService();
     final Auth auth = Auth(auth: FirebaseAuth.instance);
   @override
   void initState() {
@@ -25,21 +27,22 @@ class AdminHomePageState extends State<AdminHomePage> {
     _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DatabaseEvent event = await _database.child('users').child(user.uid).once();
-      Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
-
+Future<void> _loadUserData() async {
+    try {
+      Map<String, dynamic> userData = await _firebaseService.loadUserData();
       if (mounted) {
         setState(() {
-          userEmail = user.email;
-          userType = userData?['userType'];
+          userEmail = userData['email'];
+          userType = userData['userType'];
         });
+      }
+    } catch (e) {
+      // Handle error (e.g., user not logged in)
+      if (kDebugMode) {
+        print('Error loading user data: $e');
       }
     }
   }
-
  Future<void> _signOut() async {
   try {
     String result = await auth.signOut();

@@ -27,7 +27,7 @@ class QuestionGenerator {
           },
           {
             'role': 'user',
-            'content': 'Generate 5 multiple-choice questions and a short description about the following text. Each question should have one correct answer and three incorrect answers. Format the output as a JSON object with a "description" field and a "questions" field containing an array of question objects. Text: $text'
+            'content': 'Generate 5 multiple-choice questions and a short description about the following questions. Each question should have one correct answer and three incorrect answers. Format the output as a JSON object with a "description" field and a "questions" field containing an array of question objects. Text: $text'
           }
         ],
         'temperature': 0.7,

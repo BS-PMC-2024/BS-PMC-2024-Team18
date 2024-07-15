@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -21,45 +22,31 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   List<UserData> _users = [];
   bool _isLoading = true;
-
+  final FirebaseService _firebaseService = FirebaseService();
   @override
   void initState() {
     super.initState();
     _loadUsers();
   }
 
-  Future<void> _loadUsers() async {
-    setState(() {
-      _isLoading = true;
-    });
+ Future<void> _loadUsers() async {
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      // Get user types from Realtime Database
-      DataSnapshot snapshot = await _database.child('users').get();
-      Map<dynamic, dynamic>? userTypes = snapshot.value as Map<dynamic, dynamic>?;
-
-      if (userTypes != null) {
-        _users = userTypes.entries.map((entry) {
-          return UserData(
-            id: entry.key,
-            email: entry.value['email'] ?? 'No email',
-            userType: entry.value['userType'] ?? 'Unknown',
-          );
-        }).toList();
-      } else {
-        _users = [];
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading users: $e');
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+  try {
+    _users = await _firebaseService.loadUsers();
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error loading users: $e');
     }
+    // You might want to show a snackbar or some other error indication to the user here
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
