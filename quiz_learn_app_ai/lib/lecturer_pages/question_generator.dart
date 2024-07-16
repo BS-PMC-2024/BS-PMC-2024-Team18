@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../auth/realsecrets.dart';
+import '../auth/secerts.dart';
 
 class QuestionGenerator {
   final String apiKey = mySecretKey;

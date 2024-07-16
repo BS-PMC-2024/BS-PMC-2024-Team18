@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../auth/realsecrets.dart';
+import '../auth/secerts.dart';
 
 class QuestionDetailPage extends StatefulWidget {
   final String questionText;
