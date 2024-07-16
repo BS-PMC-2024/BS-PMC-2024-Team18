@@ -150,14 +150,13 @@ class QuestionScreenState extends State<QuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final List<Map<dynamic, dynamic>> question =
-    //     List<Map<dynamic, dynamic>>.from(_questions);
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: CustomAppBar(
         rightAnswers: _rightAnswers,
         wrongAnswers: _wrongAnswers,
         allQuestions: _questions,
+        timer: _timer,
         time: time,
         leading: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -256,7 +255,16 @@ class QuestionScreenState extends State<QuestionScreen> {
                                         visible: !_isCompleted,
                                         child: MainButton(
                                         onTap: isLastQuestion ? () {
+                                            if (_selectedAnswer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an answer before proceeding.'),
+        ),
+      );
+      return;
+    }
                                             submitTest();
+                                             _timer?.cancel();
                                             Navigator.push(
                                               context,
                                                 MaterialPageRoute(builder: (context) =>  TestOverviewScreen(
@@ -298,6 +306,8 @@ class QuestionScreenState extends State<QuestionScreen> {
   }
 
   void submitTest(){
+    
+
     setState(() {
         if (_selectedAnswer == _currentQuestion['answer']) {
         _rightAnswers.add(_selectedAnswer);
@@ -307,20 +317,23 @@ class QuestionScreenState extends State<QuestionScreen> {
       }
       });
   }
-
-  void nextQuestion() {
-    if(_currentQuestionIndex >= _questions.length - 1){
+void nextQuestion() {
+    if (_selectedAnswer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an answer before proceeding.'),
+        ),
+      );
       return;
     }
 
     if (_currentQuestionIndex < _questions.length - 1) {
       setState(() {
         if (_selectedAnswer == _currentQuestion['answer']) {
-        _rightAnswers.add(_selectedAnswer);
-      }
-      if (_selectedAnswer != _currentQuestion['answer']) {
-        _wrongAnswers.add(_selectedAnswer);
-      }
+          _rightAnswers.add(_selectedAnswer);
+        } else {
+          _wrongAnswers.add(_selectedAnswer);
+        }
         _currentQuestionIndex++;
         _currentQuestion = _questions[_currentQuestionIndex];
         _selectedAnswer = '';
@@ -332,6 +345,7 @@ class QuestionScreenState extends State<QuestionScreen> {
     }
   }
 
+  
   void previousQuestion() {
     if(_currentQuestionIndex <= 0){
       return;

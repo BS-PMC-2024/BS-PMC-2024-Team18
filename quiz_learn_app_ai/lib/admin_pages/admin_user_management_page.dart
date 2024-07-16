@@ -55,7 +55,7 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.blue[800]!, Colors.blue[400]!],
+            colors: [Colors.indigo[900]!, Colors.indigo[600]!],
           ),
         ),
         child: SafeArea(
@@ -82,6 +82,7 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateUserDialog,
+        backgroundColor: Colors.indigo[600],
         child: const Icon(Icons.add),
       ),
     );
@@ -121,18 +122,34 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
         final user = _users[index];
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            title: Text(user.email),
-            subtitle: Text('User Type: ${user.userType}'),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            leading: CircleAvatar(
+              backgroundColor: Colors.indigo[100],
+              child: Text(
+                user.email[0].toUpperCase(),
+                style: TextStyle(color: Colors.indigo[800], fontWeight: FontWeight.bold),
+              ),
+            ),
+            title: Text(
+              user.email,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              'User Type: ${user.userType.capitalize()}',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit),
+                  icon: Icon(Icons.edit, color: Colors.indigo[400]),
                   onPressed: () => _showEditUserDialog(user),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete),
+                  icon: Icon(Icons.delete, color: Colors.red[400]),
                   onPressed: () => _showDeleteConfirmation(user),
                 ),
               ],
@@ -143,89 +160,77 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
     );
   }
 
- void _showCreateUserDialog() {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final List<String> validUserTypes = ['student', 'lecturer', 'admin'];
-  String selectedUserType = 'student'; // Default value
+  void _showCreateUserDialog() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final List<String> validUserTypes = ['student', 'lecturer', 'admin'];
+    String selectedUserType = 'student';
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Create New User'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              DropdownButtonFormField<String>(
-                value: selectedUserType,
-                onChanged: (String? newValue) {
-                  selectedUserType = newValue!;
-                },
-                items: validUserTypes
-                  .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value.capitalize()),
-                    );
-                  }).toList(),
-                decoration: const InputDecoration(labelText: 'User Type'),
-              ),
-            ],
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create New User'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedUserType,
+                  onChanged: (String? newValue) {
+                    selectedUserType = newValue!;
+                  },
+                  items: validUserTypes
+                    .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value.capitalize()),
+                      );
+                    }).toList(),
+                  decoration: const InputDecoration(
+                    labelText: 'User Type',
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text('Create'),
-            onPressed: () async {
-              try {
-                UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                  email: emailController.text,
-                  password: passwordController.text,
-                );
-
-                await _database.child('users').child(userCredential.user!.uid).set({
-                  'email': emailController.text,
-                  'userType': selectedUserType,
-                });
-
-                if(context.mounted) {
-                  Navigator.of(context).pop();
-                }
-            
-                _loadUsers();
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Error creating user: $e');
-                }
-                if(context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error creating user: $e')),
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Implement user creation logic
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo[600],
+              ),
+              child: const Text('Create'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _showEditUserDialog(UserData user) {
   final emailController = TextEditingController(text: user.email);

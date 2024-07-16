@@ -188,7 +188,7 @@ Widget build(BuildContext context) {
                         const SizedBox(height: 16),
                         _buildInputField(
                           controller: _yearOfStudyController,
-                          label: 'Years of study',
+                          label: 'Years of Study',
                           icon: Icons.calendar_today,
                           validator: (value) => value!.isEmpty ? 'Please enter your years of study' : null,
                         ),
@@ -223,8 +223,8 @@ Widget build(BuildContext context) {
                         ElevatedButton(
                           onPressed: _saveProfile,
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.blue[800],
-                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.blue[800],
                             padding: const EdgeInsets.symmetric(vertical: 15),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             minimumSize: const Size(double.infinity, 50),
@@ -256,9 +256,11 @@ Widget _buildInputField({
     decoration: InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon, color: Colors.blue[800]),
+      filled: true,
+      fillColor: Colors.grey[100],
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue[800]!),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
@@ -288,16 +290,15 @@ Widget _buildCourseItem(String course) {
   );
 }
 
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _majorController.dispose();
-    _yearOfStudyController.dispose();
-    _bioController.dispose();
-    _newCourseController.dispose();
-    super.dispose();
-  }
+@override
+void dispose() {
+  _nameController.dispose();
+  _emailController.dispose();
+  _phoneController.dispose();
+  _majorController.dispose();
+  _yearOfStudyController.dispose();
+  _bioController.dispose();
+  _newCourseController.dispose();
+  super.dispose();
+}
 }

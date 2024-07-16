@@ -323,12 +323,64 @@ Future<Map<dynamic, dynamic>?> loadQuizDetailsForStudents(String quizId) async {
         'date': quizData['date'],
         'rightAnswers': quizData['rightAnswers'] ?? [],
         'wrongAnswers': quizData['wrongAnswers'] ?? [],
-        // Add any additional details needed
+         'questions': quizData['questions'] ?? [],
+        
       };
     }
   }
   return null; // Return null if the user is not logged in or quiz not found
 }
+
+Future<List<Map<String, dynamic>>> loadCompletedQuizzes() async {
+  final User? user = _auth.currentUser;
+  if (user != null) {
+    try {
+      final snapshot = await _database
+          .child('students')
+          .child(user.uid)
+          .child('quizResults')
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> completedQuizzes = [];
+
+        for (var entry in data.entries) {
+          final quizData = entry.value as Map<dynamic, dynamic>;
+          final quizId = quizData['quizId'];
+
+          // Fetch all quizzes to find questionCount
+          final allQuizzes = await loadAllQuizzes();
+          final quizInfo = allQuizzes.firstWhere(
+            (quiz) => quiz['id'] == quizId,
+            orElse: () => {'questionCount': 0}, // Default value
+          );
+
+          completedQuizzes.add({
+            'quizId': quizId,
+            'quizName': quizData['quizName'],
+            'rightAnswers': quizData['rightAnswers'],
+            'wrongAnswers': quizData['wrongAnswers'],
+            'points': quizData['points'],
+            'date': quizData['date'],
+            'questions': quizData['questions'],
+            'questionCount': quizInfo['questionCount'], // Add questionCount
+          });
+        }
+
+        return completedQuizzes;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      throw Exception('Error loading completed quizzes: ${e.toString()}');
+    }
+  } else {
+    throw Exception('User not logged in');
+  }
+}
+
+
 
 }
 

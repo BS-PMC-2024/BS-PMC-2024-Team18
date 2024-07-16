@@ -16,7 +16,8 @@ class MainButton extends StatelessWidget{
     
       @override
       Widget build(BuildContext context) {
-        return Material(
+        return 
+        Material(
           type: MaterialType.transparency,
           child: SizedBox(
             height: 55,

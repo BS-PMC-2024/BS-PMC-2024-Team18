@@ -69,14 +69,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   icon: const Icon(Icons.menu),
                   color: Colors.white,
                   onPressed: onMenuActionTap??(){
+                    
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => TestOverviewScreen(
-                        
-                        allQuestions: allQuestions,
-                        rightAnswers: rightAnswers,
-                        wrongAnswers: wrongAnswers,
+                      MaterialPageRoute(builder: (context) => TestOverviewScreen( //problem 
+                          
+                        allQuestions: const [],
+                        rightAnswers:const [],
+                        wrongAnswers: const [],
+                        timer: timer,
                         timeRemaining: time,
+                        quizData: const {},
+                        titleText: "",
                       )),
                     );
                   },

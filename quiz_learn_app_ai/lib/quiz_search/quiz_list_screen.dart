@@ -23,76 +23,165 @@ class QuizListScreenState extends State<QuizListScreen> {
     _loadAllQuizzes();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('All Quizzes')),
-      body: Column(
-        children: [
-          QuizSearchBar(onSearch: _filterQuizzes),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: _filteredQuizzes.length,
-                    itemBuilder: (context, index) {
-                      final quiz = _filteredQuizzes[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(quiz['name'].toString(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium),
-                              const SizedBox(height: 4),
-                          Text(
-  '${quiz['subject'].toString()} - ${(quiz['questionCount'] - 1).toString()} questions'
-),
-
-                              const SizedBox(height: 4),
-                              Text('Lecturer: ${quiz['lecturer'].toString()}'),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(DateFormat('MM/dd/yyyy').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(
-                                              quiz['createdAt'].toString())))),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      // Navigate to quiz details or start quiz
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => QuestionScreen(
-                                            quizId: quiz['id'],
-                                            quizName: quiz['name'],
-                                          ),
-                                        ),
-                                      ).then((_) => _loadAllQuizzes());
-                                    },
-                                    child: const Text('Enter Quiz'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.grey[100],
+    appBar: AppBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      title: const Text(
+        'All Quizzes',
+        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
       ),
+      centerTitle: true,
+    ),
+    body: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: QuizSearchBar(onSearch: _filterQuizzes),
+        ),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _filteredQuizzes.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No quizzes found',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredQuizzes.length,
+                      itemBuilder: (context, index) {
+                        final quiz = _filteredQuizzes[index];
+                        return _buildQuizCard(context, quiz);
+                      },
+                    ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
+  return Card(
+    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    elevation: 4,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: InkWell(
+      onTap: () => _navigateToQuizScreen(quiz),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    quiz['name'].toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[800],
+                    ),
+                  ),
+                ),
+                _buildQuestionCountChip(quiz['questionCount'] - 1),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              quiz['subject'].toString(),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Lecturer: ${quiz['lecturer'].toString()}',
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('MMM d, yyyy').format(
+                        DateTime.fromMillisecondsSinceEpoch(
+                          int.parse(quiz['createdAt'].toString()),
+                        ),
+                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _navigateToQuizScreen(quiz),
+                  icon: const Icon(Icons.play_arrow, size: 18),
+                  label: const Text('Start Quiz'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildQuestionCountChip(int count) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: Colors.blue[100],
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Text(
+      '$count Questions',
+      style: TextStyle(
+        color: Colors.blue[800],
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
+      ),
+    ),
+  );
+}
+
+void _navigateToQuizScreen(Map<String, dynamic> quiz) {
+  if (quiz['questionCount'] > 1) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuestionScreen(
+          quizId: quiz['id'],
+          quizName: quiz['name'],
+        ),
+      ),
+    ).then((_) => _loadAllQuizzes());
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('This quiz has no questions.')),
     );
   }
+}
+
+
+
+
+
 Future<void> _loadAllQuizzes() async {
   setState(() {
     _isLoading = true;
@@ -180,82 +269,90 @@ class QuizSearchBarState extends State<QuizSearchBar> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
+ @override
+Widget build(BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.1),
+          spreadRadius: 0,
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSearchField(),
+        const SizedBox(height: 16),
+        _buildLecturerDropdown(),
+        const SizedBox(height: 16),
+        _buildSubjectDropdown(),
+        const SizedBox(height: 16),
+        _buildDateRangeSelector(context),
+      ],
+    ),
+  );
+}
+
+Widget _buildSearchField() {
+  return TextField(
+    controller: _searchController,
+    decoration: InputDecoration(
+      hintText: 'Search quizzes...',
+      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+      filled: true,
+      fillColor: Colors.grey[100],
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search quizzes...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            onChanged: (value) => _performSearch(),
+      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+    ),
+    onChanged: (value) => _performSearch(),
+  );
+}
+
+Widget _buildLecturerDropdown() {
+  return FutureBuilder<List<String>>(
+    future: _lecturersFuture,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          const SizedBox(height: 16),
-          FutureBuilder<List<String>>(
-            future: _lecturersFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(strokeWidth: 3),
-                  ),
-                );
-              } else if (snapshot.hasError) {
-                return const Text('Error loading lecturers');
-              } else {
-                return DropdownButtonFormField<String>(
-                  value: _selectedLecturer,
-                  decoration: const InputDecoration(
-                    labelText: 'Lecturer',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: snapshot.data!.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedLecturer = value!;
-                      _performSearch();
-                    });
-                  },
-                );
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-              isExpanded: true,
-            value: _selectedSubject,
-            decoration: const InputDecoration(
-              labelText: 'Subject',
-              border: OutlineInputBorder(),
-            ),
-            items: [
+        );
+      } else if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red));
+      } else {
+        return _buildDropdown(
+          value: _selectedLecturer,
+          items: snapshot.data!,
+          hint: 'Select Lecturer',
+          onChanged: (value) {
+            setState(() {
+              _selectedLecturer = value!;
+              _performSearch();
+            });
+          },
+        );
+      }
+    },
+  );
+}
+
+Widget _buildSubjectDropdown() {
+  return _buildDropdown(
+    value: _selectedSubject,
+    items: [
               'All',
               'Accounting',
               'Aerospace Engineering',
@@ -362,48 +459,86 @@ class QuizSearchBarState extends State<QuizSearchBar> {
               'Veterinary Science',
               'Zoology',
               'Other'
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedSubject = value!;
-                _performSearch();
-              });
-            },
+            ],
+    hint: 'Select Subject',
+    onChanged: (value) {
+      setState(() {
+        _selectedSubject = value!;
+        _performSearch();
+      });
+    },
+  );
+}
+
+Widget _buildDropdown({
+  required String? value,
+  required List<String> items,
+  required String hint,
+  required Function(String?) onChanged,
+}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    decoration: BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(30),
+    ),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: value,
+        hint: Text(hint),
+        isExpanded: true,
+        icon: const Icon(Icons.arrow_drop_down),
+        items: items.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    ),
+  );
+}
+
+Widget _buildDateRangeSelector(BuildContext context) {
+  return InkWell(
+    onTap: () => _selectDateRange(context),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _startDate == null
+                ? 'Select Date Range'
+                : '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}',
+            style: TextStyle(color: Colors.grey[700]),
           ),
-          const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => _selectDateRange(context),
-                  child: Text(
-                    _startDate == null
-                        ? 'Select Date Range'
-                        : '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}',
-                  ),
+              Icon(Icons.date_range, color: Colors.grey[600]),
+              if (_startDate != null)
+                IconButton(
+                  icon: const Icon(Icons.clear, size: 18),
+                  onPressed: () {
+                    setState(() {
+                      _startDate = null;
+                      _endDate = null;
+                      _performSearch();
+                    });
+                  },
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    _startDate = null;
-                    _endDate = null;
-                    _performSearch();
-                  });
-                },
-              ),
             ],
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _selectDateRange(BuildContext context) async {
     final DateTimeRange? picked = await showDateRangePicker(

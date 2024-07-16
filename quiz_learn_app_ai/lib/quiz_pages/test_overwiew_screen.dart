@@ -28,8 +28,11 @@ class TestOverviewScreen extends StatelessWidget{
   this.quizData,
   });
 
+
+
   @override
   Widget build(BuildContext context) {
+      
     Map<dynamic, dynamic> qData = quizData!;
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -87,23 +90,26 @@ class TestOverviewScreen extends StatelessWidget{
   ),
 ),
 
-                ColoredBox(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: UiParameters.mobileScreenPadding,
-                    child: MainButton(
-                      onTap:  () => Navigator.push(context, MaterialPageRoute(builder: (context) =>  ResultScreen(
-                        quizData: qData,
-                        rightAnswers: rightAnswers!,
-                        wrongAnswers: wrongAnswers!,
-                        allQuestions: allQuestions!,
-                      ))),
-                    
-                      title: "Complete",
-                    ),
-                    
-                  ),
-                )
+                Padding(
+    padding: UiParameters.mobileScreenPadding,
+    child: MainButton(
+      onTap: () {
+        timer?.cancel();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ResultScreen(
+              quizData: qData,
+              rightAnswers: rightAnswers!,
+              wrongAnswers: wrongAnswers!,
+              allQuestions: allQuestions!,
+            ),
+          ),
+        );
+      },
+      title: "Complete",
+    ),
+  )
                   ],
                 )
               ),
@@ -113,6 +119,8 @@ class TestOverviewScreen extends StatelessWidget{
       ),
     );
   }
+
+  
 
   
 }

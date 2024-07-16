@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
+import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class AdminHomePage extends StatefulWidget {
@@ -18,7 +19,8 @@ class AdminHomePageState extends State<AdminHomePage> {
 
   String? userEmail;
   String? userType;
-  
+   bool _isLoading = true;
+     final FirebaseAuth _auth = FirebaseAuth.instance;
    final FirebaseService _firebaseService = FirebaseService();
     final Auth auth = Auth(auth: FirebaseAuth.instance);
   @override
@@ -32,17 +34,23 @@ Future<void> _loadUserData() async {
       Map<String, dynamic> userData = await _firebaseService.loadUserData();
       if (mounted) {
         setState(() {
-          userEmail = userData['email'];
+          userEmail = _auth.currentUser?.email;
           userType = userData['userType'];
+          _isLoading = false;
         });
       }
     } catch (e) {
-      // Handle error (e.g., user not logged in)
       if (kDebugMode) {
         print('Error loading user data: $e');
       }
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
+
  Future<void> _signOut() async {
   try {
     String result = await auth.signOut();
@@ -74,40 +82,41 @@ Future<void> _loadUserData() async {
     } // For debugging
   }
 }
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue[800]!, Colors.blue[400]!],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+      body: _isLoading
+        ? const Center(child: LoadingPage())
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.indigo[900]!, Colors.indigo[600]!],
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildAppBar(),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                      child: _buildContent(),
                     ),
                   ),
-                  child: _buildContent(),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
-
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -115,7 +124,7 @@ Future<void> _loadUserData() async {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Admin Home',
+            'Admin Dashboard',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -138,61 +147,162 @@ Future<void> _loadUserData() async {
       );
     }
 
-    return Center(
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeSection(),
+            const SizedBox(height: 30),
+            _buildAdminActions(),
+          ],
+        ),
+      ),
+    );
+  }
+String _formatUserName(String? email) {
+  if (email == null || email.isEmpty) {
+    return 'Admin';
+  }
+  // Remove everything after and including '@'
+  return email.split('@')[0];
+}
+  Widget _buildWelcomeSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.indigo[50],
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.admin_panel_settings,
-            size: 100,
-            color: Colors.blue,
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.indigo[100],
+                child: Icon(Icons.admin_panel_settings, size: 30, color: Colors.indigo[800]),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedTextKit(
+                      animatedTexts: [
+                        TypewriterAnimatedText(
+                            'Welcome, ${_formatUserName(userEmail)}',
+                          textStyle: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.indigo[800],
+                          ),
+                          speed: const Duration(milliseconds: 100),
+                        ),
+                      ],
+                      totalRepeatCount: 1,
+                      displayFullTextOnTap: true,
+                    ),
+                    Text(
+                      userEmail!,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.indigo[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Welcome, Admin',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            userEmail!,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 15),
           Text(
             'User Type: $userType',
             style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.blue[800],
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            child: const Text(
-              'User Management',
-              style: TextStyle(fontSize: 18),
+              fontSize: 16,
+              color: Colors.indigo[600],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAdminActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Admin Actions',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.indigo[800],
+          ),
+        ),
+        const SizedBox(height: 15),
+        _buildActionCard(
+          icon: Icons.people,
+          title: 'User Management',
+          description: 'Manage users, roles, and permissions',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
+            );
+          },
+        ),
+        // Add more action cards here as needed
+      ],
+    );
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Icon(icon, size: 40, color: Colors.indigo[600]),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: Colors.indigo[400]),
+            ],
+          ),
+        ),
       ),
     );
   }

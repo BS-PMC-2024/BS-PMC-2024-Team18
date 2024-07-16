@@ -480,4 +480,76 @@ group('loadUserData', () {
       expect(() => firebaseService.loadUsers(), throwsException);
     });
   });
+
+   group('FirebaseService loadCompletedQuizzes,loadQuizDetailsForStudents,loadQuizResults,saveQuizResults', () {
+    test('saveQuizResults should save quiz results successfully', () async {
+      final mockPush = MockDatabaseReference();
+      when(mockDatabaseReference.child('students')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('test_user_id')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quizResults')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.push()).thenReturn(mockPush);
+      when(mockPush.set(any)).thenAnswer((_) => Future.value());
+
+      await firebaseService.saveQuizResults(
+        'quiz_id',
+        'Quiz Name',
+        ['Right 1', 'Right 2'],
+        ['Wrong 1'],
+        '10',
+        [{'question': 'Q1', 'answer': 'A1'}],
+      );
+
+      verify(mockPush.set(any)).called(1);
+    });
+
+    test('loadQuizResults should return quiz results', () async {
+      final mockSnapshot = MockDataSnapshot();
+      when(mockDatabaseReference.child('students')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('test_user_id')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quizResults')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenAnswer((_) => Future.value(mockSnapshot));
+      when(mockSnapshot.exists).thenReturn(true);
+      when(mockSnapshot.value).thenReturn({
+        'quiz1': {
+          'quizName': 'Quiz 1',
+          'rightAnswers': ['Right 1'],
+          'wrongAnswers': ['Wrong 1'],
+          'points': '10',
+          'date': '2024-07-16',
+        }
+      });
+
+      final results = await firebaseService.loadQuizResults();
+
+      expect(results.length, 1);
+      expect(results[0]['quizId'], 'quiz1');
+      expect(results[0]['quizName'], 'Quiz 1');
+    });
+
+    test('loadQuizDetailsForStudents should return quiz details', () async {
+      final mockSnapshot = MockDataSnapshot();
+      when(mockDatabaseReference.child('students')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('test_user_id')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quizResults')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quiz_id')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenAnswer((_) => Future.value(mockSnapshot));
+      when(mockSnapshot.exists).thenReturn(true);
+      when(mockSnapshot.value).thenReturn({
+        'quizName': 'Quiz 1',
+        'points': '10',
+        'date': '2024-07-16',
+        'rightAnswers': ['Right 1'],
+        'wrongAnswers': ['Wrong 1'],
+        'questions': [{'question': 'Q1', 'answer': 'A1'}],
+      });
+
+      final result = await firebaseService.loadQuizDetailsForStudents('quiz_id');
+
+      expect(result, isNotNull);
+      expect(result!['quizId'], 'quiz_id');
+      expect(result['quizName'], 'Quiz 1');
+    });
+
+ 
+  });
 }

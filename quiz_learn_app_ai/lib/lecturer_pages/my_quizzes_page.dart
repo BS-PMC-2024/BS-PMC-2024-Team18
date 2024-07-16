@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_quiz_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/quiz_details_page.dart';
 import 'package:intl/intl.dart';
@@ -67,15 +68,6 @@ Future<void> _loadQuizzes() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreateQuizPage()),
-          ).then((_) => _loadQuizzes());
-        },
-        child: const Icon(Icons.add),
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -87,26 +79,7 @@ Future<void> _loadQuizzes() async {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'My Quizzes',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildAppBar(),
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -118,24 +91,115 @@ Future<void> _loadQuizzes() async {
                   ),
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _quizzes.isEmpty
-                          ? Center(
-                              child: Text(
-                                'No quizzes found',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: _quizzes.length,
-                              itemBuilder: (context, index) {
-                                final quiz = _quizzes[index];
-                                return _buildQuizCard(quiz);
-                              },
-                            ),
+                      : _buildQuizList(),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'My Quizzes',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizList() {
+    if (_quizzes.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.quiz, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No quizzes found',
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return AnimationLimiter(
+      child: ListView.builder(
+        itemCount: _quizzes.length,
+        itemBuilder: (BuildContext context, int index) {
+          return AnimationConfiguration.staggeredList(
+            position: index,
+            duration: const Duration(milliseconds: 375),
+            child: SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(
+                child: _buildQuizCard(_quizzes[index]),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildQuizCard(Map<String, dynamic> quiz) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap: () => _navigateToQuizDetails(quiz),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      quiz['name'],
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[800],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _showDeleteConfirmation(quiz['id']),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _buildInfoChip(Icons.subject, quiz['subject'] ?? 'Not specified'),
+              const SizedBox(height: 4),
+              _buildInfoChip(Icons.question_answer, '${quiz['questionCount'] - 1} questions'),
+              const SizedBox(height: 4),
+              _buildInfoChip(
+                Icons.calendar_today,
+                'Created on ${DateFormat('MMM d, yyyy').format(DateTime.fromMillisecondsSinceEpoch(quiz['createdAt']))}',
               ),
             ],
           ),
@@ -144,78 +208,54 @@ Future<void> _loadQuizzes() async {
     );
   }
 
-  Widget _buildQuizCard(Map<String, dynamic> quiz) {
-  return Card(
-    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-    elevation: 5,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => QuizDetailsPage(
-              quizId: quiz['id'],
-              initialQuizName: quiz['name'],
-            ),
+  Widget _buildInfoChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.blue[800]),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: Colors.blue[800]),
           ),
-        ).then((_) => _loadQuizzes());
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    quiz['name'],
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[800],
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _showDeleteConfirmation(quiz['id']),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Subject: ${quiz['subject'] ?? 'Not specified'}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${quiz['questionCount'] - 1} questions',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Created on ${DateFormat('MMM d, yyyy').format(DateTime.fromMillisecondsSinceEpoch(quiz['createdAt']))}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton.extended(
+      onPressed: () => _navigateToCreateQuiz(),
+      icon: const Icon(Icons.add),
+      label: const Text('Create Quiz'),
+      backgroundColor: Colors.blue[800],
+    );
+  }
+
+  void _navigateToQuizDetails(Map<String, dynamic> quiz) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizDetailsPage(
+          quizId: quiz['id'],
+          initialQuizName: quiz['name'],
         ),
       ),
-    ),
-  );
-}
+    ).then((_) => _loadQuizzes());
+  }
+
+  void _navigateToCreateQuiz() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateQuizPage()),
+    ).then((_) => _loadQuizzes());
+  }
 
   void _showDeleteConfirmation(String quizId) {
     showDialog(

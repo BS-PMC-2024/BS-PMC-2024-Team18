@@ -1,10 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
+import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
+import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:quiz_learn_app_ai/student_pages/completed_quizzes_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_profile_page.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
@@ -17,27 +21,38 @@ class StudentHomePage extends StatefulWidget {
 
 class StudentHomePageState extends State<StudentHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+bool _isLoading = true;
+
   String? userEmail;
   String? userType;
-
+   final FirebaseService _firebaseService = FirebaseService();
   @override
   void initState() {
     super.initState();
     _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DatabaseEvent event = await _database.child('users').child(user.uid).once();
-      Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
+Future<void> _loadUserData() async {
+  try {
+    Map<String, dynamic> userData = await _firebaseService.loadUserData();
+    if (mounted) {
       setState(() {
-        userEmail = user.email;
-        userType = userData?['userType'];
+        userEmail = _auth.currentUser?.email;
+        userType = userData['userType'];
+        _isLoading = false;
+      });
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error loading user data: $e');
+    }
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
+}
    Future<void> _signOut() async {
     await _auth.signOut();
     if (mounted) {
@@ -48,127 +63,179 @@ class StudentHomePageState extends State<StudentHomePage> {
     }
   }
 
-  
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue[800]!, Colors.blue[400]!],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'CampusQuest AI',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.logout, color: Colors.white),
-                      onPressed: _signOut,
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.person, size: 50, color: Colors.blue[800]),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            'Welcome, ${userEmail ?? 'Student'}',
-                            style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            userType ?? '',
-                            style: const TextStyle(fontSize: 18, color: Colors.white70),
-                          ),
-                          const SizedBox(height: 40),
-                          _buildButton(
-                            icon: Icons.create,
-                            label: 'View Quiz Results',
-                            onPressed: () {
-                              Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const QuizResultsScreen()),
-                );
-                            },
-                        
-                          ),
-                          const SizedBox(height: 20),
-                          _buildButton(
-                            icon: Icons.quiz,
-                            label: 'My Quizzes',
-                            onPressed: () {}, 
-                            //Navigator.push(context, MaterialPageRoute(builder: (context) => const MyQuizzesPage())),
-                          ),
-                          const SizedBox(height: 20),
-                          _buildButton(
-                            icon: Icons.quiz,
-                            label: 'Start Quiz',
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) =>  const QuizListScreen())),
-                          ),
-                          const SizedBox(height: 20),
-                          _buildButton(
-                            icon: Icons.person,
-                            label: 'Student Profile',
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StudentProfilePage())),
-                          ),
-                        ],
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: _isLoading
+      ? const Center(child: Center(child: LoadingPage()))
+      : Stack(
+          children: [
+            _buildBackground(),
+            SafeArea(
+              child: Column(
+                children: [
+                  _buildAppBar(context),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Column(
+                          children: [
+                            _buildProfileSection(),
+                            const SizedBox(height: 40),
+                            _buildFeatureGrid(context),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+  );
+}
+
+  Widget _buildBackground() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
         ),
       ),
     );
   }
 
-  Widget _buildButton({required IconData icon, required String label, required VoidCallback onPressed}) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.blue[800],
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        minimumSize: const Size(double.infinity, 60),
-      ),
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, size: 24),
-          const SizedBox(width: 10),
-          Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'CampusQuest AI',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 1.2,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () => _signOut(),
+          ),
         ],
       ),
     );
   }
+String _formatUserName(String? email) {
+  if (email == null || email.isEmpty) {
+    return 'Student';
+  }
+  // Remove everything after and including '@'
+  return email.split('@')[0];
+}
+  Widget _buildProfileSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          const CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.white,
+            child: Icon(Icons.person, size: 50, color: Color(0xFF3949AB)),
+          ),
+          const SizedBox(height: 20),
+          AnimatedTextKit(
+            animatedTexts: [
+              TypewriterAnimatedText(
+             'Welcome, ${_formatUserName(userEmail)}',
+                textStyle: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+                speed: const Duration(milliseconds: 100),
+              ),
+            ],
+            totalRepeatCount: 1,
+          ),
+          Text(
+            userType ?? '',
+            style: const TextStyle(fontSize: 18, color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+
+ Widget _buildFeatureGrid(BuildContext context) {
+  final features = [
+    {'icon': Icons.assessment, 'label': 'View Quiz Results', 'route': const QuizResultsScreen()},
+    {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const CompletedQuizzesScreen()},
+    {'icon': Icons.search, 'label': 'Search Quizzes', 'route': const QuizListScreen()},
+    {'icon': Icons.person, 'label': 'Student Profile', 'route': const StudentProfilePage()},
+  ];
+
+  return GridView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      crossAxisSpacing: 20,
+      mainAxisSpacing: 20,
+      childAspectRatio: 1.1,
+    ),
+    itemCount: features.length,
+    itemBuilder: (context, index) {
+      return _buildFeatureCard(context, features[index]);
+    },
+  );
+}
+
+Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature) {
+  return InkWell(
+    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => feature['route'])),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            feature['icon'] as IconData,
+            size: 50,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            feature['label'] as String,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 }
 

@@ -85,185 +85,242 @@ Future<void> _loadUserData() async {
       });
     }
   }
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.blue[800]!, Colors.blue[400]!],
+ @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProfileHeader(),
+                          const SizedBox(height: 24),
+                          _buildInputFields(),
+                          const SizedBox(height: 24),
+                          _buildCoursesSection(),
+                          const SizedBox(height: 24),
+                          _buildSaveButton(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      child: SafeArea(
-        child: Column(
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'Lecturer Profile',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return Center(
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.blue[100],
+            child: Icon(Icons.person, size: 60, color: Colors.blue[800]),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Edit Profile',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue[800],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputFields() {
+    return Column(
+      children: [
+        _buildInputField(
+          controller: _nameController,
+          label: 'Full Name',
+          icon: Icons.person,
+          validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildInputField(
+          controller: _emailController,
+          label: 'Email',
+          icon: Icons.email,
+          validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildInputField(
+          controller: _phoneController,
+          label: 'Phone Number',
+          icon: Icons.phone,
+          validator: (value) => value!.isEmpty ? 'Please enter your phone number' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildInputField(
+          controller: _workplaceController,
+          label: 'Workplace',
+          icon: Icons.work,
+          validator: (value) => value!.isEmpty ? 'Please enter your workplace' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildInputField(
+          controller: _qualificationsController,
+          label: 'Qualifications',
+          icon: Icons.school,
+          validator: (value) => value!.isEmpty ? 'Please enter your qualifications' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildInputField(
+          controller: _bioController,
+          label: 'Bio',
+          icon: Icons.description,
+          maxLines: 3,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? Function(String?)? validator,
+    int maxLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blue[800]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.blue[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.blue[50],
+      ),
+      validator: validator,
+      maxLines: maxLines,
+    );
+  }
+
+  Widget _buildCoursesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Courses',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+        ),
+        const SizedBox(height: 8),
+        ..._courses.map((course) => _buildCourseItem(course)),
+        const SizedBox(height: 16),
+        Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Lecturer Profile',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+            Expanded(
+              child: _buildInputField(
+                controller: _newCourseController,
+                label: 'Add New Course',
+                icon: Icons.add_circle_outline,
               ),
             ),
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInputField(
-                          controller: _nameController,
-                          label: 'Full Name',
-                          icon: Icons.person,
-                          validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildInputField(
-                          controller: _emailController,
-                          label: 'Email',
-                          icon: Icons.email,
-                          validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildInputField(
-                          controller: _phoneController,
-                          label: 'Phone Number',
-                          icon: Icons.phone,
-                          validator: (value) => value!.isEmpty ? 'Please enter your phone number' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildInputField(
-                          controller: _workplaceController,
-                          label: 'Workplace',
-                          icon: Icons.work,
-                          validator: (value) => value!.isEmpty ? 'Please enter your workplace' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildInputField(
-                          controller: _qualificationsController,
-                          label: 'Qualifications',
-                          icon: Icons.school,
-                          validator: (value) => value!.isEmpty ? 'Please enter your qualifications' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildInputField(
-                          controller: _bioController,
-                          label: 'Bio',
-                          icon: Icons.description,
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 24),
-                        Text('Courses', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[800])),
-                        const SizedBox(height: 8),
-                        ..._courses.map((course) => _buildCourseItem(course)),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildInputField(
-                                controller: _newCourseController,
-                                label: 'Add New Course',
-                                icon: Icons.add_circle_outline,
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.add, color: Colors.blue[800]),
-                              onPressed: _addCourse,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.blue[800],
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                          child: const Text('Save Profile', style: TextStyle(fontSize: 18)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            IconButton(
+              icon: Icon(Icons.add, color: Colors.blue[800]),
+              onPressed: _addCourse,
             ),
           ],
         ),
-      ),
-    ),
-  );
-}
+      ],
+    );
+  }
 
-Widget _buildInputField({
-  required TextEditingController controller,
-  required String label,
-  required IconData icon,
-  String? Function(String?)? validator,
-  int maxLines = 1,
-}) {
-  return TextFormField(
-    controller: controller,
-    decoration: InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, color: Colors.blue[800]),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue[800]!),
+  Widget _buildCourseItem(String course) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 2,
+      child: ListTile(
+        leading: Icon(Icons.book, color: Colors.blue[800]),
+        title: Text(course),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: () {
+            setState(() {
+              _courses.remove(course);
+            });
+          },
+        ),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
-      ),
-    ),
-    validator: validator,
-    maxLines: maxLines,
-  );
-}
+    );
+  }
 
-Widget _buildCourseItem(String course) {
-  return Card(
-    margin: const EdgeInsets.only(bottom: 8),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: ListTile(
-      title: Text(course),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        onPressed: () {
-          setState(() {
-            _courses.remove(course);
-          });
-        },
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: _saveProfile,
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue[800],
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        minimumSize: const Size(double.infinity, 50),
       ),
-    ),
-  );
-}
+      child: const Text('Save Profile', style: TextStyle(fontSize: 18)),
+    );
+  }
 
 
   @override
