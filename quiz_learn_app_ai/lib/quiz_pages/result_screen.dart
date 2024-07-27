@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/quiz_ai_generated_feedback.dart';
 
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 
@@ -44,7 +45,7 @@ final FirebaseService _firebaseService = FirebaseService();
         _rightAnswers,
         widget.wrongAnswers,
         points,
-        widget.allQuestions
+        widget.allQuestions,
       );
       if(mounted){ ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Quiz results saved successfully')),
@@ -221,6 +222,24 @@ Widget _buildActionButtons() {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),
             child: const Text("Go Home"),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => QuizAIGeneratedFeedback(
+                quizData: widget.quizData,
+                rightAnswers: _rightAnswers,
+                wrongAnswers: widget.wrongAnswers,
+              )));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            ),
+            child: const Text("AI feedback"),
           ),
         ),
         const SizedBox(width: 12),
