@@ -275,6 +275,31 @@ Future<List<UserData>> loadUsers() async {
   }
 }
 
+Future<void> saveQuizResults_2(String quizId, String quizName, List<String>? rightAnswers, List<String>? wrongAnswers, String points, List<Map<dynamic, dynamic>> questions, String feedback) async {
+  final User? user = _auth.currentUser;
+  if (user != null) {
+    try {
+      final quizResult = {
+        'quizId': quizId,
+        'quizName': quizName,
+        'rightAnswers': rightAnswers,
+        'wrongAnswers': wrongAnswers,
+        'points': points,
+        'date': DateTime.now().toIso8601String(),
+        'questions': questions,
+        'feedback': feedback,
+      };
+
+      await _database.child('students').child(user.uid).child('quizResults').push().set(quizResult);
+      await _database.child('students').child(user.uid).child('quizFeedback').push().set(feedback);
+    } catch (e) {
+      throw Exception('Error saving quiz results: ${e.toString()}');
+    }
+  } else {
+    throw Exception('User not logged in');
+  }
+}
+
 
  Future<List<Map<String, dynamic>>> loadQuizResults() async {
   final User? user = _auth.currentUser;
@@ -296,6 +321,7 @@ Future<List<UserData>> loadUsers() async {
           'wrongAnswers': result['wrongAnswers'] ?? [],
           'points': result['points'],
           'date': result['date'],
+          'feedback': result['feedback'] ?? '',
         };
       }).toList();
     }
@@ -324,6 +350,7 @@ Future<Map<dynamic, dynamic>?> loadQuizDetailsForStudents(String quizId) async {
         'rightAnswers': quizData['rightAnswers'] ?? [],
         'wrongAnswers': quizData['wrongAnswers'] ?? [],
          'questions': quizData['questions'] ?? [],
+         'feedback': quizData['feedback'] ?? '',
         
       };
     }
@@ -365,6 +392,7 @@ Future<List<Map<String, dynamic>>> loadCompletedQuizzes() async {
             'date': quizData['date'],
             'questions': quizData['questions'],
             'questionCount': quizInfo['questionCount'], // Add questionCount
+            'feedback': quizData['feedback'] ?? '',
           });
         }
 

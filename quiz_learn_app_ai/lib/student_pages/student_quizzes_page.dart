@@ -48,7 +48,7 @@ class StudentQuizzesPageState extends State<StudentQuizzesPage> {
             return {
               'id': entry.key,
               'name': quiz['name'],
-               'subject': quiz['subject'],
+              'subject': quiz['subject'],
               'lecturer': quiz['lecturer'],
               'questionCount': (quiz['questions'] as List).length,
               'pints': quiz['points'],

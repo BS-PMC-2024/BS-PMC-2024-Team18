@@ -77,6 +77,23 @@ class QuizDetailScreen extends StatelessWidget {
                   childCount: questions.length,
                 ),
               ),
+              SliverToBoxAdapter(
+                child :Padding(
+                padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 24),
+                      const Text('AI Feedback', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      const SizedBox(height: 16),
+                      Text(
+                        quizDetails['feedback'] ?? 'No feedback available.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },
