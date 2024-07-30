@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:intl/intl.dart';
+
 
 class QuizDetailsPage extends StatefulWidget {
   final String quizId;
@@ -25,53 +27,147 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
   List<Map<dynamic, dynamic>> _questions = [];
   bool _isLoading = true;
   bool _isEditing = false;
+ late DateTime _startTime;
+  late DateTime _endTime;
+
 
   @override
   void initState() {
     super.initState();
     _quizNameController = TextEditingController(text: widget.initialQuizName);
     _descriptionController = TextEditingController();
+       _startTime = DateTime.now();
+    _endTime = DateTime.now().add(const Duration(hours: 1));
     _loadQuizDetails();
   }
 
-  Future<void> _loadQuizDetails() async {
-  setState(() {
-    _isLoading = true;
-  });
+  // Function to select date and time
+Future<void> _selectDateTime(DateTime initialDateTime, Function(DateTime) onDateTimeSelected) async {
+  // Use a local variable for context to avoid using the context directly in async operations
+  final BuildContext localContext = context;
 
-  try {
-    final quizData = await _firebaseService.loadQuizDetails(widget.quizId);
-    
-    if (quizData != null) {
-      setState(() {
-        _quizNameController.text = quizData['name'] ?? '';
-        _questions = List<Map<dynamic, dynamic>>.from(quizData['questions'] ?? []);
-        
+  final DateTime? selectedDateTime = await showDatePicker(
+    context: localContext,
+    initialDate: initialDateTime,
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2101),
+  );
+
+  if (selectedDateTime != null&& context.mounted) {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: localContext,
+      initialTime: TimeOfDay.fromDateTime(initialDateTime),
+    );
+
+    if (selectedTime != null) {
+      final DateTime newDateTime = DateTime(
+        selectedDateTime.year,
+        selectedDateTime.month,
+        selectedDateTime.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+      if (mounted) {
+        onDateTimeSelected(newDateTime);
+      }
+    }
+  }
+}
+
+  // Add date time fields to the widget tree
+  Widget _buildStartTimeField() {
+    return TextFormField(
+      controller: TextEditingController(text: DateFormat.yMd().add_jm().format(_startTime)),
+      decoration: InputDecoration(
+        labelText: 'Start Time',
+        enabled: _isEditing,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.blue[800]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+        ),
+      ),
+      readOnly: true,
+      onTap: () {
+        _selectDateTime(_startTime, (selectedDateTime) {
+          setState(() {
+            _startTime = selectedDateTime;
+          });
+        });
+      },
+    );
+  }
+
+  Widget _buildEndTimeField() {
+    return TextFormField(
+      controller: TextEditingController(text: DateFormat.yMd().add_jm().format(_endTime)),
+      decoration: InputDecoration(
+        labelText: 'End Time',
+        enabled: _isEditing,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.blue[800]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+        ),
+      ),
+      readOnly: true,
+      onTap: () {
+        _selectDateTime(_endTime, (selectedDateTime) {
+          setState(() {
+            _endTime = selectedDateTime;
+          });
+        });
+      },
+    );
+  }
+
+  Future<void> _loadQuizDetails() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final quizData = await _firebaseService.loadQuizDetails(widget.quizId);
+      
+      if (quizData != null) {
+        setState(() {
+          _quizNameController.text = quizData['name'] ?? '';
+          _questions = List<Map<dynamic, dynamic>>.from(quizData['questions'] ?? []);
         // Update description if available
         if (_questions.isNotEmpty && _questions.last.containsKey('description')) {
           _descriptionController.text = _questions.last['description'];
         } else {
           _descriptionController.text = quizData['description'] ?? '';
         }
+          
+          // Parse and set the start and end times
+          _startTime = DateTime.parse(quizData['startTime'] ?? DateTime.now().toIso8601String());
+          _endTime = DateTime.parse(quizData['endTime'] ?? DateTime.now().toIso8601String());
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading quiz details: ${e.toString()}')),
+        );
+        if (kDebugMode) {
+          print("Error loading quiz details: ${e.toString()}");
+        }
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading quiz details: ${e.toString()}')),
-      );
-      if (kDebugMode) {
-        print("Error loading quiz details: ${e.toString()}");
-      }
-    }
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
 
- Future<void> _updateQuiz() async {
+  Future<void> _updateQuiz() async {
     setState(() {
       _isLoading = true;
     });
@@ -82,6 +178,8 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
         _quizNameController.text,
         _questions,
         _descriptionController.text,
+        _startTime.toIso8601String(), // Save start time
+        _endTime.toIso8601String(),   // Save end time
       );
 
       if (mounted) {
@@ -94,6 +192,9 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
         );
+        if (kDebugMode) {
+          print('Error saving quiz: ${e.toString()}');
+        }
       }
     } finally {
       setState(() {
@@ -102,7 +203,6 @@ class QuizDetailsPageState extends State<QuizDetailsPage> {
       });
     }
   }
-
   
   void _editQuestion(int index) {
     showDialog(
@@ -270,6 +370,10 @@ Widget _buildQuizContent() {
         const SizedBox(height: 20),
         _buildDescriptionField(), // New description field
         const SizedBox(height: 10),
+                    _buildStartTimeField(), // Start time field
+                    const SizedBox(height: 10),
+                    _buildEndTimeField(), // End time field
+                    const SizedBox(height: 10),
         Text(
           'Questions:',
           style: TextStyle(

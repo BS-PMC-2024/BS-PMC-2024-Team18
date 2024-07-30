@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
@@ -269,7 +270,17 @@ String _formatUserName(String? email) {
             );
           },
         ),
-        // Add more action cards here as needed
+      _buildActionCard(
+          icon: Icons.people,
+          title: 'Compliance',
+          description: 'Ensures compliance with data security and privacy regulations.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminCompliancePage()),
+            );
+          },
+        ),
       ],
     );
   }

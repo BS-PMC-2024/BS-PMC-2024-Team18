@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -16,12 +17,36 @@ class QuizListScreenState extends State<QuizListScreen> {
   List<Map<String, dynamic>> _allQuizzes = [];
   List<Map<String, dynamic>> _filteredQuizzes = [];
   bool _isLoading = false;
+   String? userType;
      final FirebaseService _firebaseService = FirebaseService();
   @override
   void initState() {
     super.initState();
     _loadAllQuizzes();
+    _loadUserData();
   }
+
+   Future<void> _loadUserData() async {
+    try {
+      Map<String, dynamic> userData = await _firebaseService.loadUserData();
+      if (mounted) {
+        setState(() {
+          userType = userData['userType'];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading user data: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
 
 @override
 Widget build(BuildContext context) {
@@ -66,6 +91,11 @@ Widget build(BuildContext context) {
 }
 
 Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
+
+
+  List<dynamic> questions = quiz['questions'] ?? [];
+  String description = quiz['description'] ?? 'No description available';
+
   return Card(
     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
     elevation: 4,
@@ -82,7 +112,7 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
               children: [
                 Expanded(
                   child: Text(
-                    quiz['name'].toString(),
+                    quiz['name']?.toString() ?? 'Unnamed Quiz',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -90,18 +120,26 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
                     ),
                   ),
                 ),
-                _buildQuestionCountChip(quiz['questionCount'] - 1),
+                _buildQuestionCountChip(questions.length-1),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              quiz['subject'].toString(),
+              quiz['subject']?.toString() ?? 'No Subject',
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
             const SizedBox(height: 4),
             Text(
-              'Lecturer: ${quiz['lecturer'].toString()}',
+              'Lecturer: ${quiz['lecturer']?.toString() ?? 'Unknown'}',
               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+
+           const SizedBox(height: 8),
+            Text(
+              'Description: $description',
+              style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 12),
             Row(
@@ -114,7 +152,7 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
                     Text(
                       DateFormat('MMM d, yyyy').format(
                         DateTime.fromMillisecondsSinceEpoch(
-                          int.parse(quiz['createdAt'].toString()),
+                          int.parse(quiz['createdAt']?.toString() ?? '0'),
                         ),
                       ),
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
@@ -122,7 +160,19 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
                   ],
                 ),
                 ElevatedButton.icon(
-                  onPressed: () => _navigateToQuizScreen(quiz),
+                  onPressed: () {
+                   if (userType == 'Lecturer') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Lecturers cannot start quizzes.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } else {
+                         _checkQuizAvailabilityAndStart(quiz);
+                      }
+                    
+                  },
                   icon: const Icon(Icons.play_arrow, size: 18),
                   label: const Text('Start Quiz'),
                   style: ElevatedButton.styleFrom(
@@ -141,6 +191,37 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
     ),
   );
 }
+
+void _checkQuizAvailabilityAndStart(Map<String, dynamic> quiz) {
+  if (quiz['startTime'] != null && quiz['endTime'] != null) {
+    DateTime now = DateTime.now();
+    DateTime startTime = DateTime.parse(quiz['startTime']);
+    DateTime endTime = DateTime.parse(quiz['endTime']);
+
+    if (now.isBefore(startTime)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Quiz will start on ${DateFormat('MMM d, yyyy HH:mm').format(startTime)}'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } else if (now.isAfter(endTime)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Quiz has ended.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } else {
+      _navigateToQuizScreen(quiz);
+    }
+  } else {
+    // If startTime or endTime is not set, allow the quiz to start
+    _navigateToQuizScreen(quiz);
+  }
+}
+
+
 
 Widget _buildQuestionCountChip(int count) {
   return Container(
@@ -243,31 +324,45 @@ class QuizSearchBarState extends State<QuizSearchBar> {
     _lecturersFuture = _loadLecturers();
   }
 
-  Future<List<String>> _loadLecturers() async {
-    try {
-      final snapshot = await _database.ref().child('lecturers').get();
+Future<List<String>> _loadLecturers() async {
+  try {
+    final snapshot = await _database.ref().child('lecturers').get();
 
-      if (snapshot.exists) {
-        final data = snapshot.value as Map<dynamic, dynamic>;
-        List<String> lecturers = ['All']; // Add 'All' as the first option
+    if (snapshot.exists) {
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      List<String> lecturers = ['All']; // Add 'All' as the first option
 
-        data.forEach((lecturerId, lecturerData) {
-          lecturers.add(lecturerData['name'] ?? 'Unknown Lecturer');
-        });
+      Map<String, int> nameCount = {};
 
-        return lecturers;
-      } else {
-        return ['All'];
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading lecturers: ${e.toString()}')),
-        );
-      }
+      data.forEach((lecturerId, lecturerData) {
+        String name = lecturerData['name'] ?? 'Unknown Lecturer';
+        // Count occurrences of each name
+        if (nameCount.containsKey(name)) {
+          nameCount[name] = nameCount[name]! + 1;
+        } else {
+          nameCount[name] = 1;
+        }
+        // Append index only if there are duplicates
+        if (nameCount[name]! > 1) {
+          lecturers.add('$name (${nameCount[name]})');
+        } else {
+          lecturers.add(name);
+        }
+      });
+
+      return lecturers;
+    } else {
       return ['All'];
     }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading lecturers: ${e.toString()}')),
+      );
+    }
+    return ['All'];
   }
+}
 
  @override
 Widget build(BuildContext context) {
@@ -348,6 +443,7 @@ Widget _buildLecturerDropdown() {
     },
   );
 }
+
 
 Widget _buildSubjectDropdown() {
   return _buildDropdown(

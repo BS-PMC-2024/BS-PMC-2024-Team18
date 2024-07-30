@@ -27,6 +27,118 @@ void main() {
     when(mockUser.uid).thenReturn('test_user_id');
   });
 
+
+ group('FirebaseService loadComplianceReports', () {
+    test('returns compliance reports when they exist', () async {
+      // Mocking the behavior of DataSnapshot
+      final mockDataSnapshot = MockDataSnapshot();
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenAnswer((_) async => mockDataSnapshot);
+      when(mockDataSnapshot.exists).thenReturn(true);
+      when(mockDataSnapshot.value).thenReturn({
+        'report1': {
+          'reportDetails': 'Details 1',
+          'complianceStandards': 'GDPR, HIPAA',
+          'auditDate': '2024-07-30',
+          'userConsentStatus': 'Obtained',
+          'privacySettings': 'Encrypted',
+        },
+        'report2': {
+          'reportDetails': 'Details 2',
+          'complianceStandards': 'PCI DSS',
+          'auditDate': '2024-07-31',
+          'userConsentStatus': 'Pending',
+          'privacySettings': 'Access Control',
+        },
+      });
+
+      final result = await firebaseService.loadComplianceReports();
+
+      expect(result, isNotEmpty);
+      expect(result.length, 2);
+      expect(result[0]['reportDetails'], 'Details 1');
+      expect(result[1]['complianceStandards'], 'PCI DSS');
+    });
+
+    test('returns empty list when no compliance reports exist', () async {
+      final mockDataSnapshot = MockDataSnapshot();
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenAnswer((_) async => mockDataSnapshot);
+      when(mockDataSnapshot.exists).thenReturn(false);
+
+      final result = await firebaseService.loadComplianceReports();
+
+      expect(result, isEmpty);
+    });
+
+    test('throws exception on error', () async {
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenThrow(Exception('Error loading compliance reports'));
+
+      expect(() => firebaseService.loadComplianceReports(), throwsException);
+    });
+  });
+
+
+  group('FirebaseService createComplianceReport', () {
+    test('creates compliance report successfully', () async {
+      final reportData = {
+        'reportDetails': 'Details',
+        'complianceStandards': 'GDPR, HIPAA',
+        'auditDate': '2024-07-30',
+        'userConsentStatus': 'Obtained',
+        'privacySettings': 'Encrypted',
+      };
+
+      final mockPushRef = MockDatabaseReference();
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.push()).thenReturn(mockPushRef);
+      when(mockPushRef.set(reportData)).thenAnswer((_) async => {});
+
+      await firebaseService.createComplianceReport(reportData);
+
+      verify(mockPushRef.set(reportData)).called(1);
+    });
+
+    test('throws exception on error', () async {
+      final reportData = {
+        'reportDetails': 'Details',
+        'complianceStandards': 'GDPR, HIPAA',
+        'auditDate': '2024-07-30',
+        'userConsentStatus': 'Obtained',
+        'privacySettings': 'Encrypted',
+      };
+
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.push()).thenThrow(Exception('Error creating compliance report'));
+
+      expect(() => firebaseService.createComplianceReport(reportData), throwsException);
+    });
+  });
+
+  group('FirebaseService deleteComplianceReport', () {
+    test('deletes compliance report successfully', () async {
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('reportId')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.remove()).thenAnswer((_) async => {});
+
+      await firebaseService.deleteComplianceReport('reportId');
+
+      verify(mockDatabaseReference.child('reportId')).called(1);
+      verify(mockDatabaseReference.remove()).called(1);
+    });
+
+    test('throws exception on error', () async {
+      when(mockDatabaseReference.child('complianceReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('reportId')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.remove()).thenThrow(Exception('Error deleting compliance report'));
+
+      expect(() => firebaseService.deleteComplianceReport('reportId'), throwsException);
+    });
+  });
+
+
+  
   group('FirebaseService saveQuizToFirebase loadQuizDetails', () {
     test('loadQuizDetails returns quiz data when it exists', () async {
       final mockSnapshot = MockDataSnapshot();
@@ -62,7 +174,9 @@ void main() {
         'test_quiz_id',
         'Updated Quiz Name',
         [{'question': 'Test Question'}],
-        'Test Description'
+        'Test Description',
+            '2024-08-01T09:00:00Z', // startTime
+    '2024-08-01T17:00:00Z', // endTime
       );
 
       verify(mockDatabaseReference.update({
@@ -70,6 +184,8 @@ void main() {
         'questions': [
           {'question': 'Test Question', 'description': 'Test Description'}
         ],
+         'startTime': '2024-08-01T09:00:00Z',
+    'endTime': '2024-08-01T17:00:00Z',
       })).called(1);
     });
 
@@ -310,8 +426,8 @@ group('loadUserData', () {
   });
 
 
- group('FirebaseService - loadAllQuizzes', () {
-    test('returns correct list of quizzes when data exists', () async {
+  group('FirebaseService - loadAllQuizzes', () {
+   test('returns correct list of quizzes when data exists', () async {
       // Arrange
       final mockSnapshot = MockDataSnapshot();
       when(mockDatabaseReference.child('lecturers')).thenReturn(mockDatabaseReference);
@@ -325,13 +441,20 @@ group('loadUserData', () {
               'name': 'Math Quiz',
               'subject': 'Math',
               'createdAt': 1000,
-              'questions': ['q1', 'q2']
+              'questions': [
+                {'question': 'q1'},
+                {'question': 'q2'},
+                {'description': 'Math Quiz Description'}
+              ]
             },
             'quiz2': {
               'name': 'Science Quiz',
               'subject': 'Science',
               'createdAt': 2000,
-              'questions': ['q1']
+              'questions': [
+                {'question': 'q1'},
+                {'description': 'Science Quiz Description'}
+              ]
             }
           }
         },
@@ -342,7 +465,12 @@ group('loadUserData', () {
               'name': 'History Quiz',
               'subject': 'History',
               'createdAt': 3000,
-              'questions': ['q1', 'q2', 'q3']
+              'questions': [
+                {'question': 'q1'},
+                {'question': 'q2'},
+                {'question': 'q3'},
+                {'description': 'History Quiz Description'}
+              ]
             }
           }
         }
@@ -354,11 +482,14 @@ group('loadUserData', () {
       // Assert
       expect(result.length, 3);
       expect(result[0]['name'], 'History Quiz');
+      expect(result[0]['description'], 'History Quiz Description');
       expect(result[1]['name'], 'Science Quiz');
+      expect(result[1]['description'], 'Science Quiz Description');
       expect(result[2]['name'], 'Math Quiz');
+      expect(result[2]['description'], 'Math Quiz Description');
       expect(result[0]['lecturer'], 'Jane Smith');
       expect(result[1]['lecturer'], 'John Doe');
-      expect(result[2]['questionCount'], 2);
+      expect(result[2]['questionCount'], 3);
     });
 
     test('returns empty list when no data exists', () async {
@@ -384,7 +515,6 @@ group('loadUserData', () {
       expect(() => firebaseService.loadAllQuizzes(), throwsException);
     });
   });
-  
 
    group('FirebaseService - filterQuizzes', () {
     final allQuizzes = [

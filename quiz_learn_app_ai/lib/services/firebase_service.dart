@@ -1,6 +1,7 @@
 // firebase_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 
 class FirebaseService {
@@ -9,6 +10,48 @@ class FirebaseService {
  
   FirebaseService({DatabaseReference? database , FirebaseAuth? auth})
       : _database = database ?? FirebaseDatabase.instance.ref(),   _auth = auth ?? FirebaseAuth.instance;
+
+
+
+
+  Future<List<Map<String, dynamic>>> loadComplianceReports() async { 
+    try {
+      final snapshot = await _database.child('complianceReports').get();
+      if (snapshot.exists) {
+        final data = snapshot.value as Map<dynamic, dynamic>;
+        return data.entries.map((entry) {
+          return {
+            'id': entry.key,
+            'reportDetails': entry.value['reportDetails'],
+            'complianceStandards': entry.value['complianceStandards'],
+            'auditDate': entry.value['auditDate'],
+            'userConsentStatus': entry.value['userConsentStatus'],
+            'privacySettings': entry.value['privacySettings'],
+          };
+        }).toList();
+      }
+    } catch (e) {
+      throw Exception('Error loading compliance reports: $e');
+    }
+    return [];
+  }
+
+  Future<void> createComplianceReport(Map<String, dynamic> reportData) async { 
+    try {
+      await _database.child('complianceReports').push().set(reportData);
+    } catch (e) {
+      throw Exception('Error creating compliance report: $e');
+    }
+  }
+
+  Future<void> deleteComplianceReport(String reportId) async {
+    try {
+      await _database.child('complianceReports').child(reportId).remove();
+    } catch (e) {
+      throw Exception('Error deleting compliance report: $e');
+    }
+  }
+
 
 
 
@@ -29,7 +72,7 @@ Future<Map<dynamic, dynamic>?> loadQuizDetails(String quizId) async {
     return null;
   }
 
-Future<void> updateQuiz(String quizId, String quizName, List<Map<dynamic, dynamic>> questions, String description) async {
+Future<void> updateQuiz(String quizId, String quizName, List<Map<dynamic, dynamic>> questions, String description, String startTime, String endTime) async {
   final User? user = _auth.currentUser;
   if (user != null) {
     // Update the last question with the description
@@ -45,6 +88,8 @@ Future<void> updateQuiz(String quizId, String quizName, List<Map<dynamic, dynami
         .update({
       'name': quizName,
       'questions': questions,
+      'startTime': startTime,
+      'endTime': endTime
     });
   } else {
     throw Exception('User not authenticated');
@@ -176,38 +221,56 @@ Future<void> updateQuiz(String quizId, String quizName, List<Map<dynamic, dynami
   }
 
 
-  Future<List<Map<String, dynamic>>> loadAllQuizzes() async {
-    try {
-      final snapshot = await _database.child('lecturers').get();
+ Future<List<Map<String, dynamic>>> loadAllQuizzes() async {
+  try {
+    final snapshot = await _database.child('lecturers').get();
 
-      if (snapshot.exists) {
-        final data = snapshot.value as Map<dynamic, dynamic>;
-        List<Map<String, dynamic>> allQuizzes = [];
+    if (snapshot.exists) {
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      List<Map<String, dynamic>> allQuizzes = [];
 
-        data.forEach((lecturerId, lecturerData) {
-          if (lecturerData['quizzes'] != null) {
-            final quizzes = lecturerData['quizzes'] as Map<dynamic, dynamic>;
-            quizzes.forEach((quizId, quizData) {
-              allQuizzes.add({
-                'id': quizId,
-                'name': quizData['name'],
-                'subject': quizData['subject'],
-                'createdAt': quizData['createdAt'],
-                'questionCount': (quizData['questions'] as List).length,
-                'lecturer': lecturerData['name'] ?? 'Unknown Lecturer',
-              });
+      data.forEach((lecturerId, lecturerData) {
+        if (lecturerData['quizzes'] != null) {
+          final quizzes = lecturerData['quizzes'] as Map<dynamic, dynamic>;
+          quizzes.forEach((quizId, quizData) {
+            final questions = (quizData['questions'] as List?)?.cast<Map<dynamic, dynamic>>() ?? [];
+            
+            // Extract description from the last question if available
+            String description = 'No description available';
+            if (questions.isNotEmpty && questions.last.containsKey('description')) {
+              description = questions.last['description'] ?? description;
+            }
+             String? startTime = quizData['startTime'];
+            String? endTime = quizData['endTime'];
+
+            allQuizzes.add({
+              'id': quizId,
+              'name': quizData['name'],
+              'subject': quizData['subject'],
+              'createdAt': quizData['createdAt'],
+              'questionCount': questions.length,
+              'lecturer': lecturerData['name'] ?? 'Unknown Lecturer',
+              'questions': questions,
+              'description': description,
+               'startTime': startTime, // Add startTime to the quiz map
+              'endTime': endTime,     // Add endTime to the quiz map
             });
-          }
-        });
+          });
+        }
+      });
 
-        allQuizzes.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
-        return allQuizzes;
-      }
-    } catch (e) {
-      throw Exception('Error loading quizzes: ${e.toString()}');
+      allQuizzes.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
+      return allQuizzes;
     }
-    return [];
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error loading quizzes: ${e.toString()}');
+    } // Debug: Print error
+    throw Exception('Error loading quizzes: ${e.toString()}');
   }
+  return [];
+}
+
 
   List<Map<String, dynamic>> filterQuizzes(
     List<Map<String, dynamic>> allQuizzes,

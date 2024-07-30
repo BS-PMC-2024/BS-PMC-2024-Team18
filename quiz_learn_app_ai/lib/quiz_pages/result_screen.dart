@@ -115,13 +115,14 @@ Widget _buildContent() {
         _buildCongratulationsSection(),
         const SizedBox(height: 20),
         Expanded(
-          child: _buildQuestionsList(),
+          child: _buildQuestionsList(), // Make sure this is wrapped in Expanded
         ),
         _buildActionButtons(),
       ],
     ),
   );
 }
+
 
 Widget _buildCongratulationsSection() {
   return Column(
@@ -144,7 +145,9 @@ Widget _buildCongratulationsSection() {
       ),
       const SizedBox(height: 16),
       LinearProgressIndicator(
-        value: (_rightAnswers?.length ?? 0) / (_allQuestions?.length ?? 1),
+        value: _allQuestions != null && _allQuestions!.isNotEmpty
+            ? (_rightAnswers?.length ?? 0) / _allQuestions!.length
+            : 0.0, // Default to 0.0 if there are no questions
         backgroundColor: Colors.white.withOpacity(0.3),
         valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
       ),
@@ -227,13 +230,36 @@ Widget _buildActionButtons() {
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => QuizAIGeneratedFeedback(
-                quizData: widget.quizData,
-                rightAnswers: _rightAnswers,
-                wrongAnswers: widget.wrongAnswers,
-              )));
-            },
+         onPressed: () {
+  // Check if all required data is non-null and not empty
+  if (widget.quizData != null &&
+      (_rightAnswers != null ||
+      widget.wrongAnswers != null) &&
+      (_rightAnswers!.isNotEmpty ||
+      widget.wrongAnswers!.isNotEmpty)
+      ) {
+    
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => QuizAIGeneratedFeedback(
+          quizData: widget.quizData!,
+          rightAnswers: _rightAnswers!,
+          wrongAnswers: widget.wrongAnswers!,
+        ),
+      ),
+    );
+  } else {
+    // Show an error message if any required data is null
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Unable to generate AI feedback due to missing data.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+},
+
+
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               padding: const EdgeInsets.symmetric(vertical: 12),
