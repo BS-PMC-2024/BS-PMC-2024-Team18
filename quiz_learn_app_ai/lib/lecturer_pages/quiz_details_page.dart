@@ -127,45 +127,54 @@ Future<void> _selectDateTime(DateTime initialDateTime, Function(DateTime) onDate
     );
   }
 
-  Future<void> _loadQuizDetails() async {
-    setState(() {
-      _isLoading = true;
-    });
+ Future<void> _loadQuizDetails() async {
+  // Show loading indicator
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      final quizData = await _firebaseService.loadQuizDetails(widget.quizId);
-      
-      if (quizData != null) {
-        setState(() {
-          _quizNameController.text = quizData['name'] ?? '';
-          _questions = List<Map<dynamic, dynamic>>.from(quizData['questions'] ?? []);
-        // Update description if available
+  try {
+    // Load quiz details from the service
+    final quizData = await _firebaseService.loadQuizDetails(widget.quizId);
+    
+    if (quizData != null) {
+      setState(() {
+        // Update quiz name controller with the loaded quiz name
+        _quizNameController.text = quizData['name'] ?? '';
+        
+        // Update questions list with the loaded questions
+        _questions = List<Map<dynamic, dynamic>>.from(quizData['questions'] ?? []);
+        
+        // Update description if available, prioritize question description over quiz description
         if (_questions.isNotEmpty && _questions.last.containsKey('description')) {
           _descriptionController.text = _questions.last['description'];
         } else {
           _descriptionController.text = quizData['description'] ?? '';
         }
-          
-          // Parse and set the start and end times
-          _startTime = DateTime.parse(quizData['startTime'] ?? DateTime.now().toIso8601String());
-          _endTime = DateTime.parse(quizData['endTime'] ?? DateTime.now().toIso8601String());
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading quiz details: ${e.toString()}')),
-        );
-        if (kDebugMode) {
-          print("Error loading quiz details: ${e.toString()}");
-        }
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
+        
+        // Parse and set the start and end times
+        _startTime = DateTime.parse(quizData['startTime'] ?? DateTime.now().toIso8601String());
+        _endTime = DateTime.parse(quizData['endTime'] ?? DateTime.now().toIso8601String());
       });
     }
+  } catch (e) {
+    // Show error message if there is an issue loading quiz details
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading quiz details: ${e.toString()}')),
+      );
+      if (kDebugMode) {
+        print("Error loading quiz details: ${e.toString()}"); // Print error details in debug mode
+      }
+    }
+  } finally {
+    // Hide loading indicator
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
  Future<void> _updateQuiz() async {
   // Show loading indicator
