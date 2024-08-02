@@ -35,53 +35,58 @@ class _SignInPageState extends State<SignInPage> {
   bool isPasswordVisible = false;
 
 
-// Sign in with password
-  Future<void> signInWithEmailAndPassword() async {
-    try {
-      String result = await auth.login(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+// Updated sign-in method to include user type navigation and error handling
+Future<void> signInWithEmailAndPassword() async {
+  try {
+    // Attempt to log in using provided email and password
+    String result = await auth.login(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
-      if (result == "Success") {
-        User? user = auth.auth!.currentUser;
+    // Check if login was successful
+    if (result == "Success") {
+      User? user = auth.auth!.currentUser;
 
-        if (user != null) {
-          // Fetch user type from database
-          DatabaseEvent event = await _database.child('users').child(user.uid).once();
-          Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
-          String? userType = userData?['userType'];
+      if (user != null) {
+        // Fetch user type from the database
+        DatabaseEvent event = await _database.child('users').child(user.uid).once();
+        Map<dynamic, dynamic>? userData = event.snapshot.value as Map?;
+        String? userType = userData?['userType'];
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Signed in successfully')),
-            );
-
-            // Navigate to the appropriate home page
-            if (userType == 'Admin') {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AdminHomePage()));
-            } else if (userType == 'Student') {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
-            } else if (userType == 'Lecturer') {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LecturerHomePage()));
-            }
-          }
-        }
-      } else {
         if (mounted) {
+          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $result')),
+            const SnackBar(content: Text('Signed in successfully')),
           );
+
+          // Navigate to the appropriate home page based on user type
+          if (userType == 'Admin') {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AdminHomePage()));
+          } else if (userType == 'Student') {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
+          } else if (userType == 'Lecturer') {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LecturerHomePage()));
+          } 
         }
       }
-    } catch (e) {
+    } else {
+      // Show error message if login failed
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text('Error: $result')),
         );
       }
     }
+  } catch (e) {
+    // Handle and display any errors that occurred during the sign-in process
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
   }
+}
 
  Future<String?> showUserTypeSelectionDialog() async {
     String? selectedUserType;
