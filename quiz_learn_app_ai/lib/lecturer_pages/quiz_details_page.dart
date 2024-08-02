@@ -167,103 +167,113 @@ Future<void> _selectDateTime(DateTime initialDateTime, Function(DateTime) onDate
     }
   }
 
-  Future<void> _updateQuiz() async {
-    setState(() {
-      _isLoading = true;
-    });
+ Future<void> _updateQuiz() async {
+  // Show loading indicator
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      await _firebaseService.updateQuiz(
-        widget.quizId,
-        _quizNameController.text,
-        _questions,
-        _descriptionController.text,
-        _startTime.toIso8601String(), // Save start time
-        _endTime.toIso8601String(),   // Save end time
+  try {
+    // Call the service to update the quiz with new data
+    await _firebaseService.updateQuiz(
+      widget.quizId,
+      _quizNameController.text,
+      _questions,
+      _descriptionController.text,
+      _startTime.toIso8601String(), // Save start time
+      _endTime.toIso8601String(),   // Save end time
+    );
+
+    // Show success message if update is successful
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Quiz saved successfully')),
       );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quiz saved successfully')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
-        );
-        if (kDebugMode) {
-          print('Error saving quiz: ${e.toString()}');
-        }
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
-        _isEditing = false;
-      });
     }
+  } catch (e) {
+    // Show error message if there is an issue with the update
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+      );
+      if (kDebugMode) {
+        print('Error saving quiz: ${e.toString()}'); // Print error details in debug mode
+      }
+    }
+  } finally {
+    // Hide loading indicator and reset editing state
+    setState(() {
+      _isLoading = false;
+      _isEditing = false;
+    });
   }
-  
-  void _editQuestion(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final question = _questions[index];
-        final TextEditingController questionController = TextEditingController(text: question['question']);
-        final List<TextEditingController> optionControllers = 
-          (question['options'] as List).map((option) => TextEditingController(text: option)).toList();
-        final TextEditingController answerController = TextEditingController(text: question['answer']);
+}
 
-        return AlertDialog(
-          
-            title: Text('Edit Question ${index + 1}'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: questionController,
-                    decoration: const InputDecoration(labelText: 'Question'),
-                  ),
-                  const SizedBox(height: 10),
-                  ...List.generate(optionControllers.length, (i) => 
-                    TextField(
-                      controller: optionControllers[i],
-                      decoration: InputDecoration(labelText: 'Option ${String.fromCharCode(65 + i)}'),
-                    )
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: answerController,
-                    decoration: const InputDecoration(labelText: 'Correct Answer'),
-                  ),
-                ],
+  void _editQuestion(int index) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      final question = _questions[index];
+      final TextEditingController questionController = TextEditingController(text: question['question']);
+      final List<TextEditingController> optionControllers = 
+        (question['options'] as List).map((option) => TextEditingController(text: option)).toList();
+      final TextEditingController answerController = TextEditingController(text: question['answer']);
+
+      return AlertDialog(
+        // Title of the dialog indicating which question is being edited
+        title: Text('Edit Question ${index + 1}'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Text field for editing the question
+              TextField(
+                controller: questionController,
+                decoration: const InputDecoration(labelText: 'Question'),
               ),
-            ),
-            actions: [
-              TextButton(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(),
+              const SizedBox(height: 10),
+              // Text fields for editing the options, dynamically generated based on the number of options
+              ...List.generate(optionControllers.length, (i) => 
+                TextField(
+                  controller: optionControllers[i],
+                  decoration: InputDecoration(labelText: 'Option ${String.fromCharCode(65 + i)}'),
+                )
               ),
-              TextButton(
-                child: const Text('Save'),
-                onPressed: () {
-                  setState(() {
-                    _questions[index] = {
-                      'question': questionController.text,
-                      'options': optionControllers.map((controller) => controller.text).toList(),
-                      'answer': answerController.text,
-                    };
-                  });
-                  Navigator.of(context).pop();
-                },
+              const SizedBox(height: 10),
+              // Text field for editing the correct answer
+              TextField(
+                controller: answerController,
+                decoration: const InputDecoration(labelText: 'Correct Answer'),
               ),
             ],
-          
-        );
-      },
-    );
-  }
+          ),
+        ),
+        actions: [
+          // Cancel button to close the dialog without saving changes
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          // Save button to update the question with the new values
+          TextButton(
+            child: const Text('Save'),
+            onPressed: () {
+              setState(() {
+                _questions[index] = {
+                  'question': questionController.text,
+                  'options': optionControllers.map((controller) => controller.text).toList(),
+                  'answer': answerController.text,
+                };
+              });
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   void _deleteQuestion(int index) {
     setState(() {
@@ -327,12 +337,12 @@ Widget _buildAppBar() {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Back button
+        // Back button to navigate to the previous screen
         IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        // Title
+        // Title that changes based on whether the user is editing or viewing details
         Text(
           _isEditing ? 'Edit Quiz' : 'Quiz Details',
           style: const TextStyle(
@@ -341,13 +351,15 @@ Widget _buildAppBar() {
             color: Colors.white,
           ),
         ),
-        // Edit/Save button
+        // Button to toggle between edit and save modes
         IconButton(
           icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white),
           onPressed: () {
             if (_isEditing) {
+              // Call the function to update the quiz when in edit mode
               _updateQuiz();
             } else {
+              // Switch to edit mode
               setState(() {
                 _isEditing = true;
               });
@@ -358,6 +370,7 @@ Widget _buildAppBar() {
     ),
   );
 }
+
 
 
 Widget _buildQuizContent() {
