@@ -35,7 +35,7 @@ class _SignInPageState extends State<SignInPage> {
   bool isPasswordVisible = false;
 
 
-
+// Sign in with password
   Future<void> signInWithEmailAndPassword() async {
     try {
       String result = await auth.login(
