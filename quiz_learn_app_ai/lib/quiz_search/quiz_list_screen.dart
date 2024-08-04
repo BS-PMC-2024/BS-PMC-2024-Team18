@@ -49,7 +49,7 @@ class QuizListScreenState extends State<QuizListScreen> {
 
 
 @override
-Widget build(BuildContext context) {
+Widget build(BuildContext context) { //  Widget builder for available quiz list
   return Scaffold(
     backgroundColor: Colors.grey[100],
     appBar: AppBar(
@@ -90,7 +90,7 @@ Widget build(BuildContext context) {
   );
 }
 
-Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
+Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { 
 
 
   List<dynamic> questions = quiz['questions'] ?? [];
