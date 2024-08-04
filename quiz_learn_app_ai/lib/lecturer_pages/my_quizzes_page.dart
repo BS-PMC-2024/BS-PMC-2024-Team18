@@ -43,7 +43,7 @@ Future<void> _loadQuizzes() async {
       });
     }
   }
-
+//Delete quiz there are no longer needed
  Future<void> _deleteQuiz(String quizId) async {
     try {
       await _firebaseService.deleteQuiz(quizId);
@@ -284,7 +284,7 @@ Future<void> _loadQuizzes() async {
       MaterialPageRoute(builder: (context) => LecturerQuizOverview(quizId: quizId)),
     ).then((_) => _loadQuizzes());
   }
-
+//Delete quiz there are no longer needed
   void _showDeleteConfirmation(String quizId) {
     showDialog(
       context: context,
