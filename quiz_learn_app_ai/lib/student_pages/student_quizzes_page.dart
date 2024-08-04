@@ -201,7 +201,7 @@ class StudentQuizzesPageState extends State<StudentQuizzesPage> {
     );
   }
 
-  Widget _buildQuizCard(Map<String, dynamic> quiz) {
+  Widget _buildQuizCard(Map<String, dynamic> quiz) {  // Build quiz card Widget
   return Card(
     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     elevation: 5,
