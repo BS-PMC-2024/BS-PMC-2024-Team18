@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_quiz_page.dart';
+import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_quiz_overview.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/quiz_details_page.dart';
 import 'package:intl/intl.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart'; // Add this import for date formatting
@@ -42,7 +43,7 @@ Future<void> _loadQuizzes() async {
       });
     }
   }
-
+//Delete quiz there are no longer needed
  Future<void> _deleteQuiz(String quizId) async {
     try {
       await _firebaseService.deleteQuiz(quizId);
@@ -205,6 +206,10 @@ Future<void> _loadQuizzes() async {
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _showDeleteConfirmation(quiz['id']),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.emoji_events_rounded, color: Colors.green),
+                    onPressed: () => _navigateToQuizOverview(quiz['id']),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -272,6 +277,14 @@ Future<void> _loadQuizzes() async {
     ).then((_) => _loadQuizzes());
   }
 
+
+  void _navigateToQuizOverview(String quizId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LecturerQuizOverview(quizId: quizId)),
+    ).then((_) => _loadQuizzes());
+  }
+//Delete quiz there are no longer needed
   void _showDeleteConfirmation(String quizId) {
     showDialog(
       context: context,
