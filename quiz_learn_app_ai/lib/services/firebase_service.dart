@@ -6,8 +6,8 @@ import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 
 class FirebaseService {
   final DatabaseReference _database;
- final FirebaseAuth _auth;
- 
+  final FirebaseAuth _auth;
+
   FirebaseService({DatabaseReference? database , FirebaseAuth? auth})
       : _database = database ?? FirebaseDatabase.instance.ref(),   _auth = auth ?? FirebaseAuth.instance;
 
@@ -52,6 +52,49 @@ class FirebaseService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> loadPerfomedQuizUsers(
+      String quizId) async {
+    try {
+      //final User? user = _auth.currentUser;
+      final snapshot = await _database.child('students').get();
+      if (snapshot.exists) {
+        final data = snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> students = [];
+
+        data.forEach((key, value) {
+          final student = value as Map<dynamic, dynamic>;
+          student['userId'] = key;
+          final quizResults = student['quizResults'] as Map<dynamic, dynamic>?;
+          if (quizResults != null) {
+            quizResults.forEach((quizKey, quizValue) {
+              final quizResult = quizValue as Map<dynamic, dynamic>;
+              if (quizResult['quizId'] == quizId) {
+                students.add({
+                  'userId': student['userId'],
+                  'email': student['email'],
+                  'name': student['name'],
+                  'quizId': quizId,
+                  'quizName': quizResult['quizName'],
+                  'points': quizResult['points'],
+                  'date': quizResult['date'],
+                  'questionCount': quizResult['questions'].length,
+                  'questions': quizResult['questions'],
+                  'rightAnswers': quizResult['rightAnswers'],
+                  'wrongAnswers': quizResult['wrongAnswers'],
+                  'feedback': quizResult['feedback'] ?? '',
+                });
+              }
+            });
+          }
+        });
+
+        return students;
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Error loading students: ${e.toString()}');
+    }
+  }
 
 
 
@@ -362,6 +405,45 @@ Future<void> saveQuizResults_2(String quizId, String quizName, List<String>? rig
     throw Exception('User not logged in');
   }
 }
+
+  Future<void> saveQuizResults_3(
+      String studentid,
+      String quizId,
+      String quizName,
+      List<String>? rightAnswers,
+      List<String>? wrongAnswers,
+      String points,
+      Map<String, dynamic> questions,
+      String feedback,
+      String lecturerFeedback) async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      try {
+        final quizResult = {
+          'quizId': quizId,
+          'quizName': quizName,
+          'rightAnswers': rightAnswers,
+          'wrongAnswers': wrongAnswers,
+          'points': points,
+          'date': DateTime.now().toIso8601String(),
+          'questions': questions,
+          'AIfeedback': feedback,
+          'lecturerFeedback': lecturerFeedback,
+        };
+
+        await _database
+            .child('students')
+            .child(studentid)
+            .child('quizResults')
+            .push()
+            .set(quizResult);
+      } catch (e) {
+        throw Exception('Error saving quiz results: ${e.toString()}');
+      }
+    } else {
+      throw Exception('User not logged in');
+    }
+  }
 
 
  Future<List<Map<String, dynamic>>> loadQuizResults() async {
