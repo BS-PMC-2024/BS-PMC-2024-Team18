@@ -90,7 +90,7 @@ Widget build(BuildContext context) { //  Widget builder for available quiz list
   );
 }
 
-Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { 
+Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz object builder 
 
 
   List<dynamic> questions = quiz['questions'] ?? [];
