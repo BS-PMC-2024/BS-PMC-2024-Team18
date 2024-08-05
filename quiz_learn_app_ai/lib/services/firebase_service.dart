@@ -72,6 +72,7 @@ class FirebaseService {
                 students.add({
                   'userId': student['userId'],
                   'email': student['email'],
+                  'quizResultId': quizKey,
                   'name': student['name'],
                   'quizId': quizId,
                   'quizName': quizResult['quizName'],
@@ -406,37 +407,18 @@ Future<void> saveQuizResults_2(String quizId, String quizName, List<String>? rig
   }
 }
 
-  Future<void> saveQuizResults_3(
-      String studentid,
-      String quizId,
-      String quizName,
-      List<String>? rightAnswers,
-      List<String>? wrongAnswers,
-      String points,
-      Map<String, dynamic> questions,
-      String feedback,
-      String lecturerFeedback) async {
+  Future<void> saveQuizResults_3(String lecturerFeedback, Map<String, dynamic> student) async {
     final User? user = _auth.currentUser;
     if (user != null) {
       try {
-        final quizResult = {
-          'quizId': quizId,
-          'quizName': quizName,
-          'rightAnswers': rightAnswers,
-          'wrongAnswers': wrongAnswers,
-          'points': points,
-          'date': DateTime.now().toIso8601String(),
-          'questions': questions,
-          'AIfeedback': feedback,
-          'lecturerFeedback': lecturerFeedback,
-        };
-
         await _database
             .child('students')
-            .child(studentid)
+            .child(student['userId'])
             .child('quizResults')
+            .child(student['quizResultId'])
+            .child('lecturerFeedback')
             .push()
-            .set(quizResult);
+            .set(lecturerFeedback);
       } catch (e) {
         throw Exception('Error saving quiz results: ${e.toString()}');
       }

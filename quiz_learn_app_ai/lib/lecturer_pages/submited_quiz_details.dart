@@ -40,16 +40,7 @@ class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
   void _saveFeedback() {
     final feedback = _feedbackController.text;
     final FirebaseService firebaseService = FirebaseService();
-    firebaseService.saveQuizResults_3(
-        student['userId'],
-        student['quizId'],
-        student['quizName'],
-        castToStringList(student['rightAnswers']),
-        castToStringList(student['wrongAnswers']),
-        student['points'],
-        convertListToMap(student['questions']),
-        student['feedback'],
-        feedback);
+    firebaseService.saveQuizResults_3(feedback, student);
     if (kDebugMode) {
       print('Feedback saved: $feedback');
     }
