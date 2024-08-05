@@ -54,8 +54,8 @@ class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
 
   List<String> castToStringList(List<Object?> original) {
     return original
-        .where((item) => item is String)
-        .map((item) => item as String)
+        .whereType<String>()
+        .map((item) => item)
         .toList();
   }
 
@@ -126,8 +126,8 @@ class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
                   Center(
                     child: FloatingActionButton(
                       onPressed: _showFeedbackField,
+                      backgroundColor: const Color.fromARGB(255, 127, 101, 171),
                       child: const Icon(Icons.feedback),
-                      backgroundColor: Color.fromARGB(255, 127, 101, 171),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -140,22 +140,30 @@ class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final question = student['questions'][index];
-                final questionText =
-                    question['question'] ?? 'No question text available.';
-                final answer = question['answer'] ?? 'No answer available.';
-                final isRight = student['rightAnswers'].contains(answer);
-                final isWrong = student['wrongAnswers'].contains(answer);
+         SliverList(
+  delegate: SliverChildBuilderDelegate(
+    (context, index) {
+      final questions = student['questions'] ?? [];
+      final rightAnswers = student['rightAnswers'] ?? [];
+      final wrongAnswers = student['wrongAnswers'] ?? [];
 
-                return _buildQuestionCard(
-                    questionText, answer, isRight, isWrong, index, context);
-              },
-              childCount: student['questionCount'],
-            ),
-          ),
+      if (index >= questions.length) {
+        return const SizedBox.shrink(); // Return an empty widget if index is out of range
+      }
+
+      final question = questions[index];
+      final questionText = question['question'] ?? 'No question text available.';
+      final answer = question['answer'] ?? 'No answer available.';
+      final isRight = rightAnswers.contains(answer);
+      final isWrong = wrongAnswers.contains(answer);
+
+      return _buildQuestionCard(
+        questionText, answer, isRight, isWrong, index, context);
+    },
+    childCount: student['questionCount'] ?? 0,
+  ),
+),
+
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

@@ -14,10 +14,10 @@ class LecturerQuizOverview extends StatefulWidget {
   const LecturerQuizOverview({super.key, required this.quizId});
 
   @override
-  _LecturerQuizOverviewState createState() => _LecturerQuizOverviewState();
+  LecturerQuizOverviewState createState() => LecturerQuizOverviewState();
 }
 
-class _LecturerQuizOverviewState extends State<LecturerQuizOverview> {
+class LecturerQuizOverviewState extends State<LecturerQuizOverview> {
   final FirebaseService _firebaseService = FirebaseService();
   List<Map<String, dynamic>> _students = [];
   bool _isLoading = true;
