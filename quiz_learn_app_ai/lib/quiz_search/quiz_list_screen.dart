@@ -241,7 +241,7 @@ Widget _buildQuestionCountChip(int count) {
   );
 }
 
-void _navigateToQuizScreen(Map<String, dynamic> quiz) {
+void _navigateToQuizScreen(Map<String, dynamic> quiz) { // Quiz navigation implementation
   if (quiz['questionCount'] > 1) {
     Navigator.push(
       context,
