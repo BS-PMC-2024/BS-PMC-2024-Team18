@@ -168,7 +168,7 @@ Widget _buildProfileSection() {
         const CircleAvatar(
           radius: 50,
           backgroundColor: Colors.white,
-          child: Icon(Icons.person, size: 50, color: Color(0xFF3949AB)),
+          child: Icon(Icons.school, size: 50, color: Color(0xFF3949AB)),
         ),
         const SizedBox(height: 20),
         AnimatedTextKit(
@@ -194,7 +194,7 @@ Widget _buildFeatureGrid(BuildContext context) {
   final features = [
     {'icon': Icons.search, 'label': 'Find Quizzes', 'route': const QuizListScreen()},
  
-    {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const CompletedQuizzesScreen()},
+    {'icon': Icons.quiz, 'label': 'My Previous Used Quizzes', 'route': const CompletedQuizzesScreen()},
     {'icon': Icons.assessment, 'label': 'Quiz Results', 'route': const QuizResultsScreen()},
        {'icon': Icons.person, 'label': 'Student Profile', 'route': const StudentProfilePage()},
       {'icon': Icons.pages, 'label': 'Study Material', 'route': const StudentProfilePage()},

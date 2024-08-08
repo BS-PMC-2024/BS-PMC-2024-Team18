@@ -189,7 +189,7 @@ String _formatUserName(String? email) {
           const CircleAvatar(
             radius: 50,
             backgroundColor: Colors.white,
-            child: Icon(Icons.person, size: 50, color: Color(0xFF3949AB)),
+            child: Icon(Icons.assignment, size: 50, color: Color(0xFF3949AB)),
           ),
           const SizedBox(height: 20),
           AnimatedTextKit(
@@ -215,7 +215,7 @@ String _formatUserName(String? email) {
   final features = [
     {'icon': Icons.search, 'label': 'Quiz Search', 'route': const QuizListScreen()},
     {'icon': Icons.create, 'label': 'Create Questions with AI', 'route': const CreateQuestionAI()},
-    {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const MyQuizzesPage()},
+    {'icon': Icons.quiz, 'label': 'My Built Quizzes', 'route': const MyQuizzesPage()},
     {'icon': Icons.person, 'label': 'Lecturer Profile', 'route': const LecturerProfilePage()},
      {'icon': Icons.insert_chart, 'label': 'Lecturer Statistics', 'route': const LecturerQuizStatisticsPage()},
   ];

@@ -88,8 +88,7 @@ Widget build(BuildContext context) { //  Widget builder for available quiz list
       ],
     ),
   );
-}
-Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
+}Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
   List<dynamic> questions = quiz['questions'] ?? [];
   String description = quiz['description'] ?? 'No description available';
 
@@ -99,16 +98,24 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     child: InkWell(
       onTap: () {
-        if (userType == 'Lecturer') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Lecturers cannot start quizzes.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        } else {
-          _checkQuizAvailabilityAndStart(quiz);
-        }
+        // Show full description in a dialog or another widget
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(quiz['name']?.toString() ?? 'Unnamed Quiz'),
+              content: Text(description),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Close'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
       },
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -131,7 +138,7 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.report, size: 20, color: Colors.red),
+                      icon: const Icon(Icons.report, size: 30, color: Colors.red),
                       onPressed: () => _showReportDialog(context, quiz['id']),
                       tooltip: 'Report',
                     ),
@@ -208,6 +215,7 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
     ),
   );
 }
+
 
   void _showReportDialog(BuildContext context, String quizId) {
     TextEditingController reportController = TextEditingController();
