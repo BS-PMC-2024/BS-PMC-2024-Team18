@@ -32,7 +32,7 @@ class AnswerCard extends StatelessWidget {
         child: Text(
         answer,
         style: TextStyle(
-          color: isSelected ?Colors.blue:null,
+          color: isSelected ?const Color.fromARGB(255, 255, 255, 255):null,
           fontSize: 16,
           fontWeight: FontWeight.w600,
           

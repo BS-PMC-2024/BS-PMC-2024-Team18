@@ -105,20 +105,20 @@ Widget _buildBackground() {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFFeb8671), // #eb8671
-          Color(0xFFea7059), // #ea7059
-          Color(0xFFef7d5d), // #ef7d5d
-          Color(0xFFf8a567), // #f8a567
-          Color(0xFFfecc63), // #fecc63
-          Color(0xFFa7c484), // #a7c484
-          Color(0xFF5b9f8d), // #5b9f8d
-          Color(0xFF257b8c), // #257b8c
-          Color(0xFFad3d75), // #ad3d75
-          Color(0xFF1fd1d5), // #1fd1d5
-          Color(0xFF2e7cbc), // #2e7cbc
-          Color(0xFF3d5488), // #3d5488
-          Color(0xFF99497f), // #99497f
-          Color(0xFF23b7c1), // #23b7c1
+Color(0xFFf2b39b), // Lighter #eb8671
+Color(0xFFf19b86), // Lighter #ea7059
+Color(0xFFf3a292), // Lighter #ef7d5d
+Color(0xFFf8c18e), // Lighter #f8a567
+Color(0xFFfcd797), // Lighter #fecc63
+Color(0xFFcdd7a7), // Lighter #a7c484
+Color(0xFF8fb8aa), // Lighter #5b9f8d
+Color(0xFF73adbb), // Lighter #257b8c
+Color(0xFFcc7699), // Lighter #ad3d75
+Color(0xFF84d9db), // Lighter #1fd1d5
+Color(0xFF85a8cf), // Lighter #2e7cbc
+Color(0xFF8487ac), // Lighter #3d5488
+Color(0xFFb7879c), // Lighter #99497f
+Color(0xFF86cfd6), // Lighter #23b7c1
         ],
       ),
     ),
@@ -175,7 +175,7 @@ Widget _buildProfileSection() {
           animatedTexts: [
             TypewriterAnimatedText(
               'Welcome, ${_formatUserName(userEmail)}',
-              textStyle: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+              textStyle: const TextStyle(fontSize: 22, color: Color(0xFF3949AB), fontWeight: FontWeight.bold),
               speed: const Duration(milliseconds: 100),
             ),
           ],
@@ -183,7 +183,7 @@ Widget _buildProfileSection() {
         ),
         Text(
           userType ?? '',
-          style: const TextStyle(fontSize: 18, color: Colors.white70),
+          style: const TextStyle(fontSize: 18, color: Color(0xFF3949AB)),
         ),
       ],
     ),
