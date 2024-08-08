@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_quiz_reports_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
@@ -278,6 +279,17 @@ String _formatUserName(String? email) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AdminCompliancePage()),
+            );
+          },
+        ),
+          _buildActionCard(
+          icon: Icons.report,
+          title: 'Quiz reports',
+          description: 'Ensures quizs with data security and privacy regulations.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminQuizReportsPage()),
             );
           },
         ),

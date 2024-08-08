@@ -89,10 +89,7 @@ Widget build(BuildContext context) { //  Widget builder for available quiz list
     ),
   );
 }
-
-Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz object builder 
-
-
+Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) {
   List<dynamic> questions = quiz['questions'] ?? [];
   String description = quiz['description'] ?? 'No description available';
 
@@ -102,18 +99,17 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     child: InkWell(
       onTap: () {
-                   if (userType == 'Lecturer') {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Lecturers cannot start quizzes.'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } else {
-                         _checkQuizAvailabilityAndStart(quiz);
-                      }
-                    
-                  },
+        if (userType == 'Lecturer') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Lecturers cannot start quizzes.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else {
+          _checkQuizAvailabilityAndStart(quiz);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -132,7 +128,16 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz
                     ),
                   ),
                 ),
-                _buildQuestionCountChip(questions.length-1),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.report, size: 20, color: Colors.red),
+                      onPressed: () => _showReportDialog(context, quiz['id']),
+                      tooltip: 'Report',
+                    ),
+                    _buildQuestionCountChip(questions.length - 1),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -145,8 +150,7 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz
               'Lecturer: ${quiz['lecturer']?.toString() ?? 'Unknown'}',
               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
-
-           const SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Description: $description',
               style: TextStyle(fontSize: 14, color: Colors.grey[800]),
@@ -157,33 +161,34 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat('MMM d, yyyy').format(
-                        DateTime.fromMillisecondsSinceEpoch(
-                          int.parse(quiz['createdAt']?.toString() ?? '0'),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('MMM d, yyyy').format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                            int.parse(quiz['createdAt']?.toString() ?? '0'),
+                          ),
                         ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
-                   if (userType == 'Lecturer') {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Lecturers cannot start quizzes.'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } else {
-                         _checkQuizAvailabilityAndStart(quiz);
-                      }
-                    
+                    if (userType == 'Lecturer') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Lecturers cannot start quizzes.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    } else {
+                      _checkQuizAvailabilityAndStart(quiz);
+                    }
                   },
                   icon: const Icon(Icons.play_arrow, size: 18),
                   label: const Text('Start Quiz'),
@@ -203,6 +208,80 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz
     ),
   );
 }
+
+  void _showReportDialog(BuildContext context, String quizId) {
+    TextEditingController reportController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Report Quiz'),
+          content: TextField(
+            controller: reportController,
+            decoration: const InputDecoration(hintText: 'Enter report details'),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _reportQuiz(context, quizId, reportController.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+void _reportQuiz(BuildContext context, String quizId, String reportDetails) async {
+  if (reportDetails.isEmpty) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Report details cannot be empty.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+    return;
+  }
+
+  try {
+    final currentUser = await _firebaseService.getCurrentLecturerId();
+    final reportData = {
+      'reportDetails': reportDetails,
+      'reportedBy': currentUser ?? 'Anonymous',
+      'reportDate': DateTime.now().millisecondsSinceEpoch,
+    };
+
+    await _firebaseService.reportQuiz(quizId, reportData);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Quiz reported successfully.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error reporting quiz: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
 
 void _checkQuizAvailabilityAndStart(Map<String, dynamic> quiz) {
   if (quiz['startTime'] != null && quiz['endTime'] != null) {

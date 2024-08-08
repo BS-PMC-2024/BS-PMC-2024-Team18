@@ -17,6 +17,52 @@ class FirebaseService {
 
 
 
+
+  Future<void> reportQuiz(String quizId, Map<String, dynamic> reportData) async {
+    try {
+      await _database.child('quizReports').child(quizId).push().set(reportData);
+    } catch (e) {
+      throw Exception('Error reporting quiz: $e');
+    }
+  }
+
+Future<List<Map<String, dynamic>>> loadAllQuizReports() async {
+  try {
+    final snapshot = await _database.child('quizReports').get();
+    if (snapshot.exists) {
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      List<Map<String, dynamic>> allReports = [];
+
+      data.forEach((quizId, reports) {
+        final reportsMap = reports as Map<dynamic, dynamic>;
+        reportsMap.forEach((reportId, reportDetails) {
+          allReports.add({
+            'quizId': quizId,
+            'reportId': reportId,
+            'reportDetails': reportDetails['reportDetails'],
+            'reportedBy': reportDetails['reportedBy'],
+            'reportDate': reportDetails['reportDate'],
+          });
+        });
+      });
+
+      return allReports;
+    }
+  } catch (e) {
+    throw Exception('Error loading all quiz reports: $e');
+  }
+  return [];
+}
+
+  Future<void> deleteQuizReport(String quizId, String reportId) async {
+    try {
+      await _database.child('quizReports').child(quizId).child(reportId).remove();
+    } catch (e) {
+      throw Exception('Error deleting quiz report: $e');
+    }
+  }
+
+
  Future<String?> getCurrentLecturerId() async {
     final User? user = _auth.currentUser;
     return user?.uid;
@@ -340,6 +386,18 @@ Future<void> updateQuiz(String quizId, String quizName, List<Map<dynamic, dynami
     }
   }
 
+  Future<void> deleteQuiz2(String lecturerId, String quizId) async {
+    try {
+      // Delete the quiz from the lecturer's quizzes
+      await _database.child('lecturers').child(lecturerId).child('quizzes').child(quizId).remove();
+
+      // Delete all reports related to this quiz
+      await _database.child('quizReports').child(quizId).remove();
+    } catch (e) {
+      throw Exception('Error deleting quiz: $e');
+    }
+  }
+
 
  Future<List<Map<String, dynamic>>> loadAllQuizzes() async {
   try {
@@ -372,6 +430,7 @@ Future<void> updateQuiz(String quizId, String quizName, List<Map<dynamic, dynami
               'lecturer': lecturerData['name'] ?? 'Unknown Lecturer',
               'questions': questions,
               'description': description,
+                 'lecturerId': lecturerId,
                'startTime': startTime, // Add startTime to the quiz map
               'endTime': endTime,     // Add endTime to the quiz map
             });
