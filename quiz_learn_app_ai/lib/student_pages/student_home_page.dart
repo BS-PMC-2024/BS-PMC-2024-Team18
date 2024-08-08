@@ -63,7 +63,7 @@ Future<void> _loadUserData() async {
     }
   }
 
-  @override
+@override
 Widget build(BuildContext context) {
   return Scaffold(
     body: _isLoading
@@ -125,98 +125,113 @@ Widget _buildBackground() {
   );
 }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'CampusQuest AI',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 1.2,
-            ),
+Widget _buildAppBar(BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.all(20.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'CampusQuest AI',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 1.2,
           ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _signOut(),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () => _signOut(),
+        ),
+      ],
+    ),
+  );
+}
+
 String _formatUserName(String? email) {
   if (email == null || email.isEmpty) {
     return 'Student';
   }
-  // Remove everything after and including '@'
   return email.split('@')[0];
 }
-  Widget _buildProfileSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          const CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.white,
-            child: Icon(Icons.person, size: 50, color: Color(0xFF3949AB)),
-          ),
-          const SizedBox(height: 20),
-          AnimatedTextKit(
-            animatedTexts: [
-              TypewriterAnimatedText(
-             'Welcome, ${_formatUserName(userEmail)}',
-                textStyle: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-                speed: const Duration(milliseconds: 100),
-              ),
-            ],
-            totalRepeatCount: 1,
-          ),
-          Text(
-            userType ?? '',
-            style: const TextStyle(fontSize: 18, color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
 
- Widget _buildFeatureGrid(BuildContext context) {
-  final features = [
-    {'icon': Icons.assessment, 'label': 'View Quiz Results', 'route': const QuizResultsScreen()},
-    {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const CompletedQuizzesScreen()},
-    {'icon': Icons.search, 'label': 'Search Quizzes', 'route': const QuizListScreen()},
-    {'icon': Icons.person, 'label': 'Student Profile', 'route': const StudentProfilePage()},
-  ];
-
-  return GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-      crossAxisSpacing: 20,
-      mainAxisSpacing: 20,
-      childAspectRatio: 1.1,
+Widget _buildProfileSection() {
+  return Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(20),
     ),
-    itemCount: features.length,
-    itemBuilder: (context, index) {
-      return _buildFeatureCard(context, features[index]);
-    },
+    child: Column(
+      children: [
+        const CircleAvatar(
+          radius: 50,
+          backgroundColor: Colors.white,
+          child: Icon(Icons.person, size: 50, color: Color(0xFF3949AB)),
+        ),
+        const SizedBox(height: 20),
+        AnimatedTextKit(
+          animatedTexts: [
+            TypewriterAnimatedText(
+              'Welcome, ${_formatUserName(userEmail)}',
+              textStyle: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+              speed: const Duration(milliseconds: 100),
+            ),
+          ],
+          totalRepeatCount: 1,
+        ),
+        Text(
+          userType ?? '',
+          style: const TextStyle(fontSize: 18, color: Colors.white70),
+        ),
+      ],
+    ),
   );
 }
 
-Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature) {
+Widget _buildFeatureGrid(BuildContext context) {
+  final features = [
+    {'icon': Icons.search, 'label': 'Find Quizzes', 'route': const QuizListScreen()},
+ 
+    {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const CompletedQuizzesScreen()},
+    {'icon': Icons.assessment, 'label': 'Quiz Results', 'route': const QuizResultsScreen()},
+       {'icon': Icons.person, 'label': 'Student Profile', 'route': const StudentProfilePage()},
+      {'icon': Icons.pages, 'label': 'Study Material', 'route': const StudentProfilePage()},
+  ];
+
+  return Column(
+    children: [
+      _buildFeatureCard(
+        context,
+        features[0],
+        isFullWidth: true,
+      ),
+      const SizedBox(height: 20),
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+          childAspectRatio: 1.1,
+        ),
+        itemCount: features.length - 1,
+        itemBuilder: (context, index) {
+          return _buildFeatureCard(context, features[index + 1]);
+        },
+      ),
+    ],
+  );
+}
+
+Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature, {bool isFullWidth = false}) {
   return InkWell(
     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => feature['route'])),
     child: Container(
+      width: isFullWidth ? double.infinity : null,
+      height: isFullWidth ? 60 : null, // Adjusted height
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
@@ -228,29 +243,47 @@ Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature) {
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            feature['icon'] as IconData,
-            size: 50,
-            color: Colors.white,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            feature['label'] as String,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+      child: isFullWidth
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  feature['icon'] as IconData,
+                  size: 30,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  feature['label'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  feature['icon'] as IconData,
+                  size: 50,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  feature['label'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     ),
   );
 }
-
 }
-

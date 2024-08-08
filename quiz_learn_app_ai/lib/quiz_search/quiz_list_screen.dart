@@ -101,7 +101,19 @@ Widget _buildQuizCard(BuildContext context, Map<String, dynamic> quiz) { // Quiz
     elevation: 4,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     child: InkWell(
-      onTap: () => _navigateToQuizScreen(quiz),
+      onTap: () {
+                   if (userType == 'Lecturer') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Lecturers cannot start quizzes.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } else {
+                         _checkQuizAvailabilityAndStart(quiz);
+                      }
+                    
+                  },
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

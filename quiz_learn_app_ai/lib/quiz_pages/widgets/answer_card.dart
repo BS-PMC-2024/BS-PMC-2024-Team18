@@ -22,10 +22,10 @@ class AnswerCard extends StatelessWidget {
       child: Ink(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.lightGreen.withOpacity(0.5):Colors.white,
+        color: isSelected ? Colors.purple.withOpacity(0.5):Colors.white,
         borderRadius: UiParameters.cardBorderRadius,
         border: Border.all(
-          color: isSelected ? Colors.green:Colors.white,
+          color: isSelected ? Colors.purple:Colors.white,
           
       ),
       ),

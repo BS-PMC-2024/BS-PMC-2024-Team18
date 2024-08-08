@@ -209,67 +209,99 @@ String _formatUserName(String? email) {
     );
   }
 
-  Widget _buildFeatureGrid(BuildContext context) {
-    final features = [
-      {'icon': Icons.create, 'label': 'Create Questions with AI', 'route': const CreateQuestionAI()},
-      {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const MyQuizzesPage()},
-      {'icon': Icons.person, 'label': 'Lecturer Profile', 'route': const LecturerProfilePage()},
-      {'icon': Icons.search, 'label': 'Quiz Search', 'route': const QuizListScreen()},
-    ];
+ Widget _buildFeatureGrid(BuildContext context) {
+  final features = [
+    {'icon': Icons.search, 'label': 'Quiz Search', 'route': const QuizListScreen()},
+    {'icon': Icons.create, 'label': 'Create Questions with AI', 'route': const CreateQuestionAI()},
+    {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const MyQuizzesPage()},
+    {'icon': Icons.person, 'label': 'Lecturer Profile', 'route': const LecturerProfilePage()},
+  ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 1.1,
+  return Column(
+    children: [
+      _buildFeatureCard(
+        context,
+        features[0],
+        isFullWidth: true,
       ),
-      itemCount: features.length,
-      itemBuilder: (context, index) {
-        return _buildFeatureCard(context, features[index]);
-      },
-    );
-  }
+      const SizedBox(height: 20),
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+          childAspectRatio: 1.1,
+        ),
+        itemCount: features.length - 1,
+        itemBuilder: (context, index) {
+          return _buildFeatureCard(context, features[index + 1]);
+        },
+      ),
+    ],
+  );
+}
 
-  Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature) {
-    return InkWell(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => feature['route'])),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              feature['icon'] as IconData,
-              size: 50,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              feature['label'] as String,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature, {bool isFullWidth = false}) {
+  return InkWell(
+    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => feature['route'])),
+    child: Container(
+      width: isFullWidth ? double.infinity : null,
+      height: isFullWidth ? 60 : null, // Adjusted height for full-width button
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-    );
-  }
+      child: isFullWidth
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  feature['icon'] as IconData,
+                  size: 30,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  feature['label'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  feature['icon'] as IconData,
+                  size: 50,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  feature['label'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+    ),
+  );
+}
 
 }
