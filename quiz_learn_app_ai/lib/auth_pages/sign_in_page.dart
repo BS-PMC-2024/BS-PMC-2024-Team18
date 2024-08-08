@@ -87,85 +87,88 @@ Future<void> signInWithEmailAndPassword() async {
     }
   }
 }
+Future<String?> showUserTypeSelectionDialog() async {
+  String? selectedUserType;
+  final adminPasswordController = TextEditingController();
 
- Future<String?> showUserTypeSelectionDialog() async {
-    String? selectedUserType;
-    final adminPasswordController = TextEditingController();
-
-    await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Choose User Type'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  ListTile(
-                    title: const Text('Student'),
-                    onTap: () {
-                      selectedUserType = 'Student';
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Lecturer'),
-                    onTap: () {
-                      selectedUserType = 'Lecturer';
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Admin'),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Enter Admin Password'),
-                            content: TextField(
-                              controller: adminPasswordController,
-                              obscureText: true,
-                              decoration: const InputDecoration(hintText: "Enter password"),
+  await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Choose User Type'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: const Icon(Icons.school),
+                  title: const Text('Student'),
+                  onTap: () {
+                    selectedUserType = 'Student';
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.assignment),
+                  title: const Text('Lecturer'),
+                  onTap: () {
+                    selectedUserType = 'Lecturer';
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.admin_panel_settings),
+                  title: const Text('Admin'),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Enter Admin Password'),
+                          content: TextField(
+                            controller: adminPasswordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(hintText: "Enter password"),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
                             ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Cancel'),
-                                onPressed: () {
+                            TextButton(
+                              child: const Text('Submit'),
+                              onPressed: () {
+                                if (adminPasswordController.text == "gilIsLove") {
+                                  selectedUserType = 'Admin';
                                   Navigator.of(context).pop();
-                                },
-                              ),
-                              TextButton(
-                                child: const Text('Submit'),
-                                onPressed: () {
-                                  if (adminPasswordController.text == "gilIsLove") {
-                                    selectedUserType = 'Admin';
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Incorrect admin password.')),
-                                    );
-                                  }
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+                                  Navigator.of(context).pop();
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Incorrect admin password.')),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
 
-    return selectedUserType;
-  }
+  return selectedUserType;
+}
+
 
 Future<void> signInWithGoogle() async {
   try {

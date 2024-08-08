@@ -1,4 +1,7 @@
 // firebase_service.dart
+
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +16,81 @@ class FirebaseService {
 
 
 
+
+ Future<String?> getCurrentLecturerId() async {
+    final User? user = _auth.currentUser;
+    return user?.uid;
+  }
+
+Future<List<Map<String, dynamic>>> loadLecturerQuizStatistics(String lecturerId) async {
+  try {
+    print('Fetching quizzes for lecturerId: $lecturerId');
+    
+    // Fetch all students
+    final studentsSnapshot = await _database.child('students').get();
+    List<Map<String, dynamic>> quizStatistics = [];
+
+    if (studentsSnapshot.exists) {
+      final studentsData = studentsSnapshot.value as Map<dynamic, dynamic>;
+      Map<String, Map<String, dynamic>> quizDataMap = {};
+
+      // Iterate over each student
+      for (var studentEntry in studentsData.entries) {
+        final student = studentEntry.value as Map<dynamic, dynamic>;
+        final quizResults = student['quizResults'] as Map<dynamic, dynamic>?;
+
+        if (quizResults != null) {
+          // Iterate over each quiz result for the student
+          for (var quizResultEntry in quizResults.entries) {
+            final quizResult = quizResultEntry.value as Map<dynamic, dynamic>;
+            final quizId = quizResult['quizId'];
+
+            double points = double.parse(quizResult['points']); // Use double.parse
+
+            if (quizDataMap.containsKey(quizId)) {
+              // Update existing quiz data
+              quizDataMap[quizId]!['totalAttempts'] += 1;
+              quizDataMap[quizId]!['totalScore'] += points;
+              quizDataMap[quizId]!['highestScore'] = 
+                  max<double>(quizDataMap[quizId]!['highestScore'], points);
+              quizDataMap[quizId]!['lowestScore'] = 
+                  min<double>(quizDataMap[quizId]!['lowestScore'], points);
+            } else {
+              // Initialize new quiz data
+              quizDataMap[quizId] = {
+                'quizName': quizResult['quizName'],
+                'totalAttempts': 1,
+                'totalScore': points,
+                'highestScore': points,
+                'lowestScore': points,
+              };
+            }
+          }
+        }
+      }
+
+      // Calculate average scores and prepare final statistics list
+      quizDataMap.forEach((quizId, data) {
+        final totalAttempts = data['totalAttempts'];
+        final averageScore = totalAttempts > 0 ? data['totalScore'] / totalAttempts : 0.0;
+
+        quizStatistics.add({
+          'quizId': quizId,
+          'quizName': data['quizName'],
+          'totalAttempts': totalAttempts,
+          'averageScore': averageScore,
+          'highestScore': data['highestScore'],
+          'lowestScore': data['lowestScore'],
+        });
+      });
+    }
+
+    return quizStatistics;
+  } catch (e) {
+    print('Error loading quiz statistics: ${e.toString()}');
+    throw Exception('Error loading quiz statistics: ${e.toString()}');
+  }
+}
 
   Future<List<Map<String, dynamic>>> loadComplianceReports() async { 
     try {

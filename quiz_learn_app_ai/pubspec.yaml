@@ -54,13 +54,16 @@ dependencies:
   animated_text_kit: ^4.2.2
   flutter_svg: ^2.0.10+1
   flutter_launcher_icons: ^0.13.1 
+  flutter_hooks: ^0.20.5
+  fl_chart: ^0.68.0
  
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "images/app_icon.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
-
+  android_label: "CampusQuest"
+  ios_bundle_name: "CampusQuest"
 
 dev_dependencies:
   flutter_test:
