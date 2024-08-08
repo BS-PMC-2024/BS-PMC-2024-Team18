@@ -8,6 +8,7 @@ import 'package:quiz_learn_app_ai/quiz_pages/widgets/content_area.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/countdown_timer.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/custom_app_bar.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/main_button.dart';
+
 class TestOverviewScreen extends StatelessWidget {
   final String? titleText;
   final String? timeRemaining;
@@ -29,13 +30,15 @@ class TestOverviewScreen extends StatelessWidget {
   });
 
   bool _allQuestionsAnswered() {
-    return (rightAnswers?.length ?? 0) + (wrongAnswers?.length ?? 0) == (allQuestions?.length ?? 0);
+    return (rightAnswers?.length ?? 0) + (wrongAnswers?.length ?? 0) ==
+        (allQuestions?.length ?? 0);
   }
 
   void _showIncompleteAlert(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Please answer all questions before completing the test.'),
+        content:
+            Text('Please answer all questions before completing the test.'),
       ),
     );
   }
@@ -77,14 +80,18 @@ class TestOverviewScreen extends StatelessWidget {
                       child: ListView.builder(
                         itemCount: allQuestions?.length ?? 0,
                         itemBuilder: (_, index) {
-                          bool isCorrect = rightAnswers?.contains(allQuestions![index]['answer']) == true;
+                          bool isCorrect = rightAnswers
+                                  ?.contains(allQuestions![index]['answer']) ==
+                              true;
                           return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
                             elevation: 4,
                             child: ListTile(
                               title: Text(
                                 'Question ${index + 1}: ${allQuestions![index]['question']}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               subtitle: Text(
                                 isCorrect ? 'Correct' : 'Wrong',
@@ -93,7 +100,9 @@ class TestOverviewScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              tileColor: isCorrect ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                              tileColor: isCorrect
+                                  ? Colors.green.withOpacity(0.1)
+                                  : Colors.red.withOpacity(0.1),
                             ),
                           );
                         },
