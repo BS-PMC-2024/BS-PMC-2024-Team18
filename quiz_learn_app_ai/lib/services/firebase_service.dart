@@ -24,7 +24,6 @@ class FirebaseService {
 
 Future<List<Map<String, dynamic>>> loadLecturerQuizStatistics(String lecturerId) async {
   try {
-    print('Fetching quizzes for lecturerId: $lecturerId');
     
     // Fetch all students
     final studentsSnapshot = await _database.child('students').get();
@@ -87,7 +86,6 @@ Future<List<Map<String, dynamic>>> loadLecturerQuizStatistics(String lecturerId)
 
     return quizStatistics;
   } catch (e) {
-    print('Error loading quiz statistics: ${e.toString()}');
     throw Exception('Error loading quiz statistics: ${e.toString()}');
   }
 }
