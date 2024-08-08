@@ -225,23 +225,43 @@ Widget _buildInputField({
   required IconData icon,
   bool isPassword = false,
 }) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(30.0),
-    ),
-    child: TextField(
-      controller: controller,
-      obscureText: isPassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white70),
-        border: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-      ),
-    ),
+  // State variable to manage password visibility
+  bool obscureText = isPassword;
+
+  return StatefulBuilder(
+    builder: (BuildContext context, StateSetter setState) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+        child: TextField(
+          controller: controller,
+          obscureText: obscureText,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: Colors.white70),
+            prefixIcon: Icon(icon, color: Colors.white70),
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      obscureText ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.white70,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        obscureText = !obscureText; // Toggle visibility
+                      });
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+          ),
+        ),
+      );
+    },
   );
 }
 
@@ -263,7 +283,16 @@ Widget _buildDropdown() {
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value),
+          child: Row(
+            children: [
+              Icon(
+                _getIconForUserType(value),
+                color: Colors.white70,
+              ),
+              const SizedBox(width: 8.0),
+              Text(value),
+            ],
+          ),
         );
       }).toList(),
       onChanged: (String? newValue) {
@@ -281,6 +310,19 @@ Widget _buildDropdown() {
       },
     ),
   );
+}
+
+IconData _getIconForUserType(String userType) {
+  switch (userType) {
+    case 'Student':
+      return Icons.school;
+    case 'Lecturer':
+      return Icons.assignment;
+    case 'Admin':
+      return Icons.admin_panel_settings;
+    default:
+      return Icons.help;
+  }
 }
 
 Widget _buildAdminPasswordField() {

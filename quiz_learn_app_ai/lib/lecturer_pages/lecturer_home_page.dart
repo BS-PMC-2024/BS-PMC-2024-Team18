@@ -6,6 +6,7 @@ import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_question_ai.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_profile_page.dart';
+import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_quiz_statistics_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/my_quizzes_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
@@ -216,6 +217,7 @@ String _formatUserName(String? email) {
     {'icon': Icons.create, 'label': 'Create Questions with AI', 'route': const CreateQuestionAI()},
     {'icon': Icons.quiz, 'label': 'My Quizzes', 'route': const MyQuizzesPage()},
     {'icon': Icons.person, 'label': 'Lecturer Profile', 'route': const LecturerProfilePage()},
+     {'icon': Icons.insert_chart, 'label': 'Lecturer Statistics', 'route': const LecturerQuizStatisticsPage()},
   ];
 
   return Column(
