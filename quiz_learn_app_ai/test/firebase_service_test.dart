@@ -28,6 +28,96 @@ void main() {
   });
 
 
+
+group('FirebaseService reportQuiz', () {
+    test('reports quiz successfully', () async {
+      final reportData = {'reportDetails': 'Inappropriate content', 'reportedBy': 'user123', 'reportDate': '2024-08-01'};
+      final mockPushRef = MockDatabaseReference();
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quiz123')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.push()).thenReturn(mockPushRef);
+      when(mockPushRef.set(reportData)).thenAnswer((_) async => {});
+
+      await firebaseService.reportQuiz('quiz123', reportData);
+
+      verify(mockPushRef.set(reportData)).called(1);
+    });
+
+    test('throws exception on error', () async {
+      final reportData = {'reportDetails': 'Inappropriate content', 'reportedBy': 'user123', 'reportDate': '2024-08-01'};
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quiz123')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.push()).thenThrow(Exception('Error reporting quiz'));
+
+      expect(() => firebaseService.reportQuiz('quiz123', reportData), throwsException);
+    });
+  });
+
+  group('FirebaseService loadAllQuizReports', () {
+    test('returns quiz reports when they exist', () async {
+      final mockDataSnapshot = MockDataSnapshot();
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenAnswer((_) async => mockDataSnapshot);
+      when(mockDataSnapshot.exists).thenReturn(true);
+      when(mockDataSnapshot.value).thenReturn({
+        'quiz123': {
+          'report1': {'reportDetails': 'Inappropriate content', 'reportedBy': 'user123', 'reportDate': '2024-08-01'},
+        }
+      });
+
+      final result = await firebaseService.loadAllQuizReports();
+
+      expect(result, isNotEmpty);
+      expect(result.length, 1);
+      expect(result[0]['quizId'], 'quiz123');
+      expect(result[0]['reportId'], 'report1');
+      expect(result[0]['reportDetails'], 'Inappropriate content');
+    });
+
+    test('returns empty list when no quiz reports exist', () async {
+      final mockDataSnapshot = MockDataSnapshot();
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenAnswer((_) async => mockDataSnapshot);
+      when(mockDataSnapshot.exists).thenReturn(false);
+
+      final result = await firebaseService.loadAllQuizReports();
+
+      expect(result, isEmpty);
+    });
+
+    test('throws exception on error', () async {
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.get()).thenThrow(Exception('Error loading quiz reports'));
+
+      expect(() => firebaseService.loadAllQuizReports(), throwsException);
+    });
+  });
+
+  group('FirebaseService deleteQuizReport', () {
+    test('deletes quiz report successfully', () async {
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quiz123')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('report1')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.remove()).thenAnswer((_) async => {});
+
+      await firebaseService.deleteQuizReport('quiz123', 'report1');
+
+      verify(mockDatabaseReference.child('quiz123')).called(1);
+      verify(mockDatabaseReference.child('report1')).called(1);
+      verify(mockDatabaseReference.remove()).called(1);
+    });
+
+    test('throws exception on error', () async {
+      when(mockDatabaseReference.child('quizReports')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('quiz123')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.child('report1')).thenReturn(mockDatabaseReference);
+      when(mockDatabaseReference.remove()).thenThrow(Exception('Error deleting quiz report'));
+
+      expect(() => firebaseService.deleteQuizReport('quiz123', 'report1'), throwsException);
+    });
+  });
+
+
  group('FirebaseService loadComplianceReports', () {
     test('returns compliance reports when they exist', () async {
       // Mocking the behavior of DataSnapshot
