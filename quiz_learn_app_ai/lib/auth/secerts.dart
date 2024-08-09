@@ -1,1 +1,1 @@
-var mySecretKey = 'secret';
+var mySecretKey = 'secret'; 

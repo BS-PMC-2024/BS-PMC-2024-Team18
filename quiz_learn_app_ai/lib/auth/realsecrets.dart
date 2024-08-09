@@ -1,1 +1,0 @@
-var mySecretKey = 'sk-proj-Va9mNKEuVz5mri9SkhbET3BlbkFJ8yhDJGDzXORhu7wjNDpb';
