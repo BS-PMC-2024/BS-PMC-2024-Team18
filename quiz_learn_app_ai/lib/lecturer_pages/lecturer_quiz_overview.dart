@@ -216,7 +216,7 @@ Color(0xFF86cfd6), // Lighter #23b7c1
   }
 
   Widget _buildProgressIndicator(Map<String, dynamic> student) {
-    final totalQuestions = student['questionCount'] - 1 ?? 0;
+    final totalQuestions = student['questionCount']  ?? 0;
     final correctAnswers = student['rightAnswers']?.length ?? 0;
     final progress = totalQuestions > 0 ? correctAnswers / totalQuestions : 0.0;
 

@@ -1,3 +1,6 @@
+import 'dart:ffi';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -74,7 +77,7 @@ class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: const Text('Submition Details',
+        title: const Text('Submission Details',
             style:
                 TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         leading: IconButton(
@@ -156,9 +159,10 @@ class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
       final answer = question['answer'] ?? 'No answer available.';
       final isRight = rightAnswers.contains(answer);
       final isWrong = wrongAnswers.contains(answer);
-
+      final rightAnswer = castToStringList(question['options'])
+          .firstWhere((option) => rightAnswers.contains(option), orElse: () => 'No correct answer found.');
       return _buildQuestionCard(
-        questionText, answer, isRight, isWrong, index, context);
+        questionText, answer, isRight, isWrong, index, context, rightAnswer,);
     },
     childCount: student['questionCount'] ?? 0,
   ),
@@ -267,7 +271,7 @@ Widget _buildProgressBar(int rightAnswers, int wrongAnswers) {
 }
 
 Widget _buildQuestionCard(String questionText, String answer, bool isRight,
-    bool isWrong, int index, BuildContext context) {
+    bool isWrong, int index, BuildContext context, String rightAnswer) {
   return Card(
     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     elevation: 2,
@@ -296,14 +300,27 @@ Widget _buildQuestionCard(String questionText, String answer, bool isRight,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      'Answer: $answer',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: isRight ? Colors.green : Colors.red,
-                      ),
+                    child:Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your Answer: $answer',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isRight ? Colors.green : Colors.red,
+                          ),
+                        ),
+                        Text(
+                          'Correct Answer: $rightAnswer',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    
+                    ),
                 ],
               ),
             ],
