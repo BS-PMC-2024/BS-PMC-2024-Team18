@@ -4,6 +4,8 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:animations/animations.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:share_plus/share_plus.dart';
+
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -84,30 +86,38 @@ class AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
         ),
         padding: const EdgeInsets.all(16.0),
-        child: MasonryGridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          itemCount: 5 + _systemAlerts.length,
-          itemBuilder: (context, index) {
-            if (index < 5) {
-              switch (index) {
-                case 0:
-                  return _buildMetricCard('Registered Users', _registeredUserCount, Icons.person);
-                case 1:
-                  return _buildMetricCard('Active Users', _activeUserCount, Icons.people);
-                case 2:
-                  return _buildMetricCard('Quiz Completions', _quizCompletionCount, Icons.check_circle);
-                case 3:
-                  return _buildMetricCard('Total Quizzes', _totalQuizzesCreated, Icons.library_books);
-                case 4:
-                  return _buildMetricCard('Feedback Received', _totalFeedbackReceived, Icons.feedback);
-              }
-            } else {
-              return _buildAlertCard(_systemAlerts[index - 5]);
-            }
-            return Container();
-          },
+        child: Column(
+          children: [
+            Expanded(
+              child: MasonryGridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                itemCount: 6 + _systemAlerts.length,
+                itemBuilder: (context, index) {
+                  if (index < 6) {
+                    switch (index) {
+                      case 0:
+                        return _buildMetricCard('Registered Users', _registeredUserCount, Icons.person);
+                      case 1:
+                        return _buildMetricCard('Active Users', _activeUserCount, Icons.people);
+                      case 2:
+                        return _buildMetricCard('Quiz Completions', _quizCompletionCount, Icons.check_circle);
+                      case 3:
+                        return _buildMetricCard('Total Quizzes', _totalQuizzesCreated, Icons.library_books);
+                      case 4:
+                        return _buildMetricCard('Feedback Received', _totalFeedbackReceived, Icons.feedback);
+                      case 5:
+                        return _buildShareButton(); // Adding the share button
+                    }
+                  } else {
+                    return _buildAlertCard(_systemAlerts[index - 6]);
+                  }
+                  return Container();
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -194,6 +204,61 @@ class AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildShareButton() {
+    return GestureDetector(
+      onTap: _shareDetails,
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 20,
+              offset: Offset(0, 10),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          gradient: LinearGradient(
+            colors: [Colors.cyan.withOpacity(0.3), Colors.cyan.withOpacity(0.1)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.share, size: 50, color: Colors.white),
+            const SizedBox(height: 10),
+            Text(
+              'Share Dashboard',
+              style: GoogleFonts.lato(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _shareDetails() {
+    final details = '''
+Admin Dashboard Details:
+- Registered Users: $_registeredUserCount
+- Active Users: $_activeUserCount
+- Quiz Completions: $_quizCompletionCount
+- Total Quizzes Created: $_totalQuizzesCreated
+- Feedback Received: $_totalFeedbackReceived
+- System Alerts: ${_systemAlerts.isNotEmpty ? _systemAlerts.join(", ") : "No alerts"}
+
+Check out more on the Admin Dashboard!
+    ''';
+
+    Share.share(details);
   }
 }
 
