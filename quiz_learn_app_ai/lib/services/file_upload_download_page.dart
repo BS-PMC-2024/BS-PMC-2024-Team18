@@ -222,10 +222,10 @@ class SearchMaterialsPage extends StatefulWidget {
   const SearchMaterialsPage({super.key});
 
   @override
-  _SearchMaterialsPageState createState() => _SearchMaterialsPageState();
+  SearchMaterialsPageState createState() => SearchMaterialsPageState();
 }
 
-class _SearchMaterialsPageState extends State<SearchMaterialsPage> {
+class SearchMaterialsPageState extends State<SearchMaterialsPage> {
   String subject = '';
   String university = '';
   String year = '';

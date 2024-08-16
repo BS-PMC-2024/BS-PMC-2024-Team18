@@ -1,14 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class AdminPlatformReportsPage extends StatefulWidget {
-  const AdminPlatformReportsPage({Key? key}) : super(key: key);
+  const AdminPlatformReportsPage({super.key});
 
   @override
-  _AdminPlatformReportsPageState createState() => _AdminPlatformReportsPageState();
+  AdminPlatformReportsPageState createState() => AdminPlatformReportsPageState();
 }
 
-class _AdminPlatformReportsPageState extends State<AdminPlatformReportsPage> {
+class AdminPlatformReportsPageState extends State<AdminPlatformReportsPage> {
   final FirebaseService _firebaseService = FirebaseService();
   Map<String, dynamic> _reportData = {};
   bool _isLoading = true;
@@ -27,7 +28,9 @@ class _AdminPlatformReportsPageState extends State<AdminPlatformReportsPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading report data: $e');
+      if (kDebugMode) {
+        print('Error loading report data: $e');
+      }
       setState(() {
         _isLoading = false;
         _reportData = {'error': 'Failed to load data. Please check your internet connection and try again.'};
