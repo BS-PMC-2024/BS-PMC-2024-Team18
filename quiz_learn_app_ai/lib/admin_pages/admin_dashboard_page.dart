@@ -6,7 +6,6 @@ import 'package:animations/animations.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:share_plus/share_plus.dart';
 
-
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -233,7 +232,7 @@ class AdminDashboardPageState extends State<AdminDashboardPage> {
             Icon(Icons.share, size: 50, color: Colors.white),
             const SizedBox(height: 10),
             Text(
-              'Share Dashboard',
+              'Share',
               style: GoogleFonts.lato(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,

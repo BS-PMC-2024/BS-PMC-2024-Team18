@@ -294,6 +294,17 @@ class AdminHomePageState extends State<AdminHomePage> {
             );
           },
         ),
+                  _buildActionCard(
+          icon: Icons.report,
+          title: 'Admin dashboard',
+          description: 'See more details about reports and more.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
+            );
+          },
+        ),
       ],
     );
   }
