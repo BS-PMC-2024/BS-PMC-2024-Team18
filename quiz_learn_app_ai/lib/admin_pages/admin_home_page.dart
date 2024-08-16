@@ -6,6 +6,7 @@ import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_dashboard_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_quiz_reports_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_platform_reports_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
@@ -19,20 +20,20 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class AdminHomePageState extends State<AdminHomePage> {
-
   String? userEmail;
   String? userType;
-   bool _isLoading = true;
-     final FirebaseAuth _auth = FirebaseAuth.instance;
-   final FirebaseService _firebaseService = FirebaseService();
-    final Auth auth = Auth(auth: FirebaseAuth.instance);
+  bool _isLoading = true;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseService _firebaseService = FirebaseService();
+  final Auth auth = Auth(auth: FirebaseAuth.instance);
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
   }
 
-Future<void> _loadUserData() async {
+  Future<void> _loadUserData() async {
     try {
       Map<String, dynamic> userData = await _firebaseService.loadUserData();
       if (mounted) {
@@ -54,87 +55,86 @@ Future<void> _loadUserData() async {
     }
   }
 
- Future<void> _signOut() async {
-  try {
-    String result = await auth.signOut();
-    
-    if (result == "Success") {
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AuthPage()),
-          (route) => false,
-        );
+  Future<void> _signOut() async {
+    try {
+      String result = await auth.signOut();
+      if (result == "Success") {
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const AuthPage()),
+            (route) => false,
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Sign out failed: $result')),
+          );
+        }
       }
-    } else {
-      // Handle sign out failure
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign out failed: $result')),
+          SnackBar(content: Text('An error occurred during sign out: $e')),
         );
       }
+      if (kDebugMode) {
+        print("Detailed sign out error: $e");
+      }
     }
-  } catch (e) {
-    // Handle any unexpected errors
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during sign out: $e')),
-      );
-    }
-    if (kDebugMode) {
-      print("Detailed sign out error: $e");
-    } // For debugging
   }
-}
-    @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isLoading
-        ? const Center(child: LoadingPage())
-        : Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-Color(0xFFf2b39b), // Lighter #eb8671
-Color(0xFFf19b86), // Lighter #ea7059
-Color(0xFFf3a292), // Lighter #ef7d5d
-Color(0xFFf8c18e), // Lighter #f8a567
-Color(0xFFfcd797), // Lighter #fecc63
-Color(0xFFcdd7a7), // Lighter #a7c484
-Color(0xFF8fb8aa), // Lighter #5b9f8d
-Color(0xFF73adbb), // Lighter #257b8c
-Color(0xFFcc7699), // Lighter #ad3d75
-Color(0xFF84d9db), // Lighter #1fd1d5
-Color(0xFF85a8cf), // Lighter #2e7cbc
-Color(0xFF8487ac), // Lighter #3d5488
-Color(0xFFb7879c), // Lighter #99497f
-Color(0xFF86cfd6), // Lighter #23b7c1
-        ],
-      ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildAppBar(),
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
+          ? const Center(child: LoadingPage())
+          : Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFf2b39b),
+                    Color(0xFFf19b86),
+                    Color(0xFFf3a292),
+                    Color(0xFFf8c18e),
+                    Color(0xFFfcd797),
+                    Color(0xFFcdd7a7),
+                    Color(0xFF8fb8aa),
+                    Color(0xFF73adbb),
+                    Color(0xFFcc7699),
+                    Color(0xFF84d9db),
+                    Color(0xFF85a8cf),
+                    Color(0xFF8487ac),
+                    Color(0xFFb7879c),
+                    Color(0xFF86cfd6),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    _buildAppBar(),
+                    Expanded(
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
                         ),
+                        child: _buildContent(),
                       ),
-                      child: _buildContent(),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
     );
   }
+
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -179,13 +179,14 @@ Color(0xFF86cfd6), // Lighter #23b7c1
       ),
     );
   }
-String _formatUserName(String? email) {
-  if (email == null || email.isEmpty) {
-    return 'Admin';
+
+  String _formatUserName(String? email) {
+    if (email == null || email.isEmpty) {
+      return 'Admin';
+    }
+    return email.split('@')[0];
   }
-  // Remove everything after and including '@'
-  return email.split('@')[0];
-}
+
   Widget _buildWelcomeSection() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -211,7 +212,7 @@ String _formatUserName(String? email) {
                     AnimatedTextKit(
                       animatedTexts: [
                         TypewriterAnimatedText(
-                            'Welcome, ${_formatUserName(userEmail)}',
+                          'Welcome, ${_formatUserName(userEmail)}',
                           textStyle: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -248,30 +249,30 @@ String _formatUserName(String? email) {
     );
   }
 
-  Widget _buildAdminActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Admin Actions',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.indigo[800],
-          ),
+ Widget _buildAdminActions() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Admin Actions',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.indigo[800],
         ),
-        const SizedBox(height: 15),
-        _buildActionCard(
-          icon: Icons.people,
-          title: 'User Management',
-          description: 'Manage users, roles, and permissions',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
-            );
-          },
-        ),
+      ),
+      const SizedBox(height: 15),
+      _buildActionCard(
+        icon: Icons.people,
+        title: 'User Management',
+        description: 'Manage users, roles, and permissions',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
+          );
+        },
+      ),
       _buildActionCard(
           icon: Icons.people,
           title: 'Compliance',
@@ -291,17 +292,6 @@ String _formatUserName(String? email) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AdminQuizReportsPage()),
-            );
-          },
-        ),
-          _buildActionCard(
-          icon: Icons.monitor,
-          title: 'dashboard page',
-          description: 'monitor platform metrics.',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
             );
           },
         ),

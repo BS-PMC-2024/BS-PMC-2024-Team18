@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseService {
   final DatabaseReference _database;
@@ -14,9 +15,48 @@ class FirebaseService {
   FirebaseService({DatabaseReference? database , FirebaseAuth? auth})
       : _database = database ?? FirebaseDatabase.instance.ref(),   _auth = auth ?? FirebaseAuth.instance;
 
+  Future<Map<String, dynamic>> getPlatformReportData() async {
+    try {
+      // Fetch data from various collections
+      final studentsSnapshot = await _database.child('students').get();
+      final lecturersSnapshot = await _database.child('lecturers').get();
+      final quizReportsSnapshot = await _database.child('quizReports').get();
+      final complianceReportsSnapshot = await _database.child('complianceReports').get();
 
+      // Calculate statistics
+      int totalUsers = 0;
+      int totalQuizzes = 0;
+      int totalComplianceReports = 0;
 
+      if (studentsSnapshot.exists) {
+        totalUsers += (studentsSnapshot.value as Map<dynamic, dynamic>).length;
+      }
+      if (lecturersSnapshot.exists) {
+        totalUsers += (lecturersSnapshot.value as Map<dynamic, dynamic>).length;
+      }
+      if (quizReportsSnapshot.exists) {
+        totalQuizzes = (quizReportsSnapshot.value as Map<dynamic, dynamic>).length;
+      }
+      if (complianceReportsSnapshot.exists) {
+        totalComplianceReports = (complianceReportsSnapshot.value as Map<dynamic, dynamic>).length;
+      }
 
+      // You can add more complex calculations here if needed
+
+      return {
+        'totalUsers': totalUsers,
+        'newUsersToday': 0, // Implement this calculation if needed
+        'activeUsers7Days': 0, // Implement this calculation if needed
+        'totalQuizzes': totalQuizzes,
+        'quizzesCreatedToday': 0, // Implement this calculation if needed
+        'averageQuizScore': 0.0, // Implement this calculation if needed
+        'totalComplianceReports': totalComplianceReports,
+      };
+    } catch (e) {
+      print('Error fetching platform report data: $e');
+      throw e;
+    }
+  }
 
   Future<String> getLecturerId() async {
     final User? user = _auth.currentUser;
