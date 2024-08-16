@@ -6,7 +6,6 @@ import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_dashboard_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_quiz_reports_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
-import 'package:quiz_learn_app_ai/admin_pages/admin_platform_reports_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
@@ -292,17 +291,6 @@ class AdminHomePageState extends State<AdminHomePage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AdminQuizReportsPage()),
-            );
-          },
-        ),
-              _buildActionCard(
-          icon: Icons.people,
-          title: 'Admin dashboard',
-          description: 'Reports about everything in the app.',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
             );
           },
         ),

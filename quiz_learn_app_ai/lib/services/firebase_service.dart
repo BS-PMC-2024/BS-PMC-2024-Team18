@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseService {
   final DatabaseReference _database;
@@ -53,8 +52,10 @@ class FirebaseService {
         'totalComplianceReports': totalComplianceReports,
       };
     } catch (e) {
-      print('Error fetching platform report data: $e');
-      throw e;
+      if (kDebugMode) {
+        print('Error fetching platform report data: $e');
+      }
+      rethrow;
     }
   }
 
