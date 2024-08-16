@@ -178,7 +178,7 @@ class AdminDashboardPageState extends State<AdminDashboardPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: Colors.redAccent.withOpacity(0.1),
       child: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -229,7 +229,7 @@ class AdminDashboardPageState extends State<AdminDashboardPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.share, size: 50, color: Colors.white),
+            const Icon(Icons.share, size: 50, color: Colors.white),
             const SizedBox(height: 10),
             Text(
               'Share',

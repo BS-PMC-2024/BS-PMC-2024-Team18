@@ -9,7 +9,8 @@ import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_profile_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_quiz_statistics_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/my_quizzes_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
-import 'package:quiz_learn_app_ai/services/file_upload_download_page.dart';
+import 'package:quiz_learn_app_ai/services/file_search_page.dart';
+import 'package:quiz_learn_app_ai/services/file_upload_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
@@ -219,7 +220,8 @@ String _formatUserName(String? email) {
     {'icon': Icons.quiz, 'label': 'My Built Quizzes', 'route': const MyQuizzesPage()},
     {'icon': Icons.person, 'label': 'Lecturer Profile', 'route': const LecturerProfilePage()},
      {'icon': Icons.insert_chart, 'label': 'Lecturer Statistics', 'route': const LecturerQuizStatisticsPage()},
-         {'icon': Icons.file_upload_sharp, 'label': 'Files - Study Materials', 'route':   const FileUploadPage()},
+         {'icon': Icons.file_upload_sharp, 'label': 'Files - Study Materials Upload', 'route':   const FileUploadPage()},
+           {'icon': Icons.send_and_archive, 'label': 'Files - Study Materials Search', 'route':   const FileSearchPage()},
 
   ];
 

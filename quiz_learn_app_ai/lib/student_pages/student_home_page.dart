@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
+import 'package:quiz_learn_app_ai/services/file_search_global_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/student_pages/completed_quizzes_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
@@ -197,7 +198,7 @@ Widget _buildFeatureGrid(BuildContext context) {
     {'icon': Icons.quiz, 'label': 'My Previous Used Quizzes', 'route': const CompletedQuizzesScreen()},
     {'icon': Icons.assessment, 'label': 'Quiz Results', 'route': const QuizResultsScreen()},
        {'icon': Icons.person, 'label': 'Student Profile', 'route': const StudentProfilePage()},
-      {'icon': Icons.pages, 'label': 'Study Material', 'route': const StudentProfilePage()},
+      {'icon': Icons.send_and_archive, 'label': 'Study Material', 'route': const FileSearchGlobalPage()},
   ];
 
   return Column(

@@ -273,7 +273,7 @@ class AdminHomePageState extends State<AdminHomePage> {
         },
       ),
       _buildActionCard(
-          icon: Icons.people,
+          icon: Icons.security,
           title: 'Compliance',
           description: 'Ensures compliance with data security and privacy regulations.',
           onTap: () {
@@ -295,7 +295,7 @@ class AdminHomePageState extends State<AdminHomePage> {
           },
         ),
                   _buildActionCard(
-          icon: Icons.report,
+          icon: Icons.query_stats,
           title: 'Admin dashboard',
           description: 'See more details about reports and more.',
           onTap: () {
