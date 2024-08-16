@@ -18,6 +18,154 @@ class FirebaseService {
 
 
 
+  Future<String> getLecturerId() async {
+    final User? user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
+    return user.uid; // User ID is used as lecturer ID
+  }
+
+
+  Future<int> getRegisteredUserCount() async {
+    try {
+      final snapshot = await _database.child('students').get();
+      if (snapshot.exists) {
+        return (snapshot.value as Map).length;
+      }
+    } catch (e) {
+      throw Exception('Error fetching registered user count: $e');
+    }
+    return 0;
+  }
+
+  Future<int> getQuizCompletionCount() async {
+    try {
+      final snapshot = await _database.child('students').get();
+      if (snapshot.exists) {
+        final students = snapshot.value as Map<dynamic, dynamic>;
+        int completionCount = 0;
+        students.forEach((userId, userData) {
+          if (userData['quizResults'] != null) {
+            completionCount += (userData['quizResults'] as Map).length;
+          }
+        });
+        return completionCount;
+      }
+    } catch (e) {
+      throw Exception('Error fetching quiz completion count: $e');
+    }
+    return 0;
+  }
+
+  Future<int> getActiveUserCount() async {
+    try {
+      final snapshot = await _database.child('students').get();
+      if (snapshot.exists) {
+        final students = snapshot.value as Map<dynamic, dynamic>;
+        final now = DateTime.now();
+        int activeUserCount = 0;
+        students.forEach((userId, userData) {
+          if (userData['quizResults'] != null) {
+            final quizResults = userData['quizResults'] as Map;
+            quizResults.forEach((resultId, resultData) {
+              final quizDate = DateTime.parse(resultData['date']);
+              if (now.difference(quizDate).inDays <= 7) {
+                activeUserCount++;
+                return;
+              }
+            });
+          }
+        });
+        return activeUserCount;
+      }
+    } catch (e) {
+      throw Exception('Error fetching active user count: $e');
+    }
+    return 0;
+  }
+
+Future<int> getTotalQuizzesCreated() async {
+  try {
+    final snapshot = await _database.child('lecturers').get();
+    if (snapshot.exists) {
+      final lecturers = snapshot.value as Map<dynamic, dynamic>;
+      int totalQuizzes = 0;
+
+      lecturers.forEach((lecturerId, lecturerData) {
+        if (lecturerData['quizzes'] != null) {
+          final quizzes = lecturerData['quizzes'] as Map<dynamic, dynamic>;
+          totalQuizzes += quizzes.length;
+        }
+      });
+
+      return totalQuizzes;
+    }
+  } catch (e) {
+    throw Exception('Error fetching total quizzes created: $e');
+  }
+  return 0;
+}
+ Future<int> getTotalFeedbackReceived() async {
+  try {
+    final snapshot = await _database.child('students').get();
+    if (snapshot.exists) {
+      final students = snapshot.value as Map<dynamic, dynamic>;
+      int totalFeedback = 0;
+
+      students.forEach((userId, userData) {
+        if (userData['quizResults'] != null) {
+          final quizResults = userData['quizResults'] as Map<dynamic, dynamic>;
+          quizResults.forEach((resultId, resultData) {
+            if (resultData['feedback'] != null) {
+              totalFeedback++;
+            }
+          });
+        }
+      });
+
+      return totalFeedback;
+    }
+  } catch (e) {
+    throw Exception('Error fetching total feedback received: $e');
+  }
+  return 0;
+}
+
+  Future<List<String>> getSystemPerformanceAlerts() async {
+    List<String> alerts = [];
+    try {
+      final snapshot = await _database.child('students').get();
+      if (snapshot.exists) {
+        final students = snapshot.value as Map<dynamic, dynamic>;
+        int totalPoints = 0;
+        int totalQuizzes = 0;
+
+        students.forEach((userId, userData) {
+          if (userData['quizResults'] != null) {
+            final quizResults = userData['quizResults'] as Map;
+            quizResults.forEach((resultId, resultData) {
+              totalPoints += int.tryParse(resultData['points']) ?? 0;
+              totalQuizzes++;
+            });
+          }
+        });
+
+        if (totalQuizzes > 0) {
+          double averageScore = totalPoints / totalQuizzes;
+          if (averageScore < 50) { // Threshold for alert
+            alerts.add('Average quiz score is below 50.');
+          }
+        }
+      }
+    } catch (e) {
+      throw Exception('Error fetching system performance alerts: $e');
+    }
+    return alerts;
+  }
+
+
+
   Future<void> reportQuiz(String quizId, Map<String, dynamic> reportData) async {
     try {
       await _database.child('quizReports').child(quizId).push().set(reportData);
