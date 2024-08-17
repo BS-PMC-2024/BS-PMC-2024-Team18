@@ -33,10 +33,46 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
+  int _maxLoginAttempts = 5;
+Duration _lockoutDuration = Duration(minutes: 30);
+int _loginAttempts = 0;
+bool _isLocked = false;
+DateTime? _lockoutTime;
 
-
+Future<void> _loadAdminSettings() async {
+  try {
+    DatabaseEvent event = await _database.child('adminSettings').once();
+    Map? settings = event.snapshot.value as Map?;
+    if (settings != null) {
+      setState(() {
+        _maxLoginAttempts = settings['maxLoginAttempts'] ?? 5;
+        _lockoutDuration = Duration(minutes: settings['lockoutDurationMinutes'] ?? 30);
+      });
+    }
+  } catch (e) {
+    print('Error loading admin settings: $e');
+  }
+}
+@override
+void initState() {
+  super.initState();
+  _loadAdminSettings();
+}
 // Updated sign-in method to include user type navigation and error handling
 Future<void> signInWithEmailAndPassword() async {
+    if (_isLocked) {
+    if (DateTime.now().isAfter(_lockoutTime!)) {
+      setState(() {
+        _isLocked = false;
+        _loginAttempts = 0;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Account is locked. Please try again later.')),
+      );
+      return;
+    }
+  }
   try {
     // Attempt to log in using provided email and password
     String result = await auth.login(
@@ -73,6 +109,16 @@ Future<void> signInWithEmailAndPassword() async {
     } else {
       // Show error message if login failed
       if (mounted) {
+          _loginAttempts++;
+  if (_loginAttempts >= _maxLoginAttempts) {
+    setState(() {
+      _isLocked = true;
+      _lockoutTime = DateTime.now().add(_lockoutDuration);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Too many failed attempts. Account locked for ${_lockoutDuration.inMinutes} minutes.')),
+    );
+  }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $result')),
         );
@@ -393,6 +439,7 @@ Future<void> signInWithGoogle() async {
                     ),
                   ],
                 ),
+                
               ],
             ),
           ),

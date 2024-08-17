@@ -14,6 +14,29 @@ class FirebaseService {
   FirebaseService({DatabaseReference? database , FirebaseAuth? auth})
       : _database = database ?? FirebaseDatabase.instance.ref(),   _auth = auth ?? FirebaseAuth.instance;
 
+Future<Map<String, dynamic>> getAdminSettings() async {
+  try {
+    final snapshot = await _database.child('adminSettings').get();
+    if (snapshot.exists) {
+      return Map<String, dynamic>.from(snapshot.value as Map);
+    } else {
+      return {};
+    }
+  } catch (e) {
+    print('Error getting admin settings: $e');
+    throw e;
+  }
+}
+
+Future<void> updateAdminSetting(String key, dynamic value) async {
+  try {
+    await _database.child('adminSettings').child(key).set(value);
+  } catch (e) {
+    print('Error updating admin setting: $e');
+    throw e;
+  }
+}
+
   Future<Map<String, dynamic>> getPlatformReportData() async {
     try {
       // Fetch data from various collections

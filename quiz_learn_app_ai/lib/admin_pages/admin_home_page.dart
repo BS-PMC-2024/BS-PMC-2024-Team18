@@ -10,6 +10,7 @@ import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_settings_page.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -305,6 +306,17 @@ class AdminHomePageState extends State<AdminHomePage> {
             );
           },
         ),
+        _buildActionCard(
+  icon: Icons.settings,
+  title: 'Platform Settings',
+  description: 'Manage platform-wide settings and configurations',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminSettingsPage()),
+    );
+  },
+),
       ],
     );
   }
