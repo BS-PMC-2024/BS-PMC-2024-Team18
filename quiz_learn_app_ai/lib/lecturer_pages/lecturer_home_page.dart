@@ -13,6 +13,7 @@ import 'package:quiz_learn_app_ai/services/file_search_page.dart';
 import 'package:quiz_learn_app_ai/services/file_upload_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:quiz_learn_app_ai/services/notification_service.dart';
 
 class LecturerHomePage extends StatefulWidget {
   const LecturerHomePage({super.key});
@@ -32,6 +33,7 @@ class LecturerHomePageState extends State<LecturerHomePage> {
   void initState() {
     super.initState();
     _loadUserData();
+    PushNotifications.getDeviceToken();
   }
 
 Future<void> _loadUserData() async {

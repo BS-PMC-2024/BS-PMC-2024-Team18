@@ -6,6 +6,7 @@ import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
 import 'package:quiz_learn_app_ai/services/file_search_global_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:quiz_learn_app_ai/services/notification_service.dart';
 import 'package:quiz_learn_app_ai/student_pages/completed_quizzes_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_profile_page.dart';
@@ -31,6 +32,7 @@ bool _isLoading = true;
   void initState() {
     super.initState();
     _loadUserData();
+    PushNotifications.getDeviceToken();
   }
 
 Future<void> _loadUserData() async {
