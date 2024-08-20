@@ -23,8 +23,10 @@ Future<Map<String, dynamic>> getAdminSettings() async {
       return {};
     }
   } catch (e) {
-    print('Error getting admin settings: $e');
-    throw e;
+    if (kDebugMode) {
+      print('Error getting admin settings: $e');
+    }
+    rethrow;
   }
 }
 
@@ -32,8 +34,10 @@ Future<void> updateAdminSetting(String key, dynamic value) async {
   try {
     await _database.child('adminSettings').child(key).set(value);
   } catch (e) {
-    print('Error updating admin setting: $e');
-    throw e;
+    if (kDebugMode) {
+      print('Error updating admin setting: $e');
+    }
+    rethrow;
   }
 }
 

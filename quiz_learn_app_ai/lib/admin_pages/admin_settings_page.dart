@@ -1,14 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class AdminSettingsPage extends StatefulWidget {
-  const AdminSettingsPage({Key? key}) : super(key: key);
+  const AdminSettingsPage({super.key});
 
   @override
-  _AdminSettingsPageState createState() => _AdminSettingsPageState();
+  AdminSettingsPageState createState() => AdminSettingsPageState();
 }
 
-class _AdminSettingsPageState extends State<AdminSettingsPage> {
+class AdminSettingsPageState extends State<AdminSettingsPage> {
   final FirebaseService _firebaseService = FirebaseService();
   bool _isLoading = true;
   Map<String, dynamic> _settings = {};
@@ -27,7 +28,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading settings: $e');
+      if (kDebugMode) {
+        print('Error loading settings: $e');
+      }
       setState(() {
         _isLoading = false;
       });
@@ -37,14 +40,22 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   Future<void> _updateSetting(String key, dynamic value) async {
     try {
       await _firebaseService.updateAdminSetting(key, value);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Setting updated successfully')),
+      if(mounted){
+         ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Setting updated successfully')),
       );
+      }
+    
     } catch (e) {
-      print('Error updating setting: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update setting')),
+      if (kDebugMode) {
+        print('Error updating setting: $e');
+      }
+       if(mounted){
+         ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update setting')),
       );
+       }
+     
     }
   }
 
@@ -60,14 +71,14 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Platform Settings'),
+        title: const Text('Platform Settings'),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
                 ExpansionTile(
-                  title: Text('User Management'),
+                  title: const Text('User Management'),
                   children: [
                     _buildSettingItem(
                       'Maximum Login Attempts',
