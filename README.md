@@ -1,6 +1,6 @@
 # **CampusQuest AI**
 
-![CampusQuest AI](https://your-image-link-here)  
+<img src="https://github.com/user-attachments/assets/1b79beea-6832-42e3-bc2a-b871daf19d57" alt="app_icon" width="50" height="50"/>
 Welcome to CampusQuest AI, your intelligent learning companion designed to revolutionize the way students and lecturers interact with quizzes and learning materials. Our app is tailored to meet the academic needs of students, lecturers, and administrators by offering a dynamic, AI-driven platform that enhances the learning experience.
 
 ## Features
