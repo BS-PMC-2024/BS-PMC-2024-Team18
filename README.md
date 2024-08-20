@@ -97,7 +97,7 @@ This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LIC
 ## Contact Us
 
 CampusQuest AI is continuously evolving. If you have questions, or feedback, or wish to contribute, please reach out to us.  
-Email: Or6562@gmail.com
+Email: Or6562@gmail.com, gilcohen1998@gmail.com, sergemo1@ac.sce.ac.il.
 
 ## Screenshots
 <img src="https://github.com/user-attachments/assets/d4aab319-7f96-4c91-bc0a-6272539afb4d" alt="CampusQuest" width="300"/>
