@@ -9,13 +9,14 @@ Welcome to CampusQuest AI, your intelligent learning companion designed to revol
 ### 1. **Student Account Management**
 - **Sign Up and Login:** Easily create and manage your student account. Log in to access personalized quizzes and track your academic progress.
 - **Quiz Navigation:** Search for quizzes by course or topic. With a click, start your quiz journey, complete it, and review your performance instantly.
-- **AI-Generated Quizzes:** Create customized quizzes for any course subject using advanced AI technology, ensuring relevant and challenging content tailored to your needs.
+- **AI-Generated feedback:** Create customized feedback or explanation on answers for any quiz using advanced AI technology, ensuring relevant and challenging content tailored to your needs.
 
 ### 2. **Lecturer Tools**
 - **Quiz Creation and Management:** Design and manage quizzes effortlessly for your courses. Edit and update existing quizzes, and ensure they are always accurate and up-to-date.
 - **Performance Tracking:** Monitor your student's progress with detailed reports on quiz results, helping you provide timely support and guidance.
 - **Resource Uploads:** Share additional study materials and resources related to quizzes, helping students prepare more effectively.
-
+- **AI-Generated Quizzes:** Create customized quizzes for any course subject using advanced AI technology, ensuring relevant and challenging content tailored to your needs.
+- 
 ### 3. **Admin Control Panel**
 - **User and System Management:** Admins can sign up and log in to manage user accounts, monitor platform metrics, and maintain system integrity.
 - **Content Moderation:** Ensure the platform remains secure and compliant with data security and privacy regulations, safeguarding user data and removing inappropriate content.
