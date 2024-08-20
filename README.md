@@ -2,7 +2,7 @@
 
 <img src="https://github.com/user-attachments/assets/1b79beea-6832-42e3-bc2a-b871daf19d57" alt="app_icon" width="50" height="50"/>
 
-Welcome to CampusQuest AI, your intelligent learning companion designed to revolutionize the way students and lecturers interact with quizzes and learning materials. Our app is tailored to meet the academic needs of students, lecturers, and administrators by offering a dynamic, AI-driven platform that enhances the learning experience.
+Welcome to CampusQuest AI, your intelligent learning companion designed to revolutionize how students and lecturers interact with quizzes and learning materials. Our app is tailored to meet the academic needs of students, lecturers, and administrators by offering a dynamic, AI-driven platform that enhances the learning experience.
 
 ## Features
 
@@ -13,12 +13,12 @@ Welcome to CampusQuest AI, your intelligent learning companion designed to revol
 
 ### 2. **Lecturer Tools**
 - **Quiz Creation and Management:** Design and manage quizzes effortlessly for your courses. Edit and update existing quizzes, and ensure they are always accurate and up-to-date.
-- **Performance Tracking:** Monitor your students' progress with detailed reports on quiz results, helping you provide timely support and guidance.
+- **Performance Tracking:** Monitor your student's progress with detailed reports on quiz results, helping you provide timely support and guidance.
 - **Resource Uploads:** Share additional study materials and resources related to quizzes, helping students prepare more effectively.
 
 ### 3. **Admin Control Panel**
 - **User and System Management:** Admins can sign up and log in to manage user accounts, monitor platform metrics, and maintain system integrity.
-- **Content Moderation:** Ensure that the platform remains secure and compliant with data security and privacy regulations, safeguarding user data and removing inappropriate content.
+- **Content Moderation:** Ensure the platform remains secure and compliant with data security and privacy regulations, safeguarding user data and removing inappropriate content.
 - **Platform Settings and Reports:** Configure platform-wide settings and generate detailed usage reports to inform decisions and optimize performance.
 
 ### 4. **Notifications and Reminders**
@@ -42,12 +42,10 @@ Welcome to CampusQuest AI, your intelligent learning companion designed to revol
    - **Firebase Setup:** Configure Firebase by following the [Firebase Documentation](https://firebase.google.com/docs). Add your Firebase configuration files to the project.
 
 3. **API Configuration:**
-   - **ChatGPT API:** To integrate ChatGPT features, you'll need to create an API key from [OpenAI](https://platform.openai.com/signup). 
+   - **ChatGPT API:** To integrate ChatGPT features, you must create an API key from [OpenAI](https://platform.openai.com/signup). 
    - **Configuration File:** Add your API key to the `lib/auth/secrets.dart` file. This file should include your API credentials like this:
      ```dart
-     class Secrets {
-       static const String chatGptApiKey = 'YOUR_CHATGPT_API_KEY';
-     }
+      var mySecretKey = 'secret'; 
      ```
 
 4. **Account Creation:**
@@ -97,8 +95,8 @@ This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LIC
 
 ## Contact Us
 
-CampusQuest AI is continuously evolving. If you have questions, feedback, or wish to contribute, please reach out to us.  
-Email: [Your Email Address]
+CampusQuest AI is continuously evolving. If you have questions, or feedback, or wish to contribute, please reach out to us.  
+Email: Or6562@gmail.com
 
 ## Screenshots
 <img src="https://github.com/user-attachments/assets/d4aab319-7f96-4c91-bc0a-6272539afb4d" alt="CampusQuest" width="300"/>
