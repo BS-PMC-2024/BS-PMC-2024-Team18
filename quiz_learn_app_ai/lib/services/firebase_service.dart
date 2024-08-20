@@ -5,7 +5,10 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
+import 'package:quiz_learn_app_ai/lecturer_pages/create_quiz_page.dart';
+
 
 class FirebaseService {
   final DatabaseReference _database;
@@ -696,6 +699,51 @@ Future<List<UserData>> loadUsers() async {
             id: entry.key,
             email: entry.value['email'] ?? 'No email',
             userType: entry.value['userType'] ?? 'Unknown',
+          );
+        }).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      throw Exception('Error loading users: $e');
+    }
+  }
+
+  Future<List<UserDataToken>> loadUsersWithTokens() async {
+    try {
+      DataSnapshot snapshot = await _database.child('users').get();
+      Map<dynamic, dynamic>? userTypes = snapshot.value as Map<dynamic, dynamic>?;
+
+      if (userTypes != null) {
+        return userTypes.entries.map((entry) {
+          return UserDataToken(
+            id: entry.key,
+            email: entry.value['email'] ?? 'No email',
+            userType: entry.value['userType'] ?? 'Unknown',
+            deviceToken: entry.value['deviceToken'] ?? '',  
+          );
+        }).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      throw Exception('Error loading users: $e');
+    }
+  }
+
+  Future<List<StudentsData>> loadStudents() async {
+    try {
+      DataSnapshot snapshot = await _database.child('users').get();
+      Map<dynamic, dynamic>? userTypes = snapshot.value as Map<dynamic, dynamic>?;
+
+      if (userTypes != null) {
+        return userTypes.entries.map((entry) {
+          return StudentsData(
+            id: entry.key,
+            email: entry.value['email'] ?? 'No email',
+            userType: entry.value['userType'] ?? 'Unknown',
+            deviceToken: entry.value['deviceToken'] ?? '',  
+            courses: List<String>.from(entry.value['courses'] ?? []),
           );
         }).toList();
       } else {

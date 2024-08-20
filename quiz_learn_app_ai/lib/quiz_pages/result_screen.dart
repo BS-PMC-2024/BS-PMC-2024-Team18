@@ -1,9 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/quiz_ai_generated_feedback.dart';
 
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
+import 'package:quiz_learn_app_ai/services/notification_service.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_home_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
@@ -28,16 +31,17 @@ class ResultScreen extends StatefulWidget {
 class ResultScreenState extends State<ResultScreen> {
   List<String>? _rightAnswers;
   List<Map<dynamic, dynamic>>? _allQuestions;
-final FirebaseService _firebaseService = FirebaseService();
+  final FirebaseService _firebaseService = FirebaseService();
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   void initState() {
     super.initState();
     _rightAnswers = widget.rightAnswers;
     _allQuestions = widget.allQuestions;
-
   }
 
- Future<void> _saveResults() async {
+  Future<void> _saveResults() async {
     try {
       await _firebaseService.saveQuizResults(
         widget.quizData?['id'],
@@ -47,241 +51,313 @@ final FirebaseService _firebaseService = FirebaseService();
         points,
         widget.allQuestions,
       );
-      if(mounted){ ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quiz results saved successfully')),
-      );}
-     
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz results saved successfully')),
+        );
+        await sendMessageToLecturer(widget.quizData, points);
+      }
     } catch (e) {
-       if(mounted){  ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving quiz results: ${e.toString()}')),
-      );}
-    
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving quiz results: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> sendMessageToLecturer(
+      Map<dynamic, dynamic>? quizData, String points) async {
+    User? user = _auth.currentUser;
+    String? deviceToken;
+    try {
+      var lecturer = await _database
+          .child('lecturers')
+          .child(quizData?['lecturerId'])
+          .get();
+      deviceToken =
+          (lecturer.value as Map<dynamic, dynamic>)['deviceToken'].toString();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error lecturer not found: ${e.toString()}')),
+        );
+      }
+    }
+
+    String title = 'Quiz results';
+    String body =
+        'A student has completed the quiz: ${quizData?['name']} and scored $points points. Check out the detailed results in your dashboard!"';
+    String data = quizData?['id'];
+    try {
+      await PushNotifications().sendPushNotifications(
+        deviceToken ?? '',
+        title,
+        body,
+        data,
+        context,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error sending message to lecturer: ${e.toString()}'),
+          ),
+        );
+      }
+    }
+    try {
+      await _database
+          .child('lecturers')
+          .child(quizData?['lecturerId'])
+          .child('notifications')
+          .push()
+          .set({
+        'title': title,
+        'body': body,
+        'data': data,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'senderId': user?.uid,
+        'senderEmail': user?.email,
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Error saving notification to database: ${e.toString()}'),
+          ),
+        );
+      }
     }
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: BackgroundDecoration(
-    
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(
-              child: _buildContent(),
-            ),
-          ],
-        ),
-      ),
-    ),
-   
-  );
-}
-
-Widget _buildAppBar() {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        Text(
-          '${_rightAnswers?.length ?? 0} out of ${_allQuestions?.length ?? 0} are correct',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BackgroundDecoration(
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
           ),
         ),
-      ],
-    ),
-  );
-}
-
-Widget _buildContent() {
-  return Container(
-    margin: const EdgeInsets.all(16),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Column(
-      children: [
-        _buildCongratulationsSection(),
-        const SizedBox(height: 20),
-        Expanded(
-          child: _buildQuestionsList(), // Make sure this is wrapped in Expanded
-        ),
-        _buildActionButtons(),
-      ],
-    ),
-  );
-}
-
-
-Widget _buildCongratulationsSection() {
-  return Column(
-    children: [
-      const Text(
-        "Congratulations!",
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      const SizedBox(height: 8),
-      Text(
-        "You have $points points",
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-        ),
-      ),
-      const SizedBox(height: 16),
-      LinearProgressIndicator(
-        value: _allQuestions != null && _allQuestions!.isNotEmpty
-            ? (_rightAnswers?.length ?? 0) / _allQuestions!.length
-            : 0.0, // Default to 0.0 if there are no questions
-        backgroundColor: Colors.white.withOpacity(0.3),
-        valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-      ),
-    ],
-  );
-}
-
-Widget _buildQuestionsList() {
-  return ListView.builder(
-    itemCount: _allQuestions?.length ?? 0,
-    itemBuilder: (_, index) {
-      bool isCorrect = _rightAnswers?.contains(_allQuestions![index]['answer']) == true;
-      return Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        color: Colors.white.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(16),
-          leading: CircleAvatar(
-            backgroundColor: isCorrect ? Colors.green : Colors.red,
-            child: Icon(
-              isCorrect ? Icons.check : Icons.close,
-              color: Colors.white,
-            ),
-          ),
-          title: Text(
-            'Question ${index + 1}: ${_allQuestions![index]['question']}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          subtitle: Text(
-            isCorrect ? 'Correct' : 'Wrong',
-            style: TextStyle(
-              color: isCorrect ? Colors.green[300] : Colors.red[300],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-Widget _buildActionButtons() {
-  return Padding(
-    padding: const EdgeInsets.only(top: 16),
-    child: Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const QuizListScreen()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            ),
-            child: const Text("Try again"),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const StudentHomePage()));
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            ),
-            child: const Text("Go Home"),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-         onPressed: () {
-  // Check if all required data is non-null and not empty
-  if (widget.quizData != null &&
-      (_rightAnswers != null ||
-      widget.wrongAnswers != null) &&
-      (_rightAnswers!.isNotEmpty ||
-      widget.wrongAnswers!.isNotEmpty)
-      ) {
-    
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => QuizAIGeneratedFeedback(
-          quizData: widget.quizData!,
-          rightAnswers: _rightAnswers!,
-          wrongAnswers: widget.wrongAnswers!,
-        ),
-      ),
-    );
-  } else {
-    // Show an error message if any required data is null
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Unable to generate AI feedback due to missing data.'),
-        backgroundColor: Colors.red,
       ),
     );
   }
-},
 
-
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          Text(
+            '${_rightAnswers?.length ?? 0} out of ${_allQuestions?.length ?? 0} are correct',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-            child: const Text("AI feedback"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          _buildCongratulationsSection(),
+          const SizedBox(height: 20),
+          Expanded(
+            child:
+                _buildQuestionsList(), // Make sure this is wrapped in Expanded
+          ),
+          _buildActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCongratulationsSection() {
+    return Column(
+      children: [
+        const Text(
+          "Congratulations!",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: _saveResults,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        const SizedBox(height: 8),
+        Text(
+          "You have $points points",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
           ),
-          child: const Icon(Icons.save, color: Colors.white),
+        ),
+        const SizedBox(height: 16),
+        LinearProgressIndicator(
+          value: _allQuestions != null && _allQuestions!.isNotEmpty
+              ? (_rightAnswers?.length ?? 0) / _allQuestions!.length
+              : 0.0, // Default to 0.0 if there are no questions
+          backgroundColor: Colors.white.withOpacity(0.3),
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
         ),
       ],
-    ),
-  );
-}
+    );
+  }
+
+  Widget _buildQuestionsList() {
+    return ListView.builder(
+      itemCount: _allQuestions?.length ?? 0,
+      itemBuilder: (_, index) {
+        bool isCorrect =
+            _rightAnswers?.contains(_allQuestions![index]['answer']) == true;
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          color: Colors.white.withOpacity(0.1),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: CircleAvatar(
+              backgroundColor: isCorrect ? Colors.green : Colors.red,
+              child: Icon(
+                isCorrect ? Icons.check : Icons.close,
+                color: Colors.white,
+              ),
+            ),
+            title: Text(
+              'Question ${index + 1}: ${_allQuestions![index]['question']}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(
+              isCorrect ? 'Correct' : 'Wrong',
+              style: TextStyle(
+                color: isCorrect ? Colors.green[300] : Colors.red[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const QuizListScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+              ),
+              child: const Text("Try again"),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const StudentHomePage()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+              ),
+              child: const Text("Go Home"),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                // Check if all required data is non-null and not empty
+                if (widget.quizData != null &&
+                    (_rightAnswers != null || widget.wrongAnswers != null) &&
+                    (_rightAnswers!.isNotEmpty ||
+                        widget.wrongAnswers!.isNotEmpty)) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => QuizAIGeneratedFeedback(
+                        quizData: widget.quizData!,
+                        rightAnswers: _rightAnswers!,
+                        wrongAnswers: widget.wrongAnswers!,
+                      ),
+                    ),
+                  );
+                } else {
+                  // Show an error message if any required data is null
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          'Unable to generate AI feedback due to missing data.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+              ),
+              child: const Text("AI feedback"),
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton(
+            onPressed: _saveResults,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
+            ),
+            child: const Icon(Icons.save, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
 
   String get points {
     var points = (_rightAnswers!.length / _allQuestions!.length) * 100;

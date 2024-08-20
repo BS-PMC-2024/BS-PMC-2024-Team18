@@ -5,12 +5,13 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_dashboard_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_quiz_reports_page.dart';
-import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_settings_page.dart';
+import 'package:quiz_learn_app_ai/services/notification_service.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -23,6 +24,7 @@ class AdminHomePageState extends State<AdminHomePage> {
   String? userEmail;
   String? userType;
   bool _isLoading = true;
+  final PushNotifications pushNotifications = PushNotifications();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseService _firebaseService = FirebaseService();
   final Auth auth = Auth(auth: FirebaseAuth.instance);
@@ -31,6 +33,11 @@ class AdminHomePageState extends State<AdminHomePage> {
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  initializePushNotificationSystem() {
+    pushNotifications.generateDeviceToken();
+    pushNotifications.startListeningForNewNotifications(context);
   }
 
   Future<void> _loadUserData() async {
@@ -42,6 +49,9 @@ class AdminHomePageState extends State<AdminHomePage> {
           userType = userData['userType'];
           _isLoading = false;
         });
+        //await initializePushNotificationSystem();
+        //await pushNotifications.requestPermission();
+        await pushNotifications.generateDeviceToken();
       }
     } catch (e) {
       if (kDebugMode) {
@@ -202,7 +212,8 @@ class AdminHomePageState extends State<AdminHomePage> {
               CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.indigo[100],
-                child: Icon(Icons.admin_panel_settings, size: 30, color: Colors.indigo[800]),
+                child: Icon(Icons.admin_panel_settings,
+                    size: 30, color: Colors.indigo[800]),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -249,74 +260,93 @@ class AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
- Widget _buildAdminActions() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        'Admin Actions',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.indigo[800],
+  Widget _buildAdminActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Admin Actions',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.indigo[800],
+          ),
         ),
-      ),
-      const SizedBox(height: 15),
-      _buildActionCard(
-        icon: Icons.people,
-        title: 'User Management',
-        description: 'Manage users, roles, and permissions',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
-          );
-        },
-      ),
-      _buildActionCard(
+        const SizedBox(height: 15),
+        _buildActionCard(
+          icon: Icons.people,
+          title: 'Send Push Notification',
+          description: 'Send push notification to all users or special users',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AdminSendMessages()),
+            );
+          },
+        ),
+        _buildActionCard(
           icon: Icons.security,
           title: 'Compliance',
-          description: 'Ensures compliance with data security and privacy regulations.',
+          description:
+              'Ensures compliance with data security and privacy regulations.',
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AdminCompliancePage()),
+              MaterialPageRoute(
+                  builder: (context) => const AdminCompliancePage()),
             );
           },
         ),
-          _buildActionCard(
+        _buildActionCard(
           icon: Icons.report,
           title: 'Quiz reports',
-          description: 'Ensures quizs with data security and privacy regulations.',
+          description:
+              'Ensures quizs with data security and privacy regulations.',
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AdminQuizReportsPage()),
+              MaterialPageRoute(
+                  builder: (context) => const AdminQuizReportsPage()),
             );
           },
         ),
-                  _buildActionCard(
+        _buildActionCard(
           icon: Icons.query_stats,
           title: 'Admin dashboard',
           description: 'See more details about reports and more.',
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
+              MaterialPageRoute(
+                  builder: (context) => const AdminDashboardPage()),
             );
           },
         ),
         _buildActionCard(
-  icon: Icons.settings,
-  title: 'Platform Settings',
-  description: 'Manage platform-wide settings and configurations',
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AdminSettingsPage()),
-    );
-  },
-),
+          icon: Icons.settings,
+          title: 'Platform Settings',
+          description: 'Manage platform-wide settings and configurations',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AdminSettingsPage()),
+            );
+          },
+        ),
+        _buildActionCard(
+          icon: Icons.settings,
+          title: 'send push notification',
+          description: 'Manage platform-wide settings and configurations',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AdminSendMessages()),
+            );
+          },
+        ),
       ],
     );
   }

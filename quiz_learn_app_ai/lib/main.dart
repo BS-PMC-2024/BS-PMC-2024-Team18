@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
-import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:quiz_learn_app_ai/services/message_view.dart';
+import 'package:quiz_learn_app_ai/firebase_options.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:quiz_learn_app_ai/services/notification_service.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -21,84 +21,85 @@ Future _firebaseBackgroundMessage(RemoteMessage message) async {
   }
 }
 
-// to handle notification on foreground on web platform
-void showNotification({required String title, required String body}) {
-  showDialog(
-    context: navigatorKey.currentContext!,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: Text(body),
-      actions: [
-        TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text("Ok"))
-      ],
-    ),
-  );
-}
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp();
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  tz.initializeTimeZones();
   // initialize firebase messaging
-  await PushNotifications.init();
 
-  // initialize local notifications
-  // dont use local notifications for web platform
-  if (!kIsWeb) {
-    await PushNotifications.localNotificationsInit();
-  }
-
-  // Listen to background notifications
-  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
-
-  // on background notification tapped
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    if (message.notification != null) {
-      print("Background Notification Tapped");
-      navigatorKey.currentState!.pushNamed("/message", arguments: message);
-    }
-  });
-
-// to handle foreground notifications
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    String payloadData = jsonEncode(message.data);
-    print("Got a message in foreground");
-    if (message.notification != null) {
-      if (kIsWeb) {
-        showNotification(
-            title: message.notification!.title!,
-            body: message.notification!.body!);
-      } else {
-        PushNotifications.showSimpleNotification(
-            title: message.notification!.title!,
-            body: message.notification!.body!,
-            payload: payloadData);
-      }
-    }
-  });
-
-  // for handling in terminated state
-  final RemoteMessage? message =
-      await FirebaseMessaging.instance.getInitialMessage();
-
-  if (message != null) {
-    if (kDebugMode) {
-      print("Launched from terminated state");
-    }
-    Future.delayed(Duration(seconds: 1), () {
-      navigatorKey.currentState!.pushNamed("/message", arguments: message);
-    });
-  }
+  await PushNotifications().requestPermission();
+  await PushNotifications().init();
 
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    notificationHandler();
+  }
+
+  void notificationHandler() {
+    // FirebaseMessaging.onMessage.listen((event) async {
+    //   if (kDebugMode) {
+    //     print(event.notification!.title);
+    //   }
+    //   //String payloadData = jsonEncode(event.data);
+    //   if (kDebugMode) {
+    //     print("Got a message in foreground");
+    //   }
+    //   if (event.notification != null) {
+    //     PushNotifications().showSimpleNotification(event);
+    //   }
+    // });
+
+    // terminated
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) async {
+      if (message != null) {
+        String? data = message.data['data'];
+        if (kDebugMode) {
+          print("Launched from terminated state");
+        }
+        Future.delayed(const Duration(seconds: 1), () {});
+      }
+    });
+    // foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
+      if (message != null) {
+        if (kDebugMode) {
+          print(message.notification!.title);
+        }
+        String? data = message.data['data'];
+        if (kDebugMode) {
+          print("Got a message in foreground");
+        }
+        if (message.notification != null) {
+          PushNotifications().showSimpleNotification(message);
+        }
+      }
+    });
+    // background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
+      if (message?.notification != null) {
+        if (kDebugMode) {
+          print("Background Notification Tapped");
+        }
+      }
+    });
+
+    // Listen to background notifications
+    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,41 +110,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const AuthPage(),
-      navigatorKey: navigatorKey,
-      routes: {
-        "/message": (context) => const Message(),
-      },
-    );
-  }
-}
-
-class CheckUser extends StatefulWidget {
-  const CheckUser({super.key});
-
-  @override
-  State<CheckUser> createState() => _CheckUserState();
-}
-
-class _CheckUserState extends State<CheckUser> {
-  FirebaseService _firebaseService = FirebaseService();
-  @override
-  void initState() {
-    _firebaseService.isLoggedIn().then((value) {
-      if (value) {
-        Navigator.pushReplacementNamed(context, "/home");
-      } else {
-        Navigator.pushReplacementNamed(context, "/login");
-      }
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
+      // navigatorKey: navigatorKey,
+      // routes: {
+      //   "/message": (context) => const Message(),
+      // },
     );
   }
 }
