@@ -48,7 +48,6 @@ Email: [Your Email Address]
 
 ------------
 ## Screenshots
-![CampusQuest](https://github.com/user-attachments/assets/ea0ace5d-a402-4004-b1a1-2abaa87ac629)
 <img src="https://github.com/user-attachments/assets/d4aab319-7f96-4c91-bc0a-6272539afb4d" alt="CampusQuest" width="300"/>
 
 Stay tuned for more updates and enhancements as we strive to make learning more engaging and effective!
