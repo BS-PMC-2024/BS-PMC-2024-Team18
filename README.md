@@ -44,7 +44,7 @@ Welcome to CampusQuest AI, your intelligent learning companion designed to revol
 
 3. **API Configuration:**
    - **ChatGPT API:** To integrate ChatGPT features, you must create an API key from [OpenAI](https://platform.openai.com/signup). 
-   - **Configuration File:**  Instead of `lib/auth/secrets.dart` file, create 'lib/auth/secrets.realsecrets' and Add your API key to it. This file should include your API credentials like this:
+   - **Configuration File:**  Instead of `lib/auth/secrets.dart` file, create `lib/auth/secrets.realsecrets` and Add your API key to it. This file should include your API credentials like this:
      ```dart
       var mySecretKey = 'secret'; 
      ```
