@@ -32,6 +32,9 @@ Welcome to CampusQuest AI, your intelligent learning companion designed to revol
 
 ## How to Get Started
 
+0. **Test With Dockerfile and Jekinsfile**
+   - docker run -d -p 8081:8080 -p 50000:50000 --name jenkins -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
+
 1. **Installation:**
    - Clone or download the repository using the command: `git clone https://github.com/your-repo-url.git`
    - Navigate to the project directory: `cd your-project-directory`
