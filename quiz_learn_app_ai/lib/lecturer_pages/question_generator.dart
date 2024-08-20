@@ -2,8 +2,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
- import '../auth/realsecrets.dart';
-//import '../auth/secerts.dart';
+ //import '../auth/realsecrets.dart';
+import '../auth/secrets.dart';
 class QuestionGenerator {
   final String apiKey = mySecretKey;
   final String apiUrl = 'https://api.openai.com/v1/chat/completions';
