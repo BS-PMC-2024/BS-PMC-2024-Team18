@@ -222,6 +222,11 @@ String _formatUserName(String? email) {
      {'icon': Icons.insert_chart, 'label': 'Lecturer Statistics', 'route': const LecturerQuizStatisticsPage()},
          {'icon': Icons.file_upload_sharp, 'label': 'Files - Study Materials Upload', 'route':   const FileUploadPage()},
            {'icon': Icons.send_and_archive, 'label': 'Files - Study Materials Search', 'route':   const FileSearchPage()},
+           {
+        'icon': Icons.report_rounded,
+        'label': 'Report an Issue',
+        'route': const ReportIssue()
+      }
 
   ];
 

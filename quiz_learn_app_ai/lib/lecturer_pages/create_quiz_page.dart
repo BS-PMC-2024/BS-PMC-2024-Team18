@@ -320,19 +320,61 @@ Future<void> _saveQuiz() async {
 
     );
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quiz saved successfully')),
-      );
-      Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz saved successfully')),
+        );
+        sendNotificationToRelevantStudents();
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+        );
+      }
     }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
-      );
+  }
+
+  Future<void> sendNotificationToRelevantStudents() async {
+    final List<StudentsData> relevantStudents = [];
+    try {
+      final List<StudentsData> students = await _firebaseService.loadStudents();
+      relevantStudents.addAll(students
+          .where((student) => student.courses.contains(_selectedSubject)));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading students: $e');
+      }
     }
-  } 
+    if (relevantStudents.isEmpty) {
+      return;
+    }
+    for (StudentsData user in relevantStudents) {
+      if (user.deviceToken != '') {
+        PushNotifications().sendPushNotifications(
+            user.deviceToken,
+            'New Quiz Available $_quizNameController.text',
+            'Quiz: $_descriptionController.text',
+            'quiz',
+            null);
+      }
+    }
+  }
 }
 
+class StudentsData {
+  final String id;
+  final String email;
+  final String userType;
+  final String deviceToken;
+  final List<String> courses;
+
+  StudentsData({ 
+    required this.id,
+    required this.email,
+    required this.userType,
+    required this.deviceToken,
+    required this.courses,
+  });
 }

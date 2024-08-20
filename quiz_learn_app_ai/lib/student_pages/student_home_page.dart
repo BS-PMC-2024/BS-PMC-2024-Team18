@@ -199,6 +199,11 @@ Widget _buildFeatureGrid(BuildContext context) {
     {'icon': Icons.assessment, 'label': 'Quiz Results', 'route': const QuizResultsScreen()},
        {'icon': Icons.person, 'label': 'Student Profile', 'route': const StudentProfilePage()},
       {'icon': Icons.send_and_archive, 'label': 'Study Material', 'route': const FileSearchGlobalPage()},
+      {
+        'icon': Icons.report_rounded,
+        'label': 'Report an Issue',
+        'route': const ReportIssue()
+      },
   ];
 
   return Column(
