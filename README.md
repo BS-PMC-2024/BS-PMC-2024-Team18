@@ -49,4 +49,5 @@ Email: [Your Email Address]
 ------------
 ## Screenshots
 ![CampusQuest](https://github.com/user-attachments/assets/ea0ace5d-a402-4004-b1a1-2abaa87ac629)
+<img src="https://your-screenshot-link-here" alt="CampusQuest AI Screenshot" width="300"/>
 Stay tuned for more updates and enhancements as we strive to make learning more engaging and effective!
