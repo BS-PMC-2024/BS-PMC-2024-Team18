@@ -41,31 +41,6 @@ Future<void> updateAdminSetting(String key, dynamic value) async {
   }
 }
 
-
-Future<List<StudentsData>> loadStudents() async {
-    try {
-      DataSnapshot snapshot = await _database.child('users').get();
-      Map<dynamic, dynamic>? userTypes = snapshot.value as Map<dynamic, dynamic>?;
-
-      if (userTypes != null) {
-        return userTypes.entries.map((entry) {
-          return StudentsData(
-            id: entry.key,
-            email: entry.value['email'] ?? 'No email',
-            userType: entry.value['userType'] ?? 'Unknown',
-            deviceToken: entry.value['deviceToken'] ?? '',  
-            courses: List<String>.from(entry.value['courses'] ?? []),
-          );
-        }).toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      throw Exception('Error loading users: $e');
-    }
-  }
-
-
   Future<Map<String, dynamic>> getPlatformReportData() async {
     try {
       // Fetch data from various collections
