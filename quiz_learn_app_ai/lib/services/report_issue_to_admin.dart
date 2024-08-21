@@ -16,8 +16,7 @@ class ReportIssueState extends State<ReportIssue> {
   final _formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
   final _database = FirebaseDatabase.instance.ref();
-  List<UserDataToken> _admins = [];
-  bool _isLoading = true;
+  final List<UserDataToken> _admins = [];
   final FirebaseService _firebaseService = FirebaseService();
   final TextEditingController _bodyMessageController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
@@ -29,9 +28,6 @@ class ReportIssueState extends State<ReportIssue> {
   }
 
   Future<void> _loadAdmins() async {
-    setState(() {
-      _isLoading = true;
-    });
     List<UserDataToken> users = [];
     try {
       users = await _firebaseService.loadUsersWithTokens();
@@ -45,39 +41,11 @@ class ReportIssueState extends State<ReportIssue> {
         print('Error loading users: $e');
       }
       // You might want to show a snackbar or some other error indication to the user here
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    } finally {}
   }
 
-//   Future<void> _loadUserData() async {
-//   final user = _auth.currentUser;
-//   if (user != null) {
-//     try {
-//       final snapshot = await _database.child('').child(user.uid).get();
-//       if (snapshot.exists) {
-//         final data = snapshot.value as Map<dynamic, dynamic>;
-//         setState(() {
-//           _nameController.text = data['name']?.toString() ?? '';
-//           _emailController.text = data['email']?.toString() ?? '';
-//           _phoneController.text = data['phone']?.toString() ?? '';
-//           _majorController.text = data['major']?.toString() ?? '';
-//           _yearOfStudyController.text = data['yearOfStudy']?.toString() ?? '';
-//           _bioController.text = data['bio']?.toString() ?? '';
-//           _courses = List<String>.from(data['courses'] ?? []);
-//         });
-//       }
-//     } catch (e) {
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Error loading user data: ${e.toString()}')),
-//         );
-//       }
-//     }
-//   }
-// }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -229,10 +197,10 @@ class ReportIssueState extends State<ReportIssue> {
     data ?? 'SPAM';
     subject ?? 'SPAM';
     String title = 'Issue Report';
-    List<String> _adminsEmails = [];
-    _admins.forEach((admin) {
-      _adminsEmails.add(admin.email);
-    });
+    List<String> adminsEmails = [];
+    for (var admin in _admins) {
+      adminsEmails.add(admin.email);
+    }
 
     _admins.forEach((admin) async {
       try {
@@ -256,7 +224,7 @@ class ReportIssueState extends State<ReportIssue> {
         'date': DateTime.now().toIso8601String(),
         'sender': user!.uid,
         'senderEmail': user.email,
-        'InformedAdmins': _adminsEmails,
+        'InformedAdmins': adminsEmails,
       };
 
       await _database.child('issue_reports').push().set(issueReport);

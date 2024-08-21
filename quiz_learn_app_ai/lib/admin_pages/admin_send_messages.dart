@@ -73,15 +73,14 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
 
   Future<void> sendNotificationSpecificUsers(String deviceToken, String? body,
       String? title, String? data, BuildContext? context) async {
-    body ?? 'this is test message for Specific user users';
-    title ?? 'Hi User';
-    data ?? 'this is data';
-    _users.forEach((user) async {
-      if (user.deviceToken != '') {
-        PushNotifications()
-            .sendPushNotifications(user.deviceToken, body, title, data, null);
-      }
-    });
+    body ??= 'this its test message for Specific user ';
+    title ??= 'Hi User';
+    data ??= 'this is data';
+
+    if (deviceToken != '') {
+      PushNotifications()
+          .sendPushNotifications(deviceToken, body, title, data, null);
+    }
   }
 
   @override
@@ -221,7 +220,7 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
             ),
             trailing: InkWell(
               onTap: () {
-                PushNotifications().sendPushNotifications(
+                sendNotificationSpecificUsers(
                     user.deviceToken, null, null, null, context);
               },
               child: Column(

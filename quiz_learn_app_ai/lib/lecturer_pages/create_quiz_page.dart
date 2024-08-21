@@ -1,8 +1,10 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/services/notification_service.dart';
+
 
 class CreateQuizPage extends StatefulWidget {
   const CreateQuizPage({super.key});
@@ -12,6 +14,7 @@ class CreateQuizPage extends StatefulWidget {
 }
 
 class CreateQuizPageState extends State<CreateQuizPage> {
+  final _database = FirebaseDatabase.instance.ref();
   final TextEditingController _quizNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedSubject = 'Other';
@@ -361,26 +364,33 @@ class CreateQuizPageState extends State<CreateQuizPage> {
 
   Future<void> sendNotificationToRelevantStudents() async {
     final List<StudentsData> relevantStudents = [];
+    final List<StudentsData> students = [];
     try {
       final List<StudentsData> students = await _firebaseService.loadStudents();
-      relevantStudents.addAll(students
-          .where((student) => student.courses.contains(_selectedSubject)));
+      // relevantStudents.addAll(students
+      //     .where((student) => student.courses.contains(_selectedSubject)));
     } catch (e) {
       if (kDebugMode) {
         print('Error loading students: $e');
       }
     }
-    if (relevantStudents.isEmpty) {
-      return;
-    }
-    for (StudentsData user in relevantStudents) {
-      if (user.deviceToken != '') {
+    // if (relevantStudents.isEmpty) {
+    //   return;
+    // }
+    for (StudentsData user in students) {
+      if (user.deviceToken != ''){
         PushNotifications().sendPushNotifications(
             user.deviceToken,
             'New Quiz Available $_quizNameController.text',
             'Quiz: $_descriptionController.text',
             'quiz',
             null);
+            await _database.child('students').child(user.id).child('notifications').push().set({
+              'title': 'New Quiz Available $_quizNameController.text',
+              'description': 'Quiz: $_descriptionController.text',
+              'type': 'quiz',
+              'date': DateTime.now().toIso8601String(),
+            });
       }
     }
   }

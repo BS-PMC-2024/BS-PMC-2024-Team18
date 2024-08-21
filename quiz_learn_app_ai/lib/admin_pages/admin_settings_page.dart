@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class AdminSettingsPage extends StatefulWidget {
-  const AdminSettingsPage({Key? key}) : super(key: key);
+  const AdminSettingsPage({super.key});
 
   @override
   _AdminSettingsPageState createState() => _AdminSettingsPageState();
@@ -38,12 +38,12 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     try {
       await _firebaseService.updateAdminSetting(key, value);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Setting updated successfully')),
+        const SnackBar(content: Text('Setting updated successfully')),
       );
     } catch (e) {
       print('Error updating setting: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update setting')),
+        const SnackBar(content: Text('Failed to update setting')),
       );
     }
   }
@@ -60,14 +60,14 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Platform Settings'),
+        title: const Text('Platform Settings'),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
                 ExpansionTile(
-                  title: Text('User Management'),
+                  title: const Text('User Management'),
                   children: [
                     _buildSettingItem(
                       'Maximum Login Attempts',

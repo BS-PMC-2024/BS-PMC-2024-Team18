@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,12 +35,60 @@ class StudentHomePageState extends State<StudentHomePage> {
   void initState() {
     super.initState();
     _loadUserData();
+    notificationHandler();
   }
 
-  initializePushNotificationSystem() {
-    pushNotifications.generateDeviceToken();
-    pushNotifications.startListeningForNewNotifications(context);
+   Future _firebaseBackgroundMessage(RemoteMessage message) async {
+    if (message.notification != null) {
+      if (kDebugMode) {
+        print("Some notification Received in background...");
+      }
+    }
   }
+
+  void notificationHandler() {
+    
+    // terminated
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) async {
+      if (message != null) {
+        String? data = message.data['data'];
+        if (kDebugMode) {
+          print("Launched from terminated state");
+        }
+        Future.delayed(const Duration(seconds: 1), () {});
+      }
+    });
+    // foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
+      if (message != null) {
+        if (kDebugMode) {
+          print(message.notification!.title);
+        }
+        String? data = message.data['data'];
+        if (kDebugMode) {
+          print("Got a message in foreground");
+        }
+        if (message.notification != null) {
+          PushNotifications().showSimpleNotification(message);
+        }
+      }
+    });
+    // background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
+      if (message?.notification != null) {
+        if (kDebugMode) {
+          print("Background Notification Tapped");
+        }
+      }
+    });
+
+    // Listen to background notifications
+    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
+  }
+
+ 
 
   Future<void> _loadUserData() async {
     try {
@@ -50,8 +99,8 @@ class StudentHomePageState extends State<StudentHomePage> {
           userType = userData['userType'];
           _isLoading = false;
         });
-        // await initializePushNotificationSystem();
-        // await pushNotifications.requestPermission();
+        
+        await pushNotifications.requestPermission();
         await pushNotifications.generateDeviceToken();
       }
     } catch (e) {

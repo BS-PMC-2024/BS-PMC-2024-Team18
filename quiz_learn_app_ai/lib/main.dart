@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,9 +25,11 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   tz.initializeTimeZones();
   // initialize firebase messaging
-
-  await PushNotifications().requestPermission();
   await PushNotifications().init();
+  await PushNotifications().requestPermission();
+
+  // Listen to background notifications
+  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
 
   runApp(const MyApp());
 }
@@ -44,62 +44,49 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    notificationHandler();
   }
 
-  void notificationHandler() {
-    // FirebaseMessaging.onMessage.listen((event) async {
-    //   if (kDebugMode) {
-    //     print(event.notification!.title);
-    //   }
-    //   //String payloadData = jsonEncode(event.data);
-    //   if (kDebugMode) {
-    //     print("Got a message in foreground");
-    //   }
-    //   if (event.notification != null) {
-    //     PushNotifications().showSimpleNotification(event);
-    //   }
-    // });
+  // void notificationHandler() {
 
-    // terminated
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) async {
-      if (message != null) {
-        String? data = message.data['data'];
-        if (kDebugMode) {
-          print("Launched from terminated state");
-        }
-        Future.delayed(const Duration(seconds: 1), () {});
-      }
-    });
-    // foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
-      if (message != null) {
-        if (kDebugMode) {
-          print(message.notification!.title);
-        }
-        String? data = message.data['data'];
-        if (kDebugMode) {
-          print("Got a message in foreground");
-        }
-        if (message.notification != null) {
-          PushNotifications().showSimpleNotification(message);
-        }
-      }
-    });
-    // background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
-      if (message?.notification != null) {
-        if (kDebugMode) {
-          print("Background Notification Tapped");
-        }
-      }
-    });
+  //   // terminated
+  //   FirebaseMessaging.instance
+  //       .getInitialMessage()
+  //       .then((RemoteMessage? message) async {
+  //     if (message != null) {
+  //       String? data = message.data['data'];
+  //       if (kDebugMode) {
+  //         print("Launched from terminated state");
+  //       }
+  //       Future.delayed(const Duration(seconds: 1), () {});
+  //     }
+  //   });
+  //   // foreground
+  //   FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
+  //     if (message != null) {
+  //       if (kDebugMode) {
+  //         print(message.notification!.title);
+  //       }
+  //       String? data = message.data['data'];
+  //       if (kDebugMode) {
+  //         print("Got a message in foreground");
+  //       }
+  //       if (message.notification != null) {
+  //         PushNotifications().showSimpleNotification(message);
+  //       }
+  //     }
+  //   });
+  //   // background
+  //   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
+  //     if (message?.notification != null) {
+  //       if (kDebugMode) {
+  //         print("Background Notification Tapped");
+  //       }
+  //     }
+  //   });
 
-    // Listen to background notifications
-    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
-  }
+  //   // Listen to background notifications
+  //   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
+  // }
 
   @override
   Widget build(BuildContext context) {

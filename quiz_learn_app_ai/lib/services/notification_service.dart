@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
-import 'package:googleapis/servicecontrol/v1.dart' as servicecontrol;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:quiz_learn_app_ai/auth/realsecrets.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -236,7 +235,7 @@ class PushNotifications {
 
     await flutterLocalNotificationsPlugin.show(1, message.notification!.title,
         message.notification!.body, platformChannelSpecifics,
-        payload: 'not present');
+        payload: message.data['data']);
   }
 
   Future<void> scheduleNotification(

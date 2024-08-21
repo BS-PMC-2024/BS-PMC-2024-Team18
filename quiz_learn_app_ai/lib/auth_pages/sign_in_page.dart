@@ -34,7 +34,7 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
   int _maxLoginAttempts = 5;
-Duration _lockoutDuration = Duration(minutes: 30);
+Duration _lockoutDuration = const Duration(minutes: 30);
 int _loginAttempts = 0;
 bool _isLocked = false;
 DateTime? _lockoutTime;
@@ -68,7 +68,7 @@ Future<void> signInWithEmailAndPassword() async {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account is locked. Please try again later.')),
+        const SnackBar(content: Text('Account is locked. Please try again later.')),
       );
       return;
     }
