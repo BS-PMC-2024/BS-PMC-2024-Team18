@@ -71,6 +71,7 @@ dependencies:
   timezone: ^0.9.4
   flutter_app_info: ^1.1.2
   provider: ^6.1.2
+  pdf: ^3.11.1
 
  
 flutter_launcher_icons:

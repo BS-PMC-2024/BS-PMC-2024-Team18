@@ -6,7 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/firebase_options.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -26,7 +26,7 @@ void main() async {
   tz.initializeTimeZones();
   // initialize firebase messaging
   await PushNotifications().init();
-  await PushNotifications().requestPermission();
+  //await PushNotifications().requestPermission();
 
   // Listen to background notifications
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);

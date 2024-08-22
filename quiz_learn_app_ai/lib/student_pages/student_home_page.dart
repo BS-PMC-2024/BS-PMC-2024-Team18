@@ -7,10 +7,11 @@ import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
 import 'package:quiz_learn_app_ai/services/file_search_global_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
-import 'package:quiz_learn_app_ai/services/report_issue_to_admin.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/report_issue_to_admin.dart';
 import 'package:quiz_learn_app_ai/student_pages/completed_quizzes_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
+import 'package:quiz_learn_app_ai/student_pages/student_notifications_page.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_profile_page.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
@@ -27,7 +28,7 @@ class StudentHomePageState extends State<StudentHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final PushNotifications pushNotifications = PushNotifications();
   bool _isLoading = true;
-
+  bool _hasNotifications = false;
   String? userEmail;
   String? userType;
   final FirebaseService _firebaseService = FirebaseService();
@@ -38,21 +39,26 @@ class StudentHomePageState extends State<StudentHomePage> {
     notificationHandler();
   }
 
-   Future _firebaseBackgroundMessage(RemoteMessage message) async {
+  Future _firebaseBackgroundMessage(RemoteMessage message) async {
     if (message.notification != null) {
       if (kDebugMode) {
         print("Some notification Received in background...");
+        setState(() {
+          _hasNotifications = true;
+        });
       }
     }
-  }
+    }
 
   void notificationHandler() {
-    
     // terminated
     FirebaseMessaging.instance
         .getInitialMessage()
         .then((RemoteMessage? message) async {
       if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         String? data = message.data['data'];
         if (kDebugMode) {
           print("Launched from terminated state");
@@ -63,12 +69,16 @@ class StudentHomePageState extends State<StudentHomePage> {
     // foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
       if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print(message.notification!.title);
         }
         String? data = message.data['data'];
         if (kDebugMode) {
           print("Got a message in foreground");
+          _hasNotifications = true;
         }
         if (message.notification != null) {
           PushNotifications().showSimpleNotification(message);
@@ -77,7 +87,10 @@ class StudentHomePageState extends State<StudentHomePage> {
     });
     // background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
-      if (message?.notification != null) {
+      if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print("Background Notification Tapped");
         }
@@ -88,8 +101,6 @@ class StudentHomePageState extends State<StudentHomePage> {
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
   }
 
- 
-
   Future<void> _loadUserData() async {
     try {
       Map<String, dynamic> userData = await _firebaseService.loadUserData();
@@ -99,7 +110,7 @@ class StudentHomePageState extends State<StudentHomePage> {
           userType = userData['userType'];
           _isLoading = false;
         });
-        
+
         await pushNotifications.requestPermission();
         await pushNotifications.generateDeviceToken();
       }
@@ -250,6 +261,25 @@ class StudentHomePageState extends State<StudentHomePage> {
           Text(
             userType ?? '',
             style: const TextStyle(fontSize: 18, color: Color(0xFF3949AB)),
+          ),
+          IconButton(
+            icon: Icon(
+              _hasNotifications
+                  ? Icons.notifications
+                  : Icons.notifications_none,
+              color: _hasNotifications
+                  ? Colors.green
+                  : const Color.fromARGB(255, 57, 73, 171),
+            ),
+            onPressed: () {
+              _hasNotifications = false;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StudentNotification(),
+                ),
+              );
+            },
           ),
         ],
       ),

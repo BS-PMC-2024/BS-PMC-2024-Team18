@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 
 import 'package:quiz_learn_app_ai/quiz_pages/configs/ui_parameters.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/test_overwiew_screen.dart';
@@ -52,6 +53,7 @@ class QuestionScreenState extends State<QuestionScreen> {
     _startTimer(900);
     _loadQuizDetails();
   }
+  
 
   void _startTimer(int seconds) {
     remainSeconds = seconds;
@@ -113,6 +115,7 @@ class QuestionScreenState extends State<QuestionScreen> {
                 'questions': questions, // Use modified questions
                 'questionCount': questions.length,
                 'lecturer': lecturerData['name'] ?? 'Unknown Lecturer',
+                'lecturerId': lecturerId,
               });
             });
           }

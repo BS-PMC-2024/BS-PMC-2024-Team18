@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 class ReportIssue extends StatefulWidget {
   const ReportIssue({super.key});
@@ -43,9 +43,6 @@ class ReportIssueState extends State<ReportIssue> {
       // You might want to show a snackbar or some other error indication to the user here
     } finally {}
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -215,19 +212,27 @@ class ReportIssueState extends State<ReportIssue> {
     if (kDebugMode) {
       print('Report sent to admins: $subject - $data');
     }
-    try {
-      //save report to database
-      final issueReport = {
-        'title': title,
-        'subject': subject,
-        'data': data,
-        'date': DateTime.now().toIso8601String(),
-        'sender': user!.uid,
-        'senderEmail': user.email,
-        'InformedAdmins': adminsEmails,
-      };
 
-      await _database.child('issue_reports').push().set(issueReport);
+    final DatabaseReference ref =
+        _database.child('issue_reports').child('general_reports').push();
+    final String notificationId = ref.key!;
+
+    //save report to database
+    final issueReport = {
+      'title': title,
+      'subject': subject,
+      'data': data,
+      'date': DateTime.now().toIso8601String(),
+      'sender': user!.uid,
+      'senderEmail': user.email,
+      'InformedAdmins': adminsEmails,
+      'notificationId': notificationId,
+    };
+    try {
+      await ref.set(issueReport);
+      if (kDebugMode) {
+        print('Report sent with ID: $notificationId');
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error saving report to database: $e');

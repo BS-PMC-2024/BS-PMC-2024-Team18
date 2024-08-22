@@ -1,10 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
-
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 class CreateQuizPage extends StatefulWidget {
   const CreateQuizPage({super.key});
@@ -14,12 +14,35 @@ class CreateQuizPage extends StatefulWidget {
 }
 
 class CreateQuizPageState extends State<CreateQuizPage> {
+  final List<UserDataToken> _users = [];
   final _database = FirebaseDatabase.instance.ref();
   final TextEditingController _quizNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedSubject = 'Other';
   final FirebaseService _firebaseService = FirebaseService();
   final List<Map<String, dynamic>> _questions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      List<UserDataToken> users = await _firebaseService.loadUsersWithTokens();
+      users.forEach((user) async {
+        if (user.deviceToken != '' && user.userType == 'Student') {
+          _users.add(user);
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading users: $e');
+      }
+      // You might want to show a snackbar or some other error indication to the user here
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +373,7 @@ class CreateQuizPageState extends State<CreateQuizPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Quiz saved successfully')),
         );
-        sendNotificationToRelevantStudents();
+        await sendNotificationToStudents();
         Navigator.of(context).pop();
       }
     } catch (e) {
@@ -362,35 +385,41 @@ class CreateQuizPageState extends State<CreateQuizPage> {
     }
   }
 
-  Future<void> sendNotificationToRelevantStudents() async {
-    final List<StudentsData> relevantStudents = [];
-    final List<StudentsData> students = [];
+  Future<void> sendNotificationToStudents() async {
+    User? lUser = FirebaseAuth.instance.currentUser;
+    String quizName = _quizNameController.text;
+    String description = _descriptionController.text.isNotEmpty
+        ? _descriptionController.text
+        : '';
+    String subject = _selectedSubject;
+    String title = 'New Quiz Available $quizName';
+    String body = 'Quiz: $description\nSubject: $subject';
+    String data = 'quiz';
     try {
-      final List<StudentsData> students = await _firebaseService.loadStudents();
-      // relevantStudents.addAll(students
-      //     .where((student) => student.courses.contains(_selectedSubject)));
+      for (UserDataToken user in _users) {
+        PushNotifications()
+            .sendPushNotifications(user.deviceToken, body, title, data, null);
+        final DatabaseReference ref = _database
+            .child('students')
+            .child(user.id)
+            .child('notifications')
+            .child('notificationFromLecturer')
+            .push();
+        final String notificationId = ref.key!;    
+        final message = {    
+          'quizName': quizName,
+          'description': body,
+          'type': data,
+          'date': DateTime.now().toIso8601String(),
+          'lecturerId': lUser?.uid,
+          'lectureEmail': lUser?.email,
+          'notificationId': notificationId,
+        };
+        await ref.set(message);
+      }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading students: $e');
-      }
-    }
-    // if (relevantStudents.isEmpty) {
-    //   return;
-    // }
-    for (StudentsData user in students) {
-      if (user.deviceToken != ''){
-        PushNotifications().sendPushNotifications(
-            user.deviceToken,
-            'New Quiz Available $_quizNameController.text',
-            'Quiz: $_descriptionController.text',
-            'quiz',
-            null);
-            await _database.child('students').child(user.id).child('notifications').push().set({
-              'title': 'New Quiz Available $_quizNameController.text',
-              'description': 'Quiz: $_descriptionController.text',
-              'type': 'quiz',
-              'date': DateTime.now().toIso8601String(),
-            });
+        print('Error sending notifications: $e');
       }
     }
   }
@@ -403,7 +432,7 @@ class StudentsData {
   final String deviceToken;
   final List<String> courses;
 
-  StudentsData({ 
+  StudentsData({
     required this.id,
     required this.email,
     required this.userType,

@@ -2,10 +2,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/create_question_ai.dart';
+import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_notification_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_profile_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_quiz_statistics_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/my_quizzes_page.dart';
@@ -14,8 +16,8 @@ import 'package:quiz_learn_app_ai/services/file_search_page.dart';
 import 'package:quiz_learn_app_ai/services/file_upload_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
-import 'package:quiz_learn_app_ai/services/report_issue_to_admin.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/report_issue_to_admin.dart';
 
 class LecturerHomePage extends StatefulWidget {
   const LecturerHomePage({super.key});
@@ -31,6 +33,7 @@ class LecturerHomePageState extends State<LecturerHomePage> {
   final PushNotifications pushNotifications = PushNotifications();
   final Auth auth = Auth(auth: FirebaseAuth.instance);
   bool _isLoading = true;
+  bool _hasNotifications = false;
   final FirebaseService _firebaseService = FirebaseService();
 
   @override
@@ -47,6 +50,9 @@ class LecturerHomePageState extends State<LecturerHomePage> {
         .then((RemoteMessage? message) async {
       if (message != null) {
         String? data = message.data['data'];
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print("Launched from terminated state");
         }
@@ -56,6 +62,9 @@ class LecturerHomePageState extends State<LecturerHomePage> {
     // foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
       if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print(message.notification!.title);
         }
@@ -70,7 +79,10 @@ class LecturerHomePageState extends State<LecturerHomePage> {
     });
     // background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
-      if (message?.notification != null) {
+      if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print("Background Notification Tapped");
         }
@@ -78,13 +90,16 @@ class LecturerHomePageState extends State<LecturerHomePage> {
     });
 
     // Listen to background notifications
-    // FirebaseMessaging.onBackgroundMessage(firebaseBackgroundMessage);
+    FirebaseMessaging.onBackgroundMessage(firebaseBackgroundMessage);
   }
 
   Future<void> firebaseBackgroundMessage(RemoteMessage message) async {
     if (message.notification != null) {
       if (kDebugMode) {
         print("Some notification Received in background...");
+        setState(() {
+          _hasNotifications = true;
+        });
       }
     }
   }
@@ -271,6 +286,25 @@ class LecturerHomePageState extends State<LecturerHomePage> {
           Text(
             userType ?? '',
             style: const TextStyle(fontSize: 18, color: Color(0xFF3949AB)),
+          ),
+          IconButton(
+            icon: Icon(
+              _hasNotifications
+                  ? Icons.notifications
+                  : Icons.notifications_none,
+              color: _hasNotifications
+                  ? Colors.green
+                  : Color.fromARGB(255, 57, 73, 171),
+            ),
+            onPressed: () {
+              _hasNotifications = false;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LecturerNotification(),
+                ),
+              );
+            },
           ),
         ],
       ),

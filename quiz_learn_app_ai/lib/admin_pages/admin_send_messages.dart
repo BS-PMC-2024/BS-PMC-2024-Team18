@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -18,6 +20,7 @@ class AdminSendMessages extends StatefulWidget {
 
 class AdminSendMessagesState extends State<AdminSendMessages> {
   List<UserDataToken> _users = [];
+  final _database = FirebaseDatabase.instance.ref();
   bool _isLoading = true;
   final FirebaseService _firebaseService = FirebaseService();
 
@@ -59,27 +62,123 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
 
   Future<void> sendNotificationAllUsers(String? deviceToken, String? body,
       String? title, String? data, BuildContext? context) async {
+    User? aUser = FirebaseAuth.instance.currentUser;
     body ?? 'this is test message for all users';
     title ?? 'Hi All Users';
     data ?? 'this is data';
+    String notificationId = '';
+    DatabaseReference ref = _database.child('default');
+    try {
+      _users.forEach((user) async {
+        if (user.deviceToken != '') {
+          PushNotifications()
+              .sendPushNotifications(user.deviceToken, body, title, data, null);
+          if (user.userType == 'Student') {
+            ref = _database
+                .child('students')
+                .child(user.id)
+                .child('notifications')
+                .child('notificationFromAdmin')
+                .push();
+            notificationId = ref.key!;
+          } else if (user.userType == 'Teacher') {
+            ref = _database
+                .child('teachers')
+                .child(user.id)
+                .child('notifications')
+                .child('notificationFromAdmin')
+                .push();
+            notificationId = ref.key!;
+          } else {
+            ref = _database
+                .child('issue_reports')
+                .child('message_from_admin')
+                .push();
 
-    _users.forEach((user) async {
-      if (user.deviceToken != '') {
-        PushNotifications()
-            .sendPushNotifications(user.deviceToken, body, title, data, null);
+            notificationId = ref.key!;
+          }
+
+          final message = {
+            'subject': title,
+            'message': body,
+            'date': DateTime.now().toIso8601String(),
+            'AdminEmail': aUser?.email,
+            'notificationId': notificationId,
+          };
+          try {
+            await ref.set(message);
+            if (kDebugMode) {
+              print('Notification sent with ID: $notificationId');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error saving notification to database: $e');
+            }
+          }
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error sending notification: $e');
       }
-    });
+    }
   }
 
-  Future<void> sendNotificationSpecificUsers(String deviceToken, String? body,
-      String? title, String? data, BuildContext? context) async {
+  Future<void> sendNotificationSpecificUsers(
+      UserDataToken user,
+      String deviceToken,
+      String? body,
+      String? title,
+      String? data,
+      BuildContext? context) async {
     body ??= 'this its test message for Specific user ';
     title ??= 'Hi User';
     data ??= 'this is data';
+    String notificationId = '';
+    DatabaseReference ref = _database.child('default');
 
-    if (deviceToken != '') {
+    if (user.userType == 'Student') {
       PushNotifications()
           .sendPushNotifications(deviceToken, body, title, data, null);
+      ref = _database
+          .child('students')
+          .child(user.id)
+          .child('notifications')
+          .child('notificationFromAdmin')
+          .push();
+      notificationId = ref.key!;
+    } else if (user.userType == 'Teacher') {
+      PushNotifications()
+          .sendPushNotifications(deviceToken, body, title, data, null);
+      ref = _database
+          .child('teachers')
+          .child(user.id)
+          .child('notifications')
+          .child('notificationFromAdmin')
+          .push();
+      notificationId = ref.key!;
+    } else {
+      PushNotifications()
+          .sendPushNotifications(deviceToken, body, title, data, null);
+      ref = _database.child('issue_reports').child('message_from_admin').push();
+      notificationId = ref.key!;
+    }
+    final message = {
+      'subject': title,
+      'message': body,
+      'date': DateTime.now().toIso8601String(),
+      'AdminEmail': FirebaseAuth.instance.currentUser?.email,
+      'notificationId': notificationId,
+    };
+    try {
+      await ref.set(message);
+      if (kDebugMode) {
+        print('Notification sent with ID: $notificationId');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving notification to database: $e');
+      }
     }
   }
 
@@ -170,7 +269,7 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context!).pop(),
           ),
           const Text(
             'Send push notifications',
@@ -221,7 +320,7 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
             trailing: InkWell(
               onTap: () {
                 sendNotificationSpecificUsers(
-                    user.deviceToken, null, null, null, context);
+                    user, user.deviceToken, null, null, null, context);
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,

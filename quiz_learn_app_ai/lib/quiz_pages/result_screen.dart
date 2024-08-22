@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/quiz_ai_generated_feedback.dart';
 
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_home_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
@@ -34,11 +36,29 @@ class ResultScreenState extends State<ResultScreen> {
   final FirebaseService _firebaseService = FirebaseService();
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final List<UserDataToken> _users = [];
   @override
   void initState() {
     super.initState();
     _rightAnswers = widget.rightAnswers;
     _allQuestions = widget.allQuestions;
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      List<UserDataToken> users = await _firebaseService.loadUsersWithTokens();
+      users.forEach((user) async {
+        if (user.deviceToken != '' && user.userType == 'Lecturer') {
+          _users.add(user);
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading users: $e');
+      }
+      // You might want to show a snackbar or some other error indication to the user here
+    }
   }
 
   Future<void> _saveResults() async {
@@ -70,30 +90,22 @@ class ResultScreenState extends State<ResultScreen> {
       Map<dynamic, dynamic>? quizData, String points) async {
     User? user = _auth.currentUser;
     String? deviceToken;
-    try {
-      var lecturer = await _database
-          .child('lecturers')
-          .child(quizData?['lecturerId'])
-          .get();
-      deviceToken =
-          (lecturer.value as Map<dynamic, dynamic>)['deviceToken'].toString();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error lecturer not found: ${e.toString()}')),
-        );
-      }
-    }
-
-    String title = 'Quiz results';
+    var lecturer =
+        await _database.child('lecturers').child(quizData?['lecturerId']).get();
+    String title = 'Quiz submission';
     String body =
-        'A student has completed the quiz: ${quizData?['name']} and scored $points points. Check out the detailed results in your dashboard!"';
-    String data = quizData?['id'];
+        'A student ${user?.email} has completed the quiz: ${quizData?['name']} and scored $points points. Check out the detailed results in your dashboard!"';
+    String data = quizData?['name'];
     try {
+      for (UserDataToken user in _users) {
+        if (user.id == lecturer.key) {
+          deviceToken = user.deviceToken;
+        }
+      }
       await PushNotifications().sendPushNotifications(
         deviceToken ?? '',
-        title,
         body,
+        title,
         data,
         context,
       );
@@ -106,20 +118,25 @@ class ResultScreenState extends State<ResultScreen> {
         );
       }
     }
-    try {
-      await _database
+    
+      final DatabaseReference ref = _database
           .child('lecturers')
           .child(quizData?['lecturerId'])
           .child('notifications')
-          .push()
-          .set({
+          .child('notificationFromStudent')
+          .push();
+      final String notificationId = ref.key!;
+      final message = {
         'title': title,
         'body': body,
         'data': data,
         'timestamp': DateTime.now().millisecondsSinceEpoch,
         'senderId': user?.uid,
         'senderEmail': user?.email,
-      });
+        'notificationId': notificationId,
+      };
+      try {
+        await ref.set(message);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

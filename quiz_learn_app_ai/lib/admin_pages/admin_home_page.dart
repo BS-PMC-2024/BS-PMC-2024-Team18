@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_dashboard_page.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_issue_notifications_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_quiz_reports_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
@@ -12,7 +13,7 @@ import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_settings_page.dart';
-import 'package:quiz_learn_app_ai/services/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -25,6 +26,7 @@ class AdminHomePageState extends State<AdminHomePage> {
   String? userEmail;
   String? userType;
   bool _isLoading = true;
+  bool _hasNotifications = false;
   final PushNotifications pushNotifications = PushNotifications();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseService _firebaseService = FirebaseService();
@@ -37,21 +39,26 @@ class AdminHomePageState extends State<AdminHomePage> {
     notificationHandler();
   }
 
-   Future _firebaseBackgroundMessage(RemoteMessage message) async {
+  Future _firebaseBackgroundMessage(RemoteMessage message) async {
     if (message.notification != null) {
       if (kDebugMode) {
         print("Some notification Received in background...");
+        setState(() {
+          _hasNotifications = true;
+        });
       }
     }
   }
 
   void notificationHandler() {
-    
     // terminated
     FirebaseMessaging.instance
         .getInitialMessage()
         .then((RemoteMessage? message) async {
       if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         String? data = message.data['data'];
         if (kDebugMode) {
           print("Launched from terminated state");
@@ -62,6 +69,9 @@ class AdminHomePageState extends State<AdminHomePage> {
     // foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
       if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print(message.notification!.title);
         }
@@ -77,6 +87,9 @@ class AdminHomePageState extends State<AdminHomePage> {
     // background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
       if (message?.notification != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
         if (kDebugMode) {
           print("Background Notification Tapped");
         }
@@ -86,10 +99,6 @@ class AdminHomePageState extends State<AdminHomePage> {
     // Listen to background notifications
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
   }
-
- 
-
- 
 
   Future<void> _loadUserData() async {
     try {
@@ -285,12 +294,36 @@ class AdminHomePageState extends State<AdminHomePage> {
                       totalRepeatCount: 1,
                       displayFullTextOnTap: true,
                     ),
-                    Text(
-                      userEmail!,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.indigo[600],
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          userEmail!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.indigo[600],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _hasNotifications
+                                ? Icons.notifications
+                                : Icons.notifications_none,
+                            color: _hasNotifications
+                                ? Colors.green
+                                : const Color.fromARGB(255, 57, 73, 171),
+                          ),
+                          onPressed: () {
+                            _hasNotifications = false;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AdminIssueNotificationReport(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -382,18 +415,6 @@ class AdminHomePageState extends State<AdminHomePage> {
               context,
               MaterialPageRoute(
                   builder: (context) => const AdminSettingsPage()),
-            );
-          },
-        ),
-        _buildActionCard(
-          icon: Icons.settings,
-          title: 'send push notification',
-          description: 'Manage platform-wide settings and configurations',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const AdminSendMessages()),
             );
           },
         ),

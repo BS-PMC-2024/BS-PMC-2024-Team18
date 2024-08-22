@@ -2,7 +2,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
- import '../auth/realsecrets.dart';
+import '../auth/realsecrets.dart';
+
 //import '../auth/secerts.dart';
 class QuestionGenerator {
   final String apiKey = mySecretKey;
@@ -12,6 +13,7 @@ class QuestionGenerator {
   QuestionGenerator({http.Client? client}) : client = client ?? http.Client();
 
   Future<List<Map<String, dynamic>>> generateQuestions(String text) async {
+    
     final response = await client.post(
       Uri.parse(apiUrl),
       headers: {
@@ -23,11 +25,13 @@ class QuestionGenerator {
         'messages': [
           {
             'role': 'system',
-            'content': 'You are a helpful assistant that generates multiple-choice questions and a quiz description.'
+            'content':
+                'You are a helpful assistant that generates multiple-choice questions and a quiz description.'
           },
           {
             'role': 'user',
-            'content': 'Generate 5 multiple-choice questions and a short description about the following questions. Each question should have one correct answer and three incorrect answers. Format the output as a JSON object with a "description" field and a "questions" field containing an array of question objects. Text: $text'
+            'content':
+                'Generate 5 multiple-choice questions and a short description about the following questions. Each question should have one correct answer and three incorrect answers. Format the output as a JSON object with a "description" field and a "questions" field containing an array of question objects. Text: $text'
           }
         ],
         'temperature': 0.7,
@@ -42,10 +46,11 @@ class QuestionGenerator {
       try {
         // final List<dynamic> questions = jsonDecode(content);
         // return questions.map((q) => Map<String, dynamic>.from(q)).toList();
-         final Map<String, dynamic> quiz = jsonDecode(content);
-         final List<dynamic> questions = quiz['questions'];
-         final List<Map<String, dynamic>> result = questions.map((q) => Map<String, dynamic>.from(q)).toList();
-         result.add({'description': quiz['description']});
+        final Map<String, dynamic> quiz = jsonDecode(content);
+        final List<dynamic> questions = quiz['questions'];
+        final List<Map<String, dynamic>> result =
+            questions.map((q) => Map<String, dynamic>.from(q)).toList();
+        result.add({'description': quiz['description']});
 
         return result;
       } catch (e) {
