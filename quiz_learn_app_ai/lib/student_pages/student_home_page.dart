@@ -48,7 +48,7 @@ class StudentHomePageState extends State<StudentHomePage> {
         });
       }
     }
-    }
+  }
 
   void notificationHandler() {
     // terminated
@@ -272,7 +272,8 @@ class StudentHomePageState extends State<StudentHomePage> {
                   : const Color.fromARGB(255, 57, 73, 171),
             ),
             onPressed: () {
-              _hasNotifications = false;
+              setState(() => _hasNotifications = false);
+
               Navigator.push(
                 context,
                 MaterialPageRoute(

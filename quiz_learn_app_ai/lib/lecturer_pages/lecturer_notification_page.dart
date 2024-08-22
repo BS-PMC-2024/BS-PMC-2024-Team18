@@ -253,45 +253,238 @@ class LecturerNotificationState extends State<LecturerNotification> {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      studentMessages.isEmpty
-                          ? const SizedBox()
-                          : Text(
-                              'Student Messages',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.indigo[800],
-                              ),
-                            ),
-                      const SizedBox(height: 10),
-                      _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _buildStudentMessagesList(),
-                      const SizedBox(height: 20),
-                      adminMessages.isEmpty
-                          ? const SizedBox()
-                          : Text(
-                              'Admin Messages',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.indigo[800],
-                              ),
-                            ),
-                      _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _buildAdminMessagesList(),
-                    ],
-                  ),
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildMessages(),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMessages() {
+    return ListView(
+      children: [
+        if (studentMessages.isNotEmpty) _buildStudentMessagesCard(),
+        if (adminMessages.isNotEmpty) _buildAdminMessagesCard(),
+      ],
+    );
+  }
+
+  Widget _buildStudentMessagesCard() {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Student Messages',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo),
+            ),
+          ),
+          _buildStudentMessagesList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentMessagesList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: studentMessages.length,
+      itemBuilder: (context, index) {
+        final message = studentMessages[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: [
+              ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.indigo[100],
+                  child: Text(
+                    message.senderEmail[0].toUpperCase(),
+                    style: TextStyle(
+                        color: Colors.indigo[800], fontWeight: FontWeight.bold),
+                  ),
+                ),
+                title: Text(
+                  message.title.capitalize(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  message.getFormattedDate().toString(),
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                onTap: () {
+                  setState(() {
+                    if (expandedStudentMessages.contains(index)) {
+                      expandedStudentMessages.remove(index);
+                    } else {
+                      expandedStudentMessages.add(index);
+                    }
+                  });
+                },
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red[400]),
+                  onPressed: () {
+                    setState(() {
+                      studentMessages.removeAt(index);
+                      removeStudentNotificationFromDb(message);
+                    });
+                  },
+                ),
+              ),
+              if (expandedStudentMessages.contains(index))
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Message: ${message.body}',
+                        style: TextStyle(
+                            color: Colors.indigo[800],
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Student Email: ${message.senderEmail}',
+                        style: TextStyle(
+                            color: Colors.indigo[800],
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Type: ${message.data}',
+                        style: TextStyle(
+                            color: Colors.indigo[800],
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAdminMessagesCard() {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Admin Messages',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo),
+            ),
+          ),
+          _buildAdminMessagesList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminMessagesList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: adminMessages.length,
+      itemBuilder: (context, index) {
+        final message = adminMessages[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: [
+              ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.indigo[100],
+                  child: Text(
+                    message.adminEmail[0].toUpperCase(),
+                    style: TextStyle(
+                        color: Colors.indigo[800], fontWeight: FontWeight.bold),
+                  ),
+                ),
+                title: Text(
+                  message.subject.capitalize(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  message.getFormattedDate().toString(),
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                onTap: () {
+                  setState(() {
+                    if (expandedAdminMessages.contains(index)) {
+                      expandedAdminMessages.remove(index);
+                    } else {
+                      expandedAdminMessages.add(index);
+                    }
+                  });
+                },
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red[400]),
+                  onPressed: () {
+                    setState(() {
+                      adminMessages.removeAt(index);
+                      removeAdminNotificationFromDb(message);
+                    });
+                  },
+                ),
+              ),
+              if (expandedAdminMessages.contains(index))
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Message: ${message.message}',
+                        style: TextStyle(
+                            color: Colors.indigo[800],
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Admin Email: ${message.adminEmail}',
+                        style: TextStyle(
+                            color: Colors.indigo[800],
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -318,174 +511,6 @@ class LecturerNotificationState extends State<LecturerNotification> {
             onPressed: _loadMessages,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStudentMessagesList() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: studentMessages.length,
-        itemBuilder: (context, index) {
-          final message = studentMessages[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.indigo[100],
-                    child: Text(
-                      message.senderEmail[0].toUpperCase(),
-                      style: TextStyle(
-                          color: Colors.indigo[800],
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  title: Text(
-                    message.title.capitalize(),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    message.timestamp.toLocal().toString(),
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      if (expandedStudentMessages.contains(index)) {
-                        expandedStudentMessages.remove(index);
-                      } else {
-                        expandedStudentMessages.add(index);
-                      }
-                    });
-                  },
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red[400]),
-                    onPressed: () {
-                      setState(() {
-                        studentMessages.removeAt(index);
-                        removeStudentNotificationFromDb(message);
-                      });
-                    },
-                  ),
-                ),
-                if (studentMessages.contains(index))
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Message: ${message.body}',
-                          style: TextStyle(
-                              color: Colors.indigo[800],
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Student Email: ${message.senderEmail}',
-                          style: TextStyle(
-                              color: Colors.indigo[800],
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Quiz Name: ${message.data}',
-                          style: TextStyle(
-                              color: Colors.indigo[800],
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildAdminMessagesList() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: adminMessages.length,
-        itemBuilder: (context, index) {
-          final message = adminMessages[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.indigo[100],
-                    child: Text(
-                      message.adminEmail[0].toUpperCase(),
-                      style: TextStyle(
-                          color: Colors.indigo[800],
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  title: Text(
-                    message.subject.capitalize(),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    message.date.toLocal().toString(),
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      if (expandedAdminMessages.contains(index)) {
-                        expandedAdminMessages.remove(index);
-                      } else {
-                        expandedAdminMessages.add(index);
-                      }
-                    });
-                  },
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red[400]),
-                    onPressed: () {
-                      setState(() {
-                        adminMessages.removeAt(index);
-                        removeAdminNotificationFromDb(message);
-                      });
-                    },
-                  ),
-                ),
-                if (expandedAdminMessages.contains(index))
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Message: ${message.message}',
-                          style: TextStyle(
-                              color: Colors.indigo[800],
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Admin Email: ${message.adminEmail}',
-                          style: TextStyle(
-                              color: Colors.indigo[800],
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

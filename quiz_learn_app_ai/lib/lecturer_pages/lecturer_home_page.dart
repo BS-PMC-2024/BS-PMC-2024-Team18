@@ -2,7 +2,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
@@ -294,10 +293,12 @@ class LecturerHomePageState extends State<LecturerHomePage> {
                   : Icons.notifications_none,
               color: _hasNotifications
                   ? Colors.green
-                  : Color.fromARGB(255, 57, 73, 171),
+                  : const Color.fromARGB(255, 57, 73, 171),
             ),
             onPressed: () {
-              _hasNotifications = false;
+              setState(() {
+                _hasNotifications = false;
+              });
               Navigator.push(
                 context,
                 MaterialPageRoute(

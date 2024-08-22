@@ -6,11 +6,12 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_compliance_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_dashboard_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_issue_notifications_page.dart';
-import 'package:quiz_learn_app_ai/admin_pages/admin_quiz_reports_page.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
+import 'package:quiz_learn_app_ai/data_management/backup_and_data_managemente_service.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_settings_page.dart';
 import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
@@ -313,7 +314,10 @@ class AdminHomePageState extends State<AdminHomePage> {
                                 : const Color.fromARGB(255, 57, 73, 171),
                           ),
                           onPressed: () {
-                            _hasNotifications = false;
+                            setState(() {
+                              _hasNotifications = false;
+                            });
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -357,7 +361,7 @@ class AdminHomePageState extends State<AdminHomePage> {
         ),
         const SizedBox(height: 15),
         _buildActionCard(
-          icon: Icons.people,
+          icon: Icons.message,
           title: 'Send Push Notification',
           description: 'Send push notification to all users or special users',
           onTap: () {
@@ -365,6 +369,18 @@ class AdminHomePageState extends State<AdminHomePage> {
               context,
               MaterialPageRoute(
                   builder: (context) => const AdminSendMessages()),
+            );
+          },
+        ),
+        _buildActionCard(
+          icon: Icons.people,
+          title: 'User Management',
+          description: 'Manage users, roles, and permissions on the platform.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AdminUserManagementPage()),
             );
           },
         ),
@@ -382,15 +398,15 @@ class AdminHomePageState extends State<AdminHomePage> {
           },
         ),
         _buildActionCard(
-          icon: Icons.report,
-          title: 'Quiz reports',
+          icon: Icons.data_usage,
+          title: 'Data Management',
           description:
-              'Ensures quizs with data security and privacy regulations.',
+              'Manage data, reports, and other information on the platform.',
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const AdminQuizReportsPage()),
+                  builder: (context) => const BackUpAndDataManagement()),
             );
           },
         ),

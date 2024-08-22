@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
+import 'package:quiz_learn_app_ai/data_management/lecturer_data_management.dart';
+import 'package:quiz_learn_app_ai/data_management/quiz_data_management.dart';
 import 'package:quiz_learn_app_ai/data_management/student_data_management.dart';
 import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
@@ -17,7 +18,6 @@ class BackUpAndDataManagementState extends State<BackUpAndDataManagement> {
   final PushNotifications pushNotifications = PushNotifications();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseService _firebaseService = FirebaseService();
-  final _database = FirebaseDatabase.instance.ref();
   bool _isLoading = true;
   String? userEmail;
   String? userType;
@@ -148,13 +148,6 @@ class BackUpAndDataManagementState extends State<BackUpAndDataManagement> {
     );
   }
 
-  String _formatUserName(String? email) {
-    if (email == null || email.isEmpty) {
-      return 'Admin';
-    }
-    return email.split('@')[0];
-  }
-
   Widget _buildWelcomeSection() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -224,8 +217,7 @@ class BackUpAndDataManagementState extends State<BackUpAndDataManagement> {
         _buildActionCard(
           icon: Icons.assignment_rounded,
           title: 'Manage Lecturers data',
-          description:
-              'Manage teachers data and more.',
+          description: 'Manage lecturers data and more.',
           onTap: () {
             Navigator.push(
               context,
@@ -236,9 +228,8 @@ class BackUpAndDataManagementState extends State<BackUpAndDataManagement> {
         ),
         _buildActionCard(
           icon: Icons.quiz_rounded,
-          title: 'Manage Quizs data',
-          description:
-              'Manage quiz data and more.',  
+          title: 'Manage Quiz Data',
+          description: 'Manage quiz data and more.',
           onTap: () {
             Navigator.push(
               context,
@@ -247,7 +238,6 @@ class BackUpAndDataManagementState extends State<BackUpAndDataManagement> {
             );
           },
         ),
-        
       ],
     );
   }

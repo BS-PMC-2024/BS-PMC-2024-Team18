@@ -22,6 +22,9 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
   List<UserDataToken> _users = [];
   final _database = FirebaseDatabase.instance.ref();
   bool _isLoading = true;
+  User aUser = FirebaseAuth.instance.currentUser!;
+  UserDataToken tempUser = UserDataToken(
+      id: '999999999999', email: '', userType: '', deviceToken: '');
   final FirebaseService _firebaseService = FirebaseService();
 
   @override
@@ -44,10 +47,16 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
     setState(() {
       _isLoading = true;
     });
-
     try {
       _users = await _firebaseService.loadUsersWithTokens();
       _users = await filterUsers();
+      for (UserDataToken user in _users) {
+        if (user.id == aUser.uid) {
+          tempUser = user;
+          _users.remove(user);
+          break;
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error loading users: $e');
@@ -62,7 +71,6 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
 
   Future<void> sendNotificationAllUsers(String? deviceToken, String? body,
       String? title, String? data, BuildContext? context) async {
-    User? aUser = FirebaseAuth.instance.currentUser;
     body ?? 'this is test message for all users';
     title ?? 'Hi All Users';
     data ?? 'this is data';
@@ -70,10 +78,11 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
     DatabaseReference ref = _database.child('default');
     try {
       _users.forEach((user) async {
-        if (user.deviceToken != '') {
+        if (user.deviceToken != '' &&
+            user.deviceToken != tempUser.deviceToken) {
           PushNotifications()
               .sendPushNotifications(user.deviceToken, body, title, data, null);
-          if (user.userType == 'Student') {
+          if (user.userType == 'Student' || user.userType == 'student') {
             ref = _database
                 .child('students')
                 .child(user.id)
@@ -81,20 +90,18 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
                 .child('notificationFromAdmin')
                 .push();
             notificationId = ref.key!;
-          } else if (user.userType == 'Teacher') {
+          } else if (user.userType == 'Lecturer' ||
+              user.userType == 'lecturer') {
             ref = _database
-                .child('teachers')
+                .child('lecturers')
                 .child(user.id)
                 .child('notifications')
                 .child('notificationFromAdmin')
                 .push();
             notificationId = ref.key!;
           } else {
-            ref = _database
-                .child('issue_reports')
-                .child('message_from_admin')
-                .push();
-
+            ref =
+                _database.child('issue_reports').child('admin_reports').push();
             notificationId = ref.key!;
           }
 
@@ -102,7 +109,7 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
             'subject': title,
             'message': body,
             'date': DateTime.now().toIso8601String(),
-            'AdminEmail': aUser?.email,
+            'AdminEmail': aUser.email,
             'notificationId': notificationId,
           };
           try {
@@ -151,7 +158,7 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
       PushNotifications()
           .sendPushNotifications(deviceToken, body, title, data, null);
       ref = _database
-          .child('teachers')
+          .child('lecturers')
           .child(user.id)
           .child('notifications')
           .child('notificationFromAdmin')
@@ -160,14 +167,14 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
     } else {
       PushNotifications()
           .sendPushNotifications(deviceToken, body, title, data, null);
-      ref = _database.child('issue_reports').child('message_from_admin').push();
+      ref = _database.child('issue_reports').child('admin_reports').push();
       notificationId = ref.key!;
     }
     final message = {
       'subject': title,
       'message': body,
       'date': DateTime.now().toIso8601String(),
-      'AdminEmail': FirebaseAuth.instance.currentUser?.email,
+      'AdminEmail': aUser.email,
       'notificationId': notificationId,
     };
     try {
@@ -269,7 +276,7 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context!).pop(),
+            onPressed: () => Navigator.of(context).pop(),
           ),
           const Text(
             'Send push notifications',
@@ -345,7 +352,7 @@ class UserDataToken {
   final String id;
   final String email;
   final String userType;
-  final String deviceToken;
+  String deviceToken;
 
   UserDataToken(
       {required this.id,

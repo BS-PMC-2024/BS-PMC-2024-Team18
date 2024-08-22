@@ -1,13 +1,12 @@
 import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
+import 'package:quiz_learn_app_ai/data_management/data_backups/pdf_generator.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
-import 'package:pdf/widgets.dart' as pw;
 
 class StudentDataManagement extends StatefulWidget {
   const StudentDataManagement({super.key});
@@ -32,17 +31,13 @@ class StudentDataManagementState extends State<StudentDataManagement> {
     setState(() {
       _isLoading = true;
     });
-    List<UserDataToken> users;
+    
     try {
-      users = await _firebaseService.loadUsersWithTokens();
-      for (UserDataToken user in users) {
-        if (user.userType == 'Student') {
-          _users.add(user);
-        }
-      }
+      _users = await _firebaseService.loadUsersWithTokens();
+      _users.removeWhere((user) => user.userType.toLowerCase() == 'admin' || user.userType.toLowerCase() == 'lecturer');
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading users: $e');
+        print('Error loading student: $e');
       }
       // You might want to show a snackbar or some other error indication to the user here
     } finally {
@@ -87,71 +82,82 @@ class StudentDataManagementState extends State<StudentDataManagement> {
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
                     ),
                   ),
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _buildStudentDataTable(),
+                      : _buildStudentDataTable(context),
                 ),
               ),
             ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _CreateStudentBackUp,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _backupData,
         backgroundColor: Colors.indigo[600],
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.data_saver_on_outlined, color: Colors.white),
+        label: const Text(
+          'Save Data snapshot',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
 
-  Future<void> _CreateStudentBackUp() async {
+  Future<void> _backupData() async {
     try {
-      // Format data as a string
-      String formattedData = _formatDataAsString();
-
-      // Save as TXT
-      await _saveAsTxt(formattedData, 'backup.txt');
-
-      // Save as PDF
-      await _saveAsPdf(formattedData, 'backup.pdf');
+      final file = await PdfGenerator.generateUserDataPdf(_users);
+      saveUserDataToTextFile();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Backup saved to: ${file.path}')),
+        );
+      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error backing up data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating backup: $e')),
+        );
       }
     }
   }
 
-  String _formatDataAsString(Map<dynamic, dynamic> data) {
-    return data.entries.map((e) => '${e.key}: ${e.value}').join('\n');
-  }
-
-  Future<void> _saveAsTxt(String data, String fileName) async {
+  Future<void> saveUserDataToTextFile() async {
+    // Get the application documents directory
     final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsString(data);
-    if (kDebugMode) {
-      print('Data saved to ${file.path}');
+    // Define the path for the file
+    final path =
+        Directory('${directory.path}/lib/data_management/data_backups');
+
+    // Create the directory if it doesn't exist
+    if (!await path.exists()) {
+      await path.create(recursive: true);
     }
-  }
 
-  Future<void> _saveAsPdf(String data, String fileName) async {
-    final pdf = pw.Document();
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) => pw.Center(
-          child: pw.Text(data),
-        ),
-      ),
-    );
+    // Define the file path and name
+    final filePath =
+        '${path.path}/user_data_${DateTime.now().millisecondsSinceEpoch}.txt';
+    final file = File(filePath);
 
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(await pdf.save());
-    print('PDF saved to ${file.path}');
+    // Prepare the content for the file
+    StringBuffer content = StringBuffer();
+    content.writeln('ID, Email, User Type, Device Token');
+    for (UserDataToken user in _users) {
+      content.writeln(
+          '${user.id}, ${user.email}, ${user.userType}, ${user.deviceToken}');
+    }
+
+    // Write the content to the file
+    await file.writeAsString(content.toString());
+
+    if (kDebugMode) {
+      print('txt File saved at: $filePath');
+    }
   }
 
   Widget _buildAppBar() {
@@ -167,7 +173,7 @@ class StudentDataManagementState extends State<StudentDataManagement> {
           const Text(
             'Student Data Management',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -181,48 +187,98 @@ class StudentDataManagementState extends State<StudentDataManagement> {
     );
   }
 
-  Widget _buildStudentDataTable() {
+  Widget _buildStudentDataTable(BuildContext context) {
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            DataTable(
-              columns: const [
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Email')),
-                DataColumn(label: Text('Type')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: _users
-                  .map(
-                    (user) => DataRow(
-                      cells: [
-                        DataCell(Text(user.id)),
-                        DataCell(Text(user.email)),
-                        DataCell(Text(user.userType)),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon:
-                                    Icon(Icons.edit, color: Colors.indigo[400]),
-                                onPressed: () => _showEditUserDialog(user),
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints:
+            BoxConstraints(minWidth: MediaQuery.of(context).size.width),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Card(
+              elevation: 4,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+              child: DataTable(
+                columnSpacing: 20.0,
+                headingRowColor: WidgetStateColor.resolveWith(
+                    (states) => Colors.indigo[100]!),
+                border:
+                    TableBorder.all(borderRadius: BorderRadius.circular(10)),
+                columns: [
+                  DataColumn(
+                      label: Center(
+                          child: Text('ID',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800])))),
+                  DataColumn(
+                      label: Center(
+                          child: Text('Email',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800])))),
+                  DataColumn(
+                      label: Center(
+                          child: Text('Type',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800])))),
+                  DataColumn(
+                      label: Center(
+                          child: Text('Token ID',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800])))),
+                  DataColumn(
+                      label: Center(
+                          child: Text('Actions',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800])))),
+                ],
+                rows: _users
+                    .map(
+                      (user) => DataRow(
+                        cells: [
+                          DataCell(Text(user.id,
+                              style: TextStyle(color: Colors.indigo[300]))),
+                          DataCell(Text(user.email,
+                              style: TextStyle(color: Colors.indigo[300]))),
+                          DataCell(Text(user.userType,
+                              style: TextStyle(color: Colors.indigo[300]))),
+                          DataCell(Text(user.deviceToken != '' ? 'Yes' : 'No',
+                              style: TextStyle(color: Colors.indigo[300]))),
+                          DataCell(
+                            Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.edit,
+                                        color: Colors.indigo[400]),
+                                    onPressed: () => _showEditUserDialog(user),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete,
+                                        color: Colors.red[400]),
+                                    onPressed: () =>
+                                        _showDeleteConfirmation(user),
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon:
-                                    Icon(Icons.delete, color: Colors.red[400]),
-                                onPressed: () => _showDeleteConfirmation(user),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(),
+                        ],
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -244,7 +300,7 @@ class StudentDataManagementState extends State<StudentDataManagement> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Edit User'),
+          title: const Text('Edit student'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -291,11 +347,11 @@ class StudentDataManagementState extends State<StudentDataManagement> {
                   _loadStudents();
                 } catch (e) {
                   if (kDebugMode) {
-                    print('Error updating user: $e');
+                    print('Error updating student: $e');
                   }
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error updating user: $e')),
+                      SnackBar(content: Text('Error updating student: $e')),
                     );
                   }
                 }
@@ -312,7 +368,7 @@ class StudentDataManagementState extends State<StudentDataManagement> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete User'),
+          title: const Text('Delete student'),
           content: Text('Are you sure you want to delete ${user.email}?'),
           actions: [
             TextButton(
@@ -344,18 +400,18 @@ class StudentDataManagementState extends State<StudentDataManagement> {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content: Text('User deleted successfully')),
+                          content: Text('student deleted successfully')),
                     );
                   }
 
                   _loadStudents();
                 } catch (e) {
                   if (kDebugMode) {
-                    print('Error deleting user: $e');
+                    print('Error deleting student: $e');
                   }
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error deleting user: $e')),
+                      SnackBar(content: Text('Error deleting student: $e')),
                     );
                   }
                 }
