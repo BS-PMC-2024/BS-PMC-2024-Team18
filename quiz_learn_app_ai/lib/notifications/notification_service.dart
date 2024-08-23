@@ -12,7 +12,6 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:quiz_learn_app_ai/auth/realsecrets.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 class PushNotifications {

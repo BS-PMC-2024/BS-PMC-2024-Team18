@@ -3,7 +3,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
-import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 class SendToSpecificUser extends StatefulWidget {
@@ -17,7 +16,6 @@ class SendToSpecificUserState extends State<SendToSpecificUser> {
   final _formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
   final _database = FirebaseDatabase.instance.ref();
-  final FirebaseService _firebaseService = FirebaseService();
   final TextEditingController _bodyMessageController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
   late UserDataToken user;
