@@ -63,6 +63,15 @@ dependencies:
   open_file: ^3.3.2
   share_plus: ^7.0.0
   permission_handler: ^11.3.1
+  firebase_messaging: ^15.0.4
+  flutter_local_notifications: ^17.2.2
+  shared_preferences: ^2.3.2
+  googleapis: ^13.1.0
+  googleapis_auth: ^1.5.1
+  timezone: ^0.9.4
+  flutter_app_info: ^1.1.2
+  provider: ^6.1.2
+  pdf: ^3.11.1
 
  
 flutter_launcher_icons:
@@ -95,6 +104,8 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+  firebase_database_platform_interface: any
+  test: ^1.25.7
 flutter:
 
   # The following line ensures that the Material Icons font is

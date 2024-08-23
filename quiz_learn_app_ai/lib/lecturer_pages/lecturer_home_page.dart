@@ -1,6 +1,8 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_issue_notifications_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
@@ -8,6 +10,7 @@ import 'package:quiz_learn_app_ai/lecturer_pages/create_question_ai.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_profile_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/lecturer_quiz_statistics_page.dart';
 import 'package:quiz_learn_app_ai/lecturer_pages/my_quizzes_page.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
 import 'package:quiz_learn_app_ai/services/file_search_page.dart';
 import 'package:quiz_learn_app_ai/services/file_upload_page.dart';
@@ -28,10 +31,74 @@ class LecturerHomePageState extends State<LecturerHomePage> {
     final Auth auth = Auth(auth: FirebaseAuth.instance);
     bool _isLoading = true;
    final FirebaseService _firebaseService = FirebaseService();
+   bool _hasNotifications = false;
+  final PushNotifications pushNotifications = PushNotifications();
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    notificationHandler();
+  }
+
+  
+
+   Future _firebaseBackgroundMessage(RemoteMessage message) async {
+    if (message.notification != null) {
+      if (kDebugMode) {
+        print("Some notification Received in background...");
+        setState(() {
+          _hasNotifications = true;
+        });
+      }
+    }
+  }
+
+  void notificationHandler() {
+    // terminated
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) async {
+      if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
+        if (kDebugMode) {
+          print("Launched from terminated state");
+        }
+        Future.delayed(const Duration(seconds: 1), () {});
+      }
+    });
+    // foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
+      if (message != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
+        if (kDebugMode) {
+          print(message.notification!.title);
+        }
+        if (kDebugMode) {
+          print("Got a message in foreground");
+        }
+        if (message.notification != null) {
+          PushNotifications().showSimpleNotification(message);
+        }
+      }
+    });
+    // background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
+      if (message?.notification != null) {
+        setState(() {
+          _hasNotifications = true;
+        });
+        if (kDebugMode) {
+          print("Background Notification Tapped");
+        }
+      }
+    });
+
+    // Listen to background notifications
+    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
   }
 
 Future<void> _loadUserData() async {
@@ -43,6 +110,8 @@ Future<void> _loadUserData() async {
           userType = userData['userType'];
           _isLoading = false;
         });
+        await pushNotifications.requestPermission();
+        await pushNotifications.generateDeviceToken();
       }
     } catch (e) {
       if (kDebugMode) {
@@ -207,6 +276,28 @@ String _formatUserName(String? email) {
           Text(
             userType ?? '',
             style: const TextStyle(fontSize: 18, color: Color(0xFF3949AB)),
+          ),
+          IconButton(
+            icon: Icon(
+              _hasNotifications
+                  ? Icons.notifications
+                  : Icons.notifications_none,
+              color: _hasNotifications
+                  ? Colors.green
+                  : const Color.fromARGB(255, 57, 73, 171),
+            ),
+            onPressed: () {
+              setState(() {
+                _hasNotifications = false;
+              });
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminIssueNotificationReport(),
+                ),
+              );
+            },
           ),
         ],
       ),
