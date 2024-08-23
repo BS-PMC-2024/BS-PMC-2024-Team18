@@ -26,14 +26,15 @@ package.json
 /functions/
 
 # Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+/doc/api/
+/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
+/node_modules/
 /node_modules/
 /lib/auth/realsecrets.dart 
 # Symbolication related
@@ -46,5 +47,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/gradle.properties
+/android/gradle/gradle-wrapper.properties
+
 /android/gradle.properties
 /android/gradle/gradle-wrapper.properties

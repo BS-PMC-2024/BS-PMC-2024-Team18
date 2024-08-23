@@ -40,16 +40,22 @@ class AdminSettingsPageState extends State<AdminSettingsPage> {
   Future<void> _updateSetting(String key, dynamic value) async {
     try {
       await _firebaseService.updateAdminSetting(key, value);
-      ScaffoldMessenger.of(context).showSnackBar(
+      if(mounted){
+         ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Setting updated successfully')),
       );
+      }
+    
     } catch (e) {
       if (kDebugMode) {
         print('Error updating setting: $e');
       }
-      ScaffoldMessenger.of(context).showSnackBar(
+       if(mounted){
+         ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update setting')),
       );
+       }
+     
     }
   }
 

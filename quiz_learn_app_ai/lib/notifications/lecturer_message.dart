@@ -31,7 +31,6 @@ class LecturerMessage {
       originalDate.day,
       originalDate.hour,
       originalDate.minute,
-      
     );
 
     return LecturerMessage(
