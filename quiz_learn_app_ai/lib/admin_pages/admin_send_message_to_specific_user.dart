@@ -6,42 +6,26 @@ import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
-class ReportIssue extends StatefulWidget {
-  const ReportIssue({super.key});
+class SendToSpecificUser extends StatefulWidget {
+  final UserDataToken user;
+  const SendToSpecificUser({super.key, required this.user});
   @override
-  ReportIssueState createState() => ReportIssueState();
+  SendToSpecificUserState createState() => SendToSpecificUserState();
 }
 
-class ReportIssueState extends State<ReportIssue> {
+class SendToSpecificUserState extends State<SendToSpecificUser> {
   final _formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
   final _database = FirebaseDatabase.instance.ref();
-  final List<UserDataToken> _admins = [];
   final FirebaseService _firebaseService = FirebaseService();
   final TextEditingController _bodyMessageController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
+  late UserDataToken user;
 
   @override
   void initState() {
     super.initState();
-    _loadAdmins();
-  }
-
-  Future<void> _loadAdmins() async {
-    List<UserDataToken> users = [];
-    try {
-      users = await _firebaseService.loadUsersWithTokens();
-      for (UserDataToken user in users) {
-        if (user.userType == 'Admin' && user.deviceToken != '') {
-          _admins.add(user);
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading users: $e');
-      }
-      // You might want to show a snackbar or some other error indication to the user here
-    } finally {}
+    user = widget.user;
   }
 
   @override
@@ -103,13 +87,23 @@ class ReportIssueState extends State<ReportIssue> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          const Text(
-            'Report Issue',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          Column(
+            children: [
+              const Text(
+                'Send notification to ',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(user.email,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  )),
+            ],
           ),
         ],
       ),
@@ -129,20 +123,19 @@ class ReportIssueState extends State<ReportIssue> {
               label: 'Report Subject',
               icon: Icons.subject_rounded,
               validator: (value) =>
-                  value!.isEmpty ? 'Please enter Subject of problem' : null,
+                  value!.isEmpty ? 'Please enter Subject ' : null,
             ),
             const SizedBox(height: 16),
             _buildInputField(
               controller: _bodyMessageController,
               label: 'Report Body',
               icon: Icons.report_rounded,
-              validator: (value) =>
-                  value!.isEmpty ? 'Please enter body of problem' : null,
+              validator: (value) => value!.isEmpty ? 'Please enter body' : null,
               maxLines: 5,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => sendReportToAdmins(context),
+              onPressed: () => sendNotificationSpecificUsers(user, context),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue[800],
@@ -151,7 +144,7 @@ class ReportIssueState extends State<ReportIssue> {
                     borderRadius: BorderRadius.circular(30)),
                 minimumSize: const Size(double.infinity, 50),
               ),
-              child: const Text('Send Report', style: TextStyle(fontSize: 18)),
+              child: const Text('Send Message', style: TextStyle(fontSize: 18)),
             ),
           ],
         ),
@@ -187,53 +180,63 @@ class ReportIssueState extends State<ReportIssue> {
     );
   }
 
-  Future sendReportToAdmins(BuildContext? context) async {
-    final User? user = _auth.currentUser;
-    String? subject = _subjectController.text;
-    String data = _bodyMessageController.text;
-    String title = 'Issue Report';
-    List<String> adminsEmails = [];
-    for (var admin in _admins) {
-      adminsEmails.add(admin.email);
+  Future<void> sendNotificationSpecificUsers(
+      UserDataToken user, BuildContext? context) async {
+    final aUser = _auth.currentUser;
+    String? body = _bodyMessageController.text;
+    String? title = _subjectController.text;
+    String data = 'this is data';
+    String notificationId = '';
+    DatabaseReference ref = _database.child('default');
+
+    if (user.userType == 'Student') {
+      PushNotifications()
+          .sendPushNotifications(user.deviceToken, body, title, data, null);
+      ref = _database
+          .child('students')
+          .child(user.id)
+          .child('notifications')
+          .child('notificationFromAdmin')
+          .push();
+      notificationId = ref.key!;
+    } else if (user.userType == 'Teacher') {
+      PushNotifications()
+          .sendPushNotifications(user.deviceToken, body, title, data, null);
+      ref = _database
+          .child('lecturers')
+          .child(user.id)
+          .child('notifications')
+          .child('notificationFromAdmin')
+          .push();
+      notificationId = ref.key!;
+    } else {
+      PushNotifications()
+          .sendPushNotifications(user.deviceToken, body, title, data, null);
+      ref = _database.child('issue_reports').child('admin_reports').push();
+      notificationId = ref.key!;
     }
-
-    _admins.forEach((admin) async {
-      try {
-        PushNotifications().sendPushNotifications(
-            admin.deviceToken, subject, title, data, context);
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error sending message: $e');
-        }
-      }
-    });
-    if (kDebugMode) {
-      print('Report sent to admins: $subject - $data');
-    }
-
-    final DatabaseReference ref =
-        _database.child('issue_reports').child('general_reports').push();
-    final String notificationId = ref.key!;
-
-    //save report to database
-    final issueReport = {
-      'title': title,
-      'subject': subject,
-      'data': data,
+    final message = {
+      'subject': title,
+      'message': body,
       'date': DateTime.now().toIso8601String(),
-      'sender': user!.uid,
-      'senderEmail': user.email,
-      'InformedAdmins': adminsEmails,
+      'AdminEmail': aUser!.email,
       'notificationId': notificationId,
     };
     try {
-      await ref.set(issueReport);
+      await ref.set(message);
+      if (mounted) {
+        ScaffoldMessenger.of(context!).showSnackBar(
+          SnackBar(
+              content:
+                  Text('message sent successfully to user: ${user.email}')),
+        );
+      }
       if (kDebugMode) {
-        print('Report sent with ID: $notificationId');
+        print('Notification sent with ID: $notificationId');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error saving report to database: $e');
+        print('Error saving notification to database: $e');
       }
     }
   }

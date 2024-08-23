@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -17,7 +15,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<String>? wrongAnswers;
   final List<Map<dynamic, dynamic>>? allQuestions;
   final Timer? timer;
-  
+  final bool showBackButton;
 
   const CustomAppBar({
     super.key,
@@ -31,72 +29,82 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.wrongAnswers,
     this.allQuestions,
     this.timer,
+    this.showBackButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    
-    return SafeArea(child: Padding(
-      padding:  EdgeInsets.symmetric(
-        horizontal: mobileScreenPadding,
-        vertical: mobileScreenPadding,
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(child: titleWidget == null ? Center(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 50,
+          vertical: 30,
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: titleWidget == null
+                  ? Center(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: titleWidget,
+                    ),
             ),
-          ): Center(
-            child: titleWidget,
-          ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              leading ?? Transform.translate(offset: const Offset(-14, 0),
-              child: const BackButton(color: Colors.white,),
-              ),
-              if(showActionIcon) Transform.translate(
-                offset: const Offset(10, 0),
-                child: IconButton(
-                  icon: const Icon(Icons.menu),
-                  color: Colors.white,
-                  onPressed: onMenuActionTap??(){
-                    
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TestOverviewScreen( //problem 
-                          
-                        allQuestions: const [],
-                        rightAnswers:const [],
-                        wrongAnswers: const [],
-                        timer: timer,
-                        timeRemaining: time,
-                        quizData: const {},
-                        titleText: "",
-                      )),
-                    );
-                  },
-                ),
-              ),
-            ],
-          )
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                leading ??
+                    Transform.translate(
+                      offset: const Offset(-14, 0),
+                      child: showBackButton
+                          ? const BackButton(
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                if (showActionIcon)
+                  Transform.translate(
+                    offset: const Offset(10, 0),
+                    child: IconButton(
+                      icon: const Icon(Icons.menu),
+                      color: Colors.white,
+                      onPressed: onMenuActionTap ??
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => TestOverviewScreen(
+                                        //problem
+
+                                        allQuestions: const [],
+                                        rightAnswers: const [],
+                                        wrongAnswers: const [],
+                                        timer: timer,
+                                        timeRemaining: time,
+                                        quizData: const {},
+                                        titleText: "",
+                                      )),
+                            );
+                          },
+                    ),
+                  ),
+              ],
+            )
+          ],
+        ),
       ),
-    ),
     );
   }
-  
+
   @override
-  Size get preferredSize => const Size(
-    double.maxFinite,
-    90
-  );
+  Size get preferredSize => const Size(double.maxFinite, 90);
 }

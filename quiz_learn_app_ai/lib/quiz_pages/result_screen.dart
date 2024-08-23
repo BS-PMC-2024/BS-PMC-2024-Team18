@@ -109,6 +109,11 @@ class ResultScreenState extends State<ResultScreen> {
         data,
         context,
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Message sent to lecturer')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -118,25 +123,25 @@ class ResultScreenState extends State<ResultScreen> {
         );
       }
     }
-    
-      final DatabaseReference ref = _database
-          .child('lecturers')
-          .child(quizData?['lecturerId'])
-          .child('notifications')
-          .child('notificationFromStudent')
-          .push();
-      final String notificationId = ref.key!;
-      final message = {
-        'title': title,
-        'body': body,
-        'data': data,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-        'senderId': user?.uid,
-        'senderEmail': user?.email,
-        'notificationId': notificationId,
-      };
-      try {
-        await ref.set(message);
+
+    final DatabaseReference ref = _database
+        .child('lecturers')
+        .child(quizData?['lecturerId'])
+        .child('notifications')
+        .child('notificationFromStudent')
+        .push();
+    final String notificationId = ref.key!;
+    final message = {
+      'title': title,
+      'body': body,
+      'data': data,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'senderId': user?.uid,
+      'senderEmail': user?.email,
+      'notificationId': notificationId,
+    };
+    try {
+      await ref.set(message);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +157,29 @@ class ResultScreenState extends State<ResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BackgroundDecoration(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFf2b39b),
+              Color(0xFFf19b86),
+              Color(0xFFf3a292),
+              Color(0xFFf8c18e),
+              Color(0xFFfcd797),
+              Color(0xFFcdd7a7),
+              Color(0xFF8fb8aa),
+              Color(0xFF73adbb),
+              Color(0xFFcc7699),
+              Color(0xFF84d9db),
+              Color(0xFF85a8cf),
+              Color(0xFF8487ac),
+              Color(0xFFb7879c),
+              Color(0xFF86cfd6),
+            ],
+          ),
+        ),
         child: SafeArea(
           child: Column(
             children: [
@@ -218,7 +245,7 @@ class ResultScreenState extends State<ResultScreen> {
         const Text(
           "Congratulations!",
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -227,7 +254,7 @@ class ResultScreenState extends State<ResultScreen> {
         Text(
           "You have $points points",
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 18,
           ),
         ),
@@ -266,7 +293,7 @@ class ResultScreenState extends State<ResultScreen> {
             title: Text(
               'Question ${index + 1}: ${_allQuestions![index]['question']}',
               style: const TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
             ),
