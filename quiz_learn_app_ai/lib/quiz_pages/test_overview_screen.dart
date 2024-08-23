@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/configs/ui_parameters.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/result_screen.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/content_area.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/countdown_timer.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/custom_app_bar.dart';
@@ -51,8 +50,31 @@ class TestOverviewScreen extends StatelessWidget {
       appBar: CustomAppBar(
         title: titleText ?? 'Test Overview',
         time: '',
+        showBackButton: false,
       ),
-      body: BackgroundDecoration(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFf2b39b),
+              Color(0xFFf19b86),
+              Color(0xFFf3a292),
+              Color(0xFFf8c18e),
+              Color(0xFFfcd797),
+              Color(0xFFcdd7a7),
+              Color(0xFF8fb8aa),
+              Color(0xFF73adbb),
+              Color(0xFFcc7699),
+              Color(0xFF84d9db),
+              Color(0xFF85a8cf),
+              Color(0xFF8487ac),
+              Color(0xFFb7879c),
+              Color(0xFF86cfd6),
+            ],
+          ),
+        ),
         child: Column(
           children: [
             Expanded(

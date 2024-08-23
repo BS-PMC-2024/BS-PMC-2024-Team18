@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class MainButton extends StatelessWidget {
   const MainButton({
     super.key,
@@ -26,7 +27,7 @@ class MainButton extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: color ?? Colors.white,
+              color: color ?? Colors.white.withOpacity(0.3),
             ),
             width: double.maxFinite,
             child: Padding(

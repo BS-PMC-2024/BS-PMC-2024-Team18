@@ -33,6 +33,7 @@ class IssueReportNotifications {
       originalDate.day,
       originalDate.hour,
       originalDate.minute,
+      
     );
 
     return IssueReportNotifications(
@@ -55,10 +56,9 @@ class IssueReportNotifications {
       senderEmail: (map['senderEmail'] as String?)?.isNotEmpty == true
           ? map['senderEmail'] as String
           : 'default@example.com',
-      informedAdmins:
-          map['InformedAdmins'] != null && map['InformedAdmins'] is List
-              ? List<String>.from(map['InformedAdmins'] as List)
-              : <String>[], // Default to an empty list if null
+      informedAdmins: map['InformedAdmins'] != null && map['InformedAdmins'] is List
+          ? List<String>.from(map['InformedAdmins'] as List)
+          : <String>[], // Default to an empty list if null
     );
   }
   String getFormattedDate() {

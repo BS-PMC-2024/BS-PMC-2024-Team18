@@ -4,9 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:quiz_learn_app_ai/quiz_pages/configs/ui_parameters.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/test_overwiew_screen.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/test_overview_screen.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/answer_card.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/content_area.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/countdown_timer.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/custom_app_bar.dart';
@@ -113,6 +112,7 @@ class QuestionScreenState extends State<QuestionScreen> {
                 'questions': questions, // Use modified questions
                 'questionCount': questions.length,
                 'lecturer': lecturerData['name'] ?? 'Unknown Lecturer',
+                'lecturerId': lecturerId,
               });
             });
           }
@@ -172,136 +172,168 @@ class QuestionScreenState extends State<QuestionScreen> {
           ),
         ),
       ),
-      body: BackgroundDecoration(
-        child: Center(
-          child: Column(
-            children: [
-              if (_isLoading)
-                const Expanded(
-                  child: ContentArea(
-                    child: QuestionScreenHolder(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFf2b39b),
+              Color(0xFFf19b86),
+              Color(0xFFf3a292),
+              Color(0xFFf8c18e),
+              Color(0xFFfcd797),
+              Color(0xFFcdd7a7),
+              Color(0xFF8fb8aa),
+              Color(0xFF73adbb),
+              Color(0xFFcc7699),
+              Color(0xFF84d9db),
+              Color(0xFF85a8cf),
+              Color(0xFF8487ac),
+              Color(0xFFb7879c),
+              Color(0xFF86cfd6),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Column(
+              children: [
+                if (_isLoading)
+                  const Expanded(
+                    child: ContentArea(
+                      child: QuestionScreenHolder(),
+                    ),
                   ),
-                ),
-              if (!_isLoading)
-                Expanded(
-                  child: ContentArea(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Card(
-                            elevation: 5,
-                            color: Colors.amber[100],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Center(
-                                child: Text(
-                                  _questions[_currentQuestionIndex]['question']
-                                      .toString(),
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
+                if (!_isLoading)
+                  Expanded(
+                    child: ContentArea(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(
+                          top: 25,
+                          left: 16,
+                          right: 16,
+                          bottom: 16,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Card(
+                              elevation: 5,
+                              color: Colors.indigo[150],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(15.0),
+                                child: Center(
+                                  child: Text(
+                                    _questions[_currentQuestionIndex]
+                                            ['question']
+                                        .toString(),
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.indigo[900],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            padding: const EdgeInsets.only(top: 25),
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (BuildContext context, int index) {
-                              final answer = _currentQuestion['options'][index];
+                            ListView.separated(
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.only(top: 25),
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (BuildContext context, int index) {
+                                final answer =
+                                    _currentQuestion['options'][index];
 
-                              return AnswerCard(
-                                  answer: answer,
-                                  onTap: () {
-                                    selectedAnswer(answer);
-                                  },
-                                  isSelected: _selectedAnswer == answer);
-                            },
-                            separatorBuilder:
-                                (BuildContext context, int index) {
-                              return const SizedBox(height: 10);
-                            },
-                            itemCount: _questions[_currentQuestionIndex]
-                                    ['options']
-                                .length,
-                          ),
-                        ],
+                                return AnswerCard(
+                                    answer: answer,
+                                    onTap: () {
+                                      selectedAnswer(answer);
+                                    },
+                                    isSelected: _selectedAnswer == answer);
+                              },
+                              separatorBuilder:
+                                  (BuildContext context, int index) {
+                                return const SizedBox(height: 20);
+                              },
+                              itemCount: _questions[_currentQuestionIndex]
+                                      ['options']
+                                  .length,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ColoredBox(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: UiParameters.mobileScreenPadding,
-                  child: Row(
-                    children: [
-                      Visibility(
-                        visible: isFirstQuestion,
-                        child: SizedBox(
-                          width: 55,
-                          height: 55,
-                          child: MainButton(
-                            onTap: previousQuestion,
-                            child: Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Theme.of(context).primaryColor,
+                ColoredBox(
+                  color: Colors.white.withOpacity(0.2),
+                  child: Padding(
+                    padding: UiParameters.mobileScreenPadding,
+                    child: Row(
+                      children: [
+                        Visibility(
+                          visible: isFirstQuestion,
+                          child: SizedBox(
+                            width: 55,
+                            height: 55,
+                            child: MainButton(
+                              onTap: previousQuestion,
+                              child: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Colors.indigo[900],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Visibility(
-                            visible: !_isCompleted,
-                            child: MainButton(
-                              onTap: isLastQuestion
-                                  ? () {
-                                      if (_selectedAnswer.isEmpty) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Please select an answer before proceeding.'),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Visibility(
+                              visible: !_isCompleted,
+                              child: MainButton(
+                                onTap: isLastQuestion
+                                    ? () {
+                                        if (_selectedAnswer.isEmpty) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Please select an answer before proceeding.'),
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        submitTest();
+                                        _timer?.cancel();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                TestOverviewScreen(
+                                              titleText: completedTest,
+                                              timeRemaining: time,
+                                              rightAnswers: _rightAnswers,
+                                              wrongAnswers: _wrongAnswers,
+                                              allQuestions: _questions,
+                                              quizData: _quizData,
+                                            ),
                                           ),
                                         );
-                                        return;
                                       }
-                                      submitTest();
-                                      _timer?.cancel();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              TestOverviewScreen(
-                                            titleText: completedTest,
-                                            timeRemaining: time,
-                                            rightAnswers: _rightAnswers,
-                                            wrongAnswers: _wrongAnswers,
-                                            allQuestions: _questions,
-                                            quizData: _quizData,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  : nextQuestion,
-                              title: isLastQuestion
-                                  ? 'Submit Quiz'
-                                  : 'Next Question',
-                            )),
-                      )
-                    ],
+                                    : nextQuestion,
+                                title: isLastQuestion
+                                    ? 'Submit Quiz'
+                                    : 'Next Question',
+                              )),
+                        )
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

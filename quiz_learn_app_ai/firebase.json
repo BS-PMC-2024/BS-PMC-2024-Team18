@@ -1,0 +1,35 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "quizlearnappai",
+          "appId": "1:876598819894:android:96a70209fc5fb90fd3ac97",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "quizlearnappai",
+          "configurations": {
+            "android": "1:876598819894:android:96a70209fc5fb90fd3ac97",
+            "ios": "1:876598819894:ios:ae6cdcad883dda07d3ac97"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

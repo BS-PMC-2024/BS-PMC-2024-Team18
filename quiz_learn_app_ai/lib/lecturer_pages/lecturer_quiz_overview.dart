@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart';
-import 'package:quiz_learn_app_ai/lecturer_pages/submited_quiz_details.dart';
+import 'package:quiz_learn_app_ai/lecturer_pages/submitted_quiz_details.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
 //import '../admin_pages/admin_user_management_page.dart';
@@ -34,7 +34,7 @@ class LecturerQuizOverviewState extends State<LecturerQuizOverview> {
     });
 
     try {
-      _students = await _firebaseService.loadPerfomedQuizUsers(widget.quizId);
+      _students = await _firebaseService.loadPerformedQuizUsers(widget.quizId);
     } catch (e) {
       if (kDebugMode) {
         print('Error loading users data: $e');
@@ -139,7 +139,7 @@ Color(0xFF86cfd6), // Lighter #23b7c1
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: () => _navigateToSubmitedQuizDetails(student),
+        onTap: () => _navigateToSubmittedQuizDetails(student),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -179,7 +179,7 @@ Color(0xFF86cfd6), // Lighter #23b7c1
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
-                  onPressed: () => _navigateToSubmitedQuizDetails(student),
+                  onPressed: () => _navigateToSubmittedQuizDetails(student),
                   icon: const Icon(Icons.draw_rounded),
                   label: const Text('Write Feedback'),
                   style: ElevatedButton.styleFrom(
@@ -265,11 +265,11 @@ Color(0xFF86cfd6), // Lighter #23b7c1
     );
   }
 
-  void _navigateToSubmitedQuizDetails(Map<String, dynamic> student) {
+  void _navigateToSubmittedQuizDetails(Map<String, dynamic> student) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SubmitedQuizDetail(
+        builder: (context) => SubmittedQuizDetail(
           student: student,
         ),
       ),

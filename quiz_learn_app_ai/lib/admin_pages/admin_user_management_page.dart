@@ -29,49 +29,50 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
     _loadUsers();
   }
 
- Future<void> _loadUsers() async {
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    _users = await _firebaseService.loadUsers();
-  } catch (e) {
-    if (kDebugMode) {
-      print('Error loading users: $e');
-    }
-    // You might want to show a snackbar or some other error indication to the user here
-  } finally {
+  Future<void> _loadUsers() async {
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
+
+    try {
+      _users = await _firebaseService.loadUsers();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading users: $e');
+      }
+      // You might want to show a snackbar or some other error indication to the user here
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFeb8671), // #eb8671
-          Color(0xFFea7059), // #ea7059
-          Color(0xFFef7d5d), // #ef7d5d
-          Color(0xFFf8a567), // #f8a567
-          Color(0xFFfecc63), // #fecc63
-          Color(0xFFa7c484), // #a7c484
-          Color.fromARGB(255, 175, 223, 210), // #5b9f8d
-          Color(0xFF257b8c), // #257b8c
-          Color(0xFFad3d75), // #ad3d75
-          Color(0xFF1fd1d5), // #1fd1d5
-          Color(0xFF2e7cbc), // #2e7cbc
-          Color(0xFF3d5488), // #3d5488
-          Color(0xFF99497f), // #99497f
-          Color(0xFF23b7c1), // #23b7c1
-        ],
-      ),
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFeb8671), // #eb8671
+              Color(0xFFea7059), // #ea7059
+              Color(0xFFef7d5d), // #ef7d5d
+              Color(0xFFf8a567), // #f8a567
+              Color(0xFFfecc63), // #fecc63
+              Color(0xFFa7c484), // #a7c484
+              Color.fromARGB(255, 175, 223, 210), // #5b9f8d
+              Color(0xFF257b8c), // #257b8c
+              Color(0xFFad3d75), // #ad3d75
+              Color(0xFF1fd1d5), // #1fd1d5
+              Color(0xFF2e7cbc), // #2e7cbc
+              Color(0xFF3d5488), // #3d5488
+              Color(0xFF99497f), // #99497f
+              Color(0xFF23b7c1), // #23b7c1
+            ],
+          ),
         ),
         child: SafeArea(
           child: Column(
@@ -138,14 +139,17 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             leading: CircleAvatar(
               backgroundColor: Colors.indigo[100],
               child: Text(
                 user.email[0].toUpperCase(),
-                style: TextStyle(color: Colors.indigo[800], fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.indigo[800], fontWeight: FontWeight.bold),
               ),
             ),
             title: Text(
@@ -213,12 +217,12 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
                     selectedUserType = newValue!;
                   },
                   items: validUserTypes
-                    .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value.capitalize()),
-                      );
-                    }).toList(),
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value.capitalize()),
+                    );
+                  }).toList(),
                   decoration: const InputDecoration(
                     labelText: 'User Type',
                     prefixIcon: Icon(Icons.person),
@@ -248,141 +252,143 @@ class AdminUserManagementPageState extends State<AdminUserManagementPage> {
   }
 
   void _showEditUserDialog(UserData user) {
-  final emailController = TextEditingController(text: user.email);
-  
-  // Define the list of valid user types
-  final List<String> validUserTypes = ['student', 'lecturer', 'admin'];
-  
-  // Ensure the user's type is one of the valid types, defaulting to 'student' if not
-  String selectedUserType = validUserTypes.contains(user.userType.toLowerCase()) 
-      ? user.userType.toLowerCase() 
-      : 'student';
+    final emailController = TextEditingController(text: user.email);
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Edit User'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                enabled: false, // Email can't be changed easily in Firebase Auth
-              ),
-              DropdownButtonFormField<String>(
-                value: selectedUserType,
-                onChanged: (String? newValue) {
-                  selectedUserType = newValue!;
-                },
-                items: validUserTypes
-                  .map<DropdownMenuItem<String>>((String value) {
+    // Define the list of valid user types
+    final List<String> validUserTypes = ['student', 'lecturer', 'admin'];
+
+    // Ensure the user's type is one of the valid types, defaulting to 'student' if not
+    String selectedUserType =
+        validUserTypes.contains(user.userType.toLowerCase())
+            ? user.userType.toLowerCase()
+            : 'student';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit User'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  enabled:
+                      false, // Email can't be changed easily in Firebase Auth
+                ),
+                DropdownButtonFormField<String>(
+                  value: selectedUserType,
+                  onChanged: (String? newValue) {
+                    selectedUserType = newValue!;
+                  },
+                  items: validUserTypes
+                      .map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value.capitalize()),
                     );
                   }).toList(),
-                decoration: const InputDecoration(labelText: 'User Type'),
-              ),
-            ],
+                  decoration: const InputDecoration(labelText: 'User Type'),
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text('Save'),
-            onPressed: () async {
-              try {
-                await _database.child('users').child(user.id).update({
-                  'userType': selectedUserType,
-                });
-                if(context.mounted) {
-                  Navigator.of(context).pop();
-                }
-            
-                _loadUsers();
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Error updating user: $e');
-                }
-                if(context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error updating user: $e')),
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                try {
+                  await _database.child('users').child(user.id).update({
+                    'userType': selectedUserType,
+                  });
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
 
-
-void _showDeleteConfirmation(UserData user) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Delete User'),
-        content: Text('Are you sure you want to delete ${user.email}?'),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text('Delete'),
-            onPressed: () async {
-              try {
-                // Delete from Realtime Database
-                await _database.child('users').child(user.id).remove();
-                
-                // Delete from Firebase Authentication
-                // Note: This requires the user to have recently signed in
-                User? currentUser = _auth.currentUser;
-                if (currentUser != null && currentUser.uid == user.id) {
-                  await currentUser.delete();
-                } else {
-                  // If we're not deleting the current user, we can't delete from Auth
-                  // You would typically handle this through a server-side function
+                  _loadUsers();
+                } catch (e) {
                   if (kDebugMode) {
-                    print('Cannot delete user from Auth: not the current user');
+                    print('Error updating user: $e');
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error updating user: $e')),
+                    );
                   }
                 }
-                
-                if(context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User deleted successfully')),
-                  );
-                }
-               
-                _loadUsers();
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Error deleting user: $e');
-                }
-                if(context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error deleting user: $e')),
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  void _showDeleteConfirmation(UserData user) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete User'),
+          content: Text('Are you sure you want to delete ${user.email}?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () async {
+                try {
+                  // Delete from Realtime Database
+                  await _database.child('users').child(user.id).remove();
+
+                  // Delete from Firebase Authentication
+                  // Note: This requires the user to have recently signed in
+                  User? currentUser = _auth.currentUser;
+                  if (currentUser != null && currentUser.uid == user.id) {
+                    await currentUser.delete();
+                  } else {
+                    // If we're not deleting the current user, we can't delete from Auth
+                    // You would typically handle this through a server-side function
+                    if (kDebugMode) {
+                      print(
+                          'Cannot delete user from Auth: not the current user');
+                    }
+                  }
+
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('User deleted successfully')),
+                    );
+                  }
+
+                  _loadUsers();
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('Error deleting user: $e');
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error deleting user: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class UserData {

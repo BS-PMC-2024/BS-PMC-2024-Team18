@@ -35,6 +35,7 @@ package.json
 .pub/
 /build/
 /node_modules/
+/node_modules/
 /lib/auth/realsecrets.dart 
 # Symbolication related
 app.*.symbols
@@ -46,5 +47,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/gradle.properties
+/android/gradle/gradle-wrapper.properties
+
 /android/gradle.properties
 /android/gradle/gradle-wrapper.properties

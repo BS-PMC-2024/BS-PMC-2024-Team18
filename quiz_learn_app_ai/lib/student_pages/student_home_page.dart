@@ -2,18 +2,18 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quiz_learn_app_ai/admin_pages/admin_issue_notifications_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
-import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
 import 'package:quiz_learn_app_ai/services/file_search_global_page.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
+import 'package:quiz_learn_app_ai/notifications/report_issue_to_admin.dart';
 import 'package:quiz_learn_app_ai/student_pages/completed_quizzes_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
+import 'package:quiz_learn_app_ai/student_pages/student_notifications_page.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_profile_page.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-//test
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
@@ -26,10 +26,9 @@ class StudentHomePage extends StatefulWidget {
 
 class StudentHomePageState extends State<StudentHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final PushNotifications pushNotifications = PushNotifications();
   bool _isLoading = true;
   bool _hasNotifications = false;
-  final PushNotifications pushNotifications = PushNotifications();
-
   String? userEmail;
   String? userType;
   final FirebaseService _firebaseService = FirebaseService();
@@ -77,6 +76,7 @@ class StudentHomePageState extends State<StudentHomePage> {
         }
         if (kDebugMode) {
           print("Got a message in foreground");
+          _hasNotifications = true;
         }
         if (message.notification != null) {
           PushNotifications().showSimpleNotification(message);
@@ -85,7 +85,7 @@ class StudentHomePageState extends State<StudentHomePage> {
     });
     // background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
-      if (message?.notification != null) {
+      if (message != null) {
         setState(() {
           _hasNotifications = true;
         });
@@ -108,6 +108,7 @@ class StudentHomePageState extends State<StudentHomePage> {
           userType = userData['userType'];
           _isLoading = false;
         });
+
         await pushNotifications.requestPermission();
         await pushNotifications.generateDeviceToken();
       }
@@ -269,14 +270,12 @@ class StudentHomePageState extends State<StudentHomePage> {
                   : const Color.fromARGB(255, 57, 73, 171),
             ),
             onPressed: () {
-              setState(() {
-                _hasNotifications = false;
-              });
+              setState(() => _hasNotifications = false);
 
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const AdminIssueNotificationReport(),
+                  builder: (context) => const StudentNotification(),
                 ),
               );
             },
@@ -312,6 +311,11 @@ class StudentHomePageState extends State<StudentHomePage> {
         'icon': Icons.send_and_archive,
         'label': 'Study Material',
         'route': const FileSearchGlobalPage()
+      },
+      {
+        'icon': Icons.report_rounded,
+        'label': 'Report an Issue',
+        'route': const ReportIssue()
       },
     ];
 

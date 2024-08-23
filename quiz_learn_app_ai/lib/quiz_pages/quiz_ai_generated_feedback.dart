@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quiz_learn_app_ai/auth/realsecrets.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:quiz_learn_app_ai/student_pages/student_home_page.dart';
@@ -68,7 +67,29 @@ class QuizAIGeneratedFeedbackState extends State<QuizAIGeneratedFeedback> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BackgroundDecoration(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFf2b39b),
+              Color(0xFFf19b86),
+              Color(0xFFf3a292),
+              Color(0xFFf8c18e),
+              Color(0xFFfcd797),
+              Color(0xFFcdd7a7),
+              Color(0xFF8fb8aa),
+              Color(0xFF73adbb),
+              Color(0xFFcc7699),
+              Color(0xFF84d9db),
+              Color(0xFF85a8cf),
+              Color(0xFF8487ac),
+              Color(0xFFb7879c),
+              Color(0xFF86cfd6),
+            ],
+          ),
+        ),
         child: SafeArea(
           child: Column(
             children: [
@@ -115,7 +136,7 @@ class QuizAIGeneratedFeedbackState extends State<QuizAIGeneratedFeedback> {
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.amber,
+                    color: Colors.black,
                   ),
                   textAlign: TextAlign.center, // Center the text
                 ),
@@ -154,7 +175,7 @@ class QuizAIGeneratedFeedbackState extends State<QuizAIGeneratedFeedback> {
         const Text(
           'Feedback:',
           style: TextStyle(
-              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber),
+              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         const SizedBox(height: 8),
         Card(
