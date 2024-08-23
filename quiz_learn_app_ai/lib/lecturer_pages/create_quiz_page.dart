@@ -1,5 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
 
 class CreateQuizPage extends StatefulWidget {
   const CreateQuizPage({super.key});
@@ -9,11 +14,35 @@ class CreateQuizPage extends StatefulWidget {
 }
 
 class CreateQuizPageState extends State<CreateQuizPage> {
+  final List<UserDataToken> _users = [];
+  final _database = FirebaseDatabase.instance.ref();
   final TextEditingController _quizNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedSubject = 'Other';
-   final FirebaseService _firebaseService = FirebaseService();
+  final FirebaseService _firebaseService = FirebaseService();
   final List<Map<String, dynamic>> _questions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      List<UserDataToken> users = await _firebaseService.loadUsersWithTokens();
+      users.forEach((user) async {
+        if (user.deviceToken != '' && user.userType == 'Student') {
+          _users.add(user);
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading users: $e');
+      }
+      // You might want to show a snackbar or some other error indication to the user here
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +192,10 @@ class CreateQuizPageState extends State<CreateQuizPage> {
             const SizedBox(height: 20),
             Text(
               'Questions:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800]),
             ),
             const SizedBox(height: 10),
             ..._questions.asMap().entries.map((entry) {
@@ -196,7 +228,10 @@ class CreateQuizPageState extends State<CreateQuizPage> {
           children: [
             Text('Question ${index + 1}: ${question['question']}'),
             const SizedBox(height: 8),
-            ...(question['options'] as List<dynamic>).asMap().entries.map((entry) {
+            ...(question['options'] as List<dynamic>)
+                .asMap()
+                .entries
+                .map((entry) {
               final int optionIndex = entry.key;
               final String option = entry.value as String;
               return Text('${String.fromCharCode(65 + optionIndex)}. $option');
@@ -235,19 +270,24 @@ class CreateQuizPageState extends State<CreateQuizPage> {
     });
   }
 
-  void _showQuestionDialog({Map<String, dynamic>? existingQuestion, int? index}) {
-    final questionController = TextEditingController(text: existingQuestion?['question']);
+  void _showQuestionDialog(
+      {Map<String, dynamic>? existingQuestion, int? index}) {
+    final questionController =
+        TextEditingController(text: existingQuestion?['question']);
     final optionControllers = List.generate(
       4,
-      (i) => TextEditingController(text: existingQuestion?['options']?[i] ?? ''),
+      (i) =>
+          TextEditingController(text: existingQuestion?['options']?[i] ?? ''),
     );
-    final answerController = TextEditingController(text: existingQuestion?['answer']);
+    final answerController =
+        TextEditingController(text: existingQuestion?['answer']);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(existingQuestion == null ? 'Add Question' : 'Edit Question'),
+          title:
+              Text(existingQuestion == null ? 'Add Question' : 'Edit Question'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -256,13 +296,18 @@ class CreateQuizPageState extends State<CreateQuizPage> {
                   controller: questionController,
                   decoration: const InputDecoration(labelText: 'Question'),
                 ),
-                ...List.generate(4, (i) => TextField(
-                  controller: optionControllers[i],
-                  decoration: InputDecoration(labelText: 'Option ${String.fromCharCode(65 + i)}'),
-                )),
+                ...List.generate(
+                    4,
+                    (i) => TextField(
+                          controller: optionControllers[i],
+                          decoration: InputDecoration(
+                              labelText:
+                                  'Option ${String.fromCharCode(65 + i)}'),
+                        )),
                 TextField(
                   controller: answerController,
-                  decoration: const InputDecoration(labelText: 'Correct Answer'),
+                  decoration:
+                      const InputDecoration(labelText: 'Correct Answer'),
                 ),
               ],
             ),
@@ -296,43 +341,102 @@ class CreateQuizPageState extends State<CreateQuizPage> {
     );
   }
 
-Future<void> _saveQuiz() async {
-  if (_quizNameController.text.isEmpty || _selectedSubject.isEmpty || _questions.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please enter a quiz name, subject, and add at least one question')),
-    );
-    return;
+  Future<void> _saveQuiz() async {
+    if (_quizNameController.text.isEmpty ||
+        _selectedSubject.isEmpty ||
+        _questions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Please enter a quiz name, subject, and add at least one question')),
+      );
+      return;
+    }
+
+    try {
+      // Add the description to the last question
+      final List<Map<String, dynamic>> questionsWithDescription =
+          List.from(_questions)
+            ..add({
+              'description': _descriptionController.text.isNotEmpty
+                  ? _descriptionController.text
+                  : '',
+            });
+
+      await _firebaseService.saveQuizToFirebase(
+        _quizNameController.text,
+        _selectedSubject,
+        questionsWithDescription,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz saved successfully')),
+        );
+        await sendNotificationToStudents();
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
+        );
+      }
+    }
   }
 
-
-  try {
-    // Add the description to the last question
-     final List<Map<String, dynamic>> questionsWithDescription = List.from(_questions)
-        ..add({
-          'description': _descriptionController.text.isNotEmpty ? _descriptionController.text : '',
-        });
-
-    await _firebaseService.saveQuizToFirebase(
-    
-      _quizNameController.text,
-      _selectedSubject,
-      questionsWithDescription,
-
-    );
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quiz saved successfully')),
-      );
-      Navigator.of(context).pop();
+  Future<void> sendNotificationToStudents() async {
+    User? lUser = FirebaseAuth.instance.currentUser;
+    String quizName = _quizNameController.text;
+    String description = _descriptionController.text.isNotEmpty
+        ? _descriptionController.text
+        : '';
+    String subject = _selectedSubject;
+    String title = 'New Quiz Available $quizName';
+    String body = 'Quiz: $description\nSubject: $subject';
+    String data = 'quiz';
+    try {
+      for (UserDataToken user in _users) {
+        PushNotifications()
+            .sendPushNotifications(user.deviceToken, body, title, data, null);
+        final DatabaseReference ref = _database
+            .child('students')
+            .child(user.id)
+            .child('notifications')
+            .child('notificationFromLecturer')
+            .push();
+        final String notificationId = ref.key!;    
+        final message = {    
+          'quizName': quizName,
+          'description': body,
+          'type': data,
+          'date': DateTime.now().toIso8601String(),
+          'lecturerId': lUser?.uid,
+          'lectureEmail': lUser?.email,
+          'notificationId': notificationId,
+        };
+        await ref.set(message);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error sending notifications: $e');
+      }
     }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving quiz: ${e.toString()}')),
-      );
-    }
-  } 
+  }
 }
 
+class StudentsData {
+  final String id;
+  final String email;
+  final String userType;
+  final String deviceToken;
+  final List<String> courses;
+
+  StudentsData({
+    required this.id,
+    required this.email,
+    required this.userType,
+    required this.deviceToken,
+    required this.courses,
+  });
 }
