@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // Import GoogleSignIn package
@@ -34,7 +35,7 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
   int _maxLoginAttempts = 5;
-Duration _lockoutDuration = Duration(minutes: 30);
+Duration _lockoutDuration = const Duration(minutes: 30);
 int _loginAttempts = 0;
 bool _isLocked = false;
 DateTime? _lockoutTime;
@@ -50,7 +51,9 @@ Future<void> _loadAdminSettings() async {
       });
     }
   } catch (e) {
-    print('Error loading admin settings: $e');
+    if (kDebugMode) {
+      print('Error loading admin settings: $e');
+    }
   }
 }
 @override
@@ -68,7 +71,7 @@ Future<void> signInWithEmailAndPassword() async {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account is locked. Please try again later.')),
+        const SnackBar(content: Text('Account is locked. Please try again later.')),
       );
       return;
     }

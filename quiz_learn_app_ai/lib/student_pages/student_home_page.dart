@@ -9,7 +9,8 @@ import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/student_pages/completed_quizzes_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/quiz_results_screen.dart';
 import 'package:quiz_learn_app_ai/student_pages/student_profile_page.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:animated_text_kit/animated_text_kit.dart'; 
+//test
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
