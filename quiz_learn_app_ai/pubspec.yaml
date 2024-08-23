@@ -105,6 +105,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
   firebase_database_platform_interface: any
+  test: ^1.25.7
 flutter:
 
   # The following line ensures that the Material Icons font is

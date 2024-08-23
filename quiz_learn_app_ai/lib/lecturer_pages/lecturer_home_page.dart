@@ -48,7 +48,6 @@ class LecturerHomePageState extends State<LecturerHomePage> {
         .getInitialMessage()
         .then((RemoteMessage? message) async {
       if (message != null) {
-        String? data = message.data['data'];
         setState(() {
           _hasNotifications = true;
         });
@@ -67,7 +66,6 @@ class LecturerHomePageState extends State<LecturerHomePage> {
         if (kDebugMode) {
           print(message.notification!.title);
         }
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Got a message in foreground");
         }

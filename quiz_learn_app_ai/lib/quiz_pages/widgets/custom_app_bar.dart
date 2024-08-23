@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/configs/ui_parameters.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/test_overwiew_screen.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/test_overview_screen.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? time;

@@ -15,7 +15,6 @@ class QuizDataManagement extends StatefulWidget {
 
 class QuizDataManagementState extends State<QuizDataManagement> {
   List<Map<String, dynamic>> _allQuizzes = [];
-  List<Map<String, dynamic>> _filteredQuizzes = [];
   bool _isLoading = true;
   final FirebaseService _firebaseService = FirebaseService();
   final _database = FirebaseDatabase.instance.ref();
@@ -33,7 +32,6 @@ class QuizDataManagementState extends State<QuizDataManagement> {
     try {
       // Assuming you have an instance of FirebaseService called _firebaseService
       _allQuizzes = await _firebaseService.loadAllQuizzes();
-      _filteredQuizzes = List.from(_allQuizzes);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -47,13 +45,6 @@ class QuizDataManagementState extends State<QuizDataManagement> {
     }
   }
 
-  void _filterQuizzes(String searchTerm, String lecturer, String subject,
-      DateTime? startDate, DateTime? endDate) {
-    setState(() {
-      _filteredQuizzes = _firebaseService.filterQuizzes(
-          _allQuizzes, searchTerm, lecturer, subject, startDate, endDate);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -328,6 +319,7 @@ class QuizDataManagementState extends State<QuizDataManagement> {
                   });
 
                   if (mounted) {
+                    // ignore: use_build_context_synchronously
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

@@ -26,7 +26,9 @@ class FirebaseService {
         return {};
       }
     } catch (e) {
-      print('Error getting admin settings: $e');
+      if (kDebugMode) {
+        print('Error getting admin settings: $e');
+      }
       rethrow;
     }
   }
@@ -35,7 +37,9 @@ class FirebaseService {
     try {
       await _database.child('adminSettings').child(key).set(value);
     } catch (e) {
-      print('Error updating admin setting: $e');
+      if (kDebugMode) {
+        print('Error updating admin setting: $e');
+      }
       rethrow;
     }
   }
@@ -398,7 +402,7 @@ class FirebaseService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> loadPerfomedQuizUsers(
+  Future<List<Map<String, dynamic>>> loadPerformedQuizUsers(
       String quizId) async {
     try {
       //final User? user = _auth.currentUser;

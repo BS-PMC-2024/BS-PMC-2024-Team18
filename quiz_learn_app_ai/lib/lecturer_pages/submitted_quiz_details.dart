@@ -5,18 +5,18 @@ import 'package:intl/intl.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 //import 'package:quiz_learn_app_ai/student_pages/question_detail_page.dart';
 
-class SubmitedQuizDetail extends StatefulWidget {
+class SubmittedQuizDetail extends StatefulWidget {
   final Map<String, dynamic> student;
-  const SubmitedQuizDetail({
+  const SubmittedQuizDetail({
     super.key,
     required this.student,
   });
 
   @override
-  SubmitedQuizDetailState createState() => SubmitedQuizDetailState();
+  SubmittedQuizDetailState createState() => SubmittedQuizDetailState();
 }
 
-class SubmitedQuizDetailState extends State<SubmitedQuizDetail> {
+class SubmittedQuizDetailState extends State<SubmittedQuizDetail> {
   final TextEditingController _feedbackController = TextEditingController();
   bool _isFeedbackVisible = false;
 

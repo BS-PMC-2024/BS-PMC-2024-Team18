@@ -11,7 +11,7 @@ import 'package:quiz_learn_app_ai/admin_pages/admin_user_management_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth.dart';
 import 'package:quiz_learn_app_ai/auth_pages/auth_page.dart';
 import 'package:quiz_learn_app_ai/auth_pages/loading_page.dart';
-import 'package:quiz_learn_app_ai/data_management/backup_and_data_managemente_service.dart';
+import 'package:quiz_learn_app_ai/data_management/backup_and_data_management_service.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_settings_page.dart';
 import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
@@ -60,7 +60,6 @@ class AdminHomePageState extends State<AdminHomePage> {
         setState(() {
           _hasNotifications = true;
         });
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Launched from terminated state");
         }
@@ -76,7 +75,6 @@ class AdminHomePageState extends State<AdminHomePage> {
         if (kDebugMode) {
           print(message.notification!.title);
         }
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Got a message in foreground");
         }

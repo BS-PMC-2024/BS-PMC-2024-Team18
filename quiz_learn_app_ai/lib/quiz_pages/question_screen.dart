@@ -4,9 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:quiz_learn_app_ai/quiz_pages/configs/ui_parameters.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/test_overwiew_screen.dart';
+import 'package:quiz_learn_app_ai/quiz_pages/test_overview_screen.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/answer_card.dart';
-import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/content_area.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/countdown_timer.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/widgets/custom_app_bar.dart';

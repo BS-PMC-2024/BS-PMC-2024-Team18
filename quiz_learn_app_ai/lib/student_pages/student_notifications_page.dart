@@ -498,7 +498,7 @@ class StudentNotificationState extends State<StudentNotification> {
     return ListView.builder(
       shrinkWrap: true, // Allow ListView to shrink-wrap its content
       physics:
-          NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
+          const NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
       itemCount: adminMessages.length,
       itemBuilder: (context, index) {
         final message = adminMessages[index];

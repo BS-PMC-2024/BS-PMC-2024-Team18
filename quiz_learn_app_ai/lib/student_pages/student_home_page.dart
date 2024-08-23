@@ -59,7 +59,6 @@ class StudentHomePageState extends State<StudentHomePage> {
         setState(() {
           _hasNotifications = true;
         });
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Launched from terminated state");
         }
@@ -75,7 +74,6 @@ class StudentHomePageState extends State<StudentHomePage> {
         if (kDebugMode) {
           print(message.notification!.title);
         }
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Got a message in foreground");
           _hasNotifications = true;

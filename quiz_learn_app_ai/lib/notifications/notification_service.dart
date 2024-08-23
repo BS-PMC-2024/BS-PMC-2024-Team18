@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,16 +15,9 @@ import 'package:quiz_learn_app_ai/auth/realsecrets.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
-class Constants {
-  static const String BASE_URL = 'https://fcm.googleapis.com/fcm/send';
-  static Future<String> SERVER_KEY = PushNotifications().getAccessToken();
-  static const String SENDER_ID = '';
-}
-
 class PushNotifications {
   final DatabaseReference database = FirebaseDatabase.instance.ref();
   final FirebaseAuth fbAuth = FirebaseAuth.instance;
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseService firebaseService = FirebaseService();
   final firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -152,7 +144,6 @@ class PushNotifications {
         .getInitialMessage()
         .then((RemoteMessage? message) {
       if (message != null) {
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Launched from terminated state");
         }
@@ -162,7 +153,6 @@ class PushNotifications {
     // foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage? message) {
       if (message != null) {
-        String? data = message.data['data'];
         if (kDebugMode) {
           print("Launched from terminated state");
         }
@@ -191,32 +181,7 @@ class PushNotifications {
     }
   }
 
-  Future<void> saveTokenToFirebase({required String token}) async {
-    User? user = fbAuth.currentUser;
-    try {
-      await database
-          .child("users")
-          .child(user!.uid)
-          .child("deviceToken")
-          .set({token});
-      if (kDebugMode) {
-        print('User token saved successfully');
-      }
-    } catch (e) {
-      throw Exception('Error saving user token: ${e.toString()}');
-    }
-    //save if token changes
-    firebaseMessaging.onTokenRefresh.listen((event) async {
-      //await saveUserToken(token);
-      await firestore
-          .collection('users')
-          .doc(user.uid)
-          .set({'notificationToken': token, 'email': user.email});
-      if (kDebugMode) {
-        print("save to firebase");
-      }
-    });
-  }
+  
 
   // show a simple notification
   Future<void> showSimpleNotification(RemoteMessage message) async {
@@ -326,82 +291,5 @@ class PushNotifications {
 
     // Return the access token
     return credentials.accessToken.data;
-  }
-
-  // Future<void> sendFCMMessage() async {
-  //   final String serverKey = await getAccessToken(); // Your FCM server key
-  //   final String fcmEndpoint =
-  //       'https://fcm.googleapis.com/v1/projects/quizlearnappai/messages:send';
-  //   final currentFCMToken = await FirebaseMessaging.instance.getToken();
-  //   print("fcmkey : $currentFCMToken");
-  //   final Map<String, dynamic> message = {
-  //     'message': {
-  //       'token':
-  //           currentFCMToken, // Token of the device you want to send the message to
-  //       'notification': {
-  //         'body': 'This is an FCM notification message!',
-  //         'title': 'FCM Message'
-  //       },
-  //       'data': {
-  //         'current_user_fcm_token':
-  //             currentFCMToken, // Include the current user's FCM token in data payload
-  //       },
-  //     }
-  //   };
-
-  //   final http.Response response = await http.post(
-  //     Uri.parse(fcmEndpoint),
-  //     headers: <String, String>{
-  //       'Content-Type': 'application/json',
-  //       'Authorization': 'Bearer $serverKey',
-  //     },
-  //     body: jsonEncode(message),
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     print('FCM message sent successfully');
-  //   } else {
-  //     print('Failed to send FCM message: ${response.statusCode}');
-  //   }
-  // }
-}
-
-class TestNotifications extends StatefulWidget {
-  const TestNotifications({super.key});
-
-  @override
-  State<TestNotifications> createState() => _TestNotificationsState();
-}
-
-class _TestNotificationsState extends State<TestNotifications> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () => Null,
-              child: const Text('Show Notification'),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                DateTime scheduledDate =
-                    DateTime.now().add(const Duration(seconds: 5));
-                PushNotifications().scheduleNotification(
-                  0,
-                  "Scheduled Notification",
-                  "This notification is scheduled to appear after 5 seconds",
-                  scheduledDate,
-                );
-              },
-              child: const Text('Schedule Notification'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

@@ -5,7 +5,9 @@
         "googleapis",
         "mipmap",
         "quizlearnappai",
+        "realsecrets",
         "servicecontrol",
+        "unfocus",
         "writeln"
     ],
     "workbench.editor.centeredLayoutAutoResize": false,

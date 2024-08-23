@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
 
@@ -5,10 +6,10 @@ class AdminSettingsPage extends StatefulWidget {
   const AdminSettingsPage({super.key});
 
   @override
-  _AdminSettingsPageState createState() => _AdminSettingsPageState();
+  AdminSettingsPageState createState() => AdminSettingsPageState();
 }
 
-class _AdminSettingsPageState extends State<AdminSettingsPage> {
+class AdminSettingsPageState extends State<AdminSettingsPage> {
   final FirebaseService _firebaseService = FirebaseService();
   bool _isLoading = true;
   Map<String, dynamic> _settings = {};
@@ -27,7 +28,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading settings: $e');
+      if (kDebugMode) {
+        print('Error loading settings: $e');
+      }
       setState(() {
         _isLoading = false;
       });
@@ -41,7 +44,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
         const SnackBar(content: Text('Setting updated successfully')),
       );
     } catch (e) {
-      print('Error updating setting: $e');
+      if (kDebugMode) {
+        print('Error updating setting: $e');
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update setting')),
       );

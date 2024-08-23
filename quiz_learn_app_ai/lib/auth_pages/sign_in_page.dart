@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // Import GoogleSignIn package
@@ -50,7 +51,9 @@ Future<void> _loadAdminSettings() async {
       });
     }
   } catch (e) {
-    print('Error loading admin settings: $e');
+    if (kDebugMode) {
+      print('Error loading admin settings: $e');
+    }
   }
 }
 @override

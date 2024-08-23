@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,6 @@ class LecturerDataManagement extends StatefulWidget {
 }
 
 class LecturerDataManagementState extends State<LecturerDataManagement> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   List<UserDataToken> _users = [];
   bool _isLoading = true;
@@ -211,6 +209,12 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
                 border:
                     TableBorder.all(borderRadius: BorderRadius.circular(10)),
                 columns: [
+                   DataColumn(
+                      label: Center(
+                          child: Text('№',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800])))),
                   DataColumn(
                       label: Center(
                           child: Text('ID',
@@ -245,7 +249,9 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
                 rows: _users
                     .map(
                       (user) => DataRow(
+                        
                         cells: [
+                          
                           DataCell(Text(user.id,
                               style: TextStyle(color: Colors.indigo[300]))),
                           DataCell(Text(user.email,

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/quiz_pages/quiz_ai_generated_feedback.dart';
 
-import 'package:quiz_learn_app_ai/quiz_pages/widgets/background_decoration.dart';
 
 import 'package:quiz_learn_app_ai/quiz_search/quiz_list_screen.dart';
 import 'package:quiz_learn_app_ai/notifications/notification_service.dart';
