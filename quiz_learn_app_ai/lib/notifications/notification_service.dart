@@ -87,9 +87,6 @@ class PushNotifications {
     }
   }
 
-  Future<void> sendSinglePushNotification(
-      String token, String title, String body) async {}
-
   // get the fcm device token
   Future<String?> generateDeviceToken() async {
     User? user = fbAuth.currentUser;
@@ -181,8 +178,6 @@ class PushNotifications {
     }
   }
 
-  
-
   // show a simple notification
   Future<void> showSimpleNotification(RemoteMessage message) async {
     AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -203,27 +198,27 @@ class PushNotifications {
         payload: message.data['data']);
   }
 
-  Future<void> scheduleNotification(
-      int id, String title, String body, DateTime scheduledTime) async {
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      const NotificationDetails(
-        iOS: DarwinNotificationDetails(),
-        android: AndroidNotificationDetails(
-          'reminder_channel',
-          'Reminder Channel',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-      ),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.dateAndTime,
-    );
-  }
+  // Future<void> scheduleNotification(
+  //     int id, String title, String body, DateTime scheduledTime) async {
+  //   await flutterLocalNotificationsPlugin.zonedSchedule(
+  //     id,
+  //     title,
+  //     body,
+  //     tz.TZDateTime.from(scheduledTime, tz.local),
+  //     const NotificationDetails(
+  //       iOS: DarwinNotificationDetails(),
+  //       android: AndroidNotificationDetails(
+  //         'reminder_channel',
+  //         'Reminder Channel',
+  //         importance: Importance.high,
+  //         priority: Priority.high,
+  //       ),
+  //     ),
+  //     uiLocalNotificationDateInterpretation:
+  //         UILocalNotificationDateInterpretation.absoluteTime,
+  //     matchDateTimeComponents: DateTimeComponents.dateAndTime,
+  //   );
+  // }
 
   Future<bool> sendPushNotifications(String deviceToken, String? body,
       String? title, String? data, BuildContext? context) async {
