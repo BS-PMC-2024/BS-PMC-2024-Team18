@@ -38,11 +38,11 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
 
   Future<List<UserDataToken>> filterUsers() async {
     List<UserDataToken> specialUsers = [];
-    _users.forEach((user) async {
-      if (user.deviceToken != '') {
-        specialUsers.add(user);
-      }
-    });
+  for (final user in _users) {
+  if (user.deviceToken != '') {
+    specialUsers.add(user);
+  }
+}
     return specialUsers;
   }
 
@@ -72,74 +72,77 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
     }
   }
 
-  Future<void> sendNotificationAllUsers(BuildContext? context) async {
-    String? body = _bodyMessageController.text;
-    String? title = _subjectController.text;
-    String? data = 'this is data';
-    String notificationId = '';
-    DatabaseReference ref = _database.child('default');
-    try {
-      _users.forEach((user) async {
-        if (user.deviceToken != '' &&
-            user.deviceToken != tempUser.deviceToken) {
-          PushNotifications().sendPushNotifications(
-              user.deviceToken, body, title, data, context);
-          if (user.userType == 'Student' || user.userType == 'student') {
+Future<void> sendNotificationAllUsers(BuildContext? context) async {
+  String body = _bodyMessageController.text;
+  String title = _subjectController.text;
+  String data = 'this is data';
+  
+  try {
+    for (final user in _users) {
+      if (user.deviceToken != '' && user.deviceToken != tempUser.deviceToken) {
+        await PushNotifications().sendPushNotifications(
+          user.deviceToken, body, title, data, context);
+
+        late DatabaseReference ref;
+        late String notificationId;
+
+        switch (user.userType.toLowerCase()) {
+          case 'student':
             ref = _database
                 .child('students')
                 .child(user.id)
                 .child('notifications')
                 .child('notificationFromAdmin')
                 .push();
-            notificationId = ref.key!;
-          } else if (user.userType == 'Lecturer' ||
-              user.userType == 'lecturer') {
+            break;
+          case 'lecturer':
             ref = _database
                 .child('lecturers')
                 .child(user.id)
                 .child('notifications')
                 .child('notificationFromAdmin')
                 .push();
-            notificationId = ref.key!;
-          } else {
-            ref =
-                _database.child('issue_reports').child('admin_reports').push();
-            notificationId = ref.key!;
-          }
+            break;
+          default:
+            ref = _database.child('issue_reports').child('admin_reports').push();
+        }
 
-          final message = {
-            'subject': title,
-            'message': body,
-            'date': DateTime.now().toIso8601String(),
-            'AdminEmail': aUser.email,
-            'notificationId': notificationId,
-          };
-          try {
-            await ref.set(message);
-            if (kDebugMode) {
-              print('Notification sent with ID: $notificationId');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Error saving notification to database: $e');
-            }
+        notificationId = ref.key!;
+
+        final message = {
+          'subject': title,
+          'message': body,
+          'date': DateTime.now().toIso8601String(),
+          'AdminEmail': aUser.email,
+          'notificationId': notificationId,
+        };
+
+        try {
+          await ref.set(message);
+          if (kDebugMode) {
+            print('Notification sent with ID: $notificationId');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error saving notification to database: $e');
           }
         }
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context!).showSnackBar(
-          const SnackBar(
-              content: Text('message sent to all users successfully')),
-        );
-        _bodyMessageController.clear();
-        _subjectController.clear();
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error sending notification: $e');
       }
     }
+
+    if (context != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Message sent to all users successfully')),
+      );
+      _bodyMessageController.clear();
+      _subjectController.clear();
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error sending notification: $e');
+    }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -238,33 +241,37 @@ class AdminSendMessagesState extends State<AdminSendMessages> {
     );
   }
 
-  Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          const Text(
-            'Send push notifications',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+ Widget _buildAppBar() {
+  return Padding(
+    padding: const EdgeInsets.all(20.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        const Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'Send push notifications',
+              style: TextStyle(
+                fontSize: 22, // Slightly reduced font size
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loadUsers,
-          ),
-        ],
-      ),
-    );
-  }
-
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          onPressed: _loadUsers,
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildUserList() {
     return Expanded(
       child: ListView.builder(

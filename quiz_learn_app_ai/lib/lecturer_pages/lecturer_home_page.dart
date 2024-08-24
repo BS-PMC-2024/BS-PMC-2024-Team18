@@ -42,6 +42,15 @@ class LecturerHomePageState extends State<LecturerHomePage> {
     notificationHandler();
   }
 
+    @override
+void dispose() {
+  // Cancel listeners here
+  FirebaseMessaging.onMessage.drain();
+  FirebaseMessaging.onMessageOpenedApp.drain();
+  super.dispose();
+}
+
+
   void notificationHandler() {
     // terminated
     FirebaseMessaging.instance

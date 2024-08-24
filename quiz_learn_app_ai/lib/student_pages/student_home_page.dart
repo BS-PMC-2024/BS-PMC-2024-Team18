@@ -39,6 +39,15 @@ class StudentHomePageState extends State<StudentHomePage> {
     notificationHandler();
   }
 
+    @override
+void dispose() {
+  // Cancel listeners here
+  FirebaseMessaging.onMessage.drain();
+  FirebaseMessaging.onMessageOpenedApp.drain();
+  super.dispose();
+}
+
+
   Future _firebaseBackgroundMessage(RemoteMessage message) async {
     if (message.notification != null) {
       if (kDebugMode) {

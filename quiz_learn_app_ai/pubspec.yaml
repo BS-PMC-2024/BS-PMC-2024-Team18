@@ -100,12 +100,13 @@ dev_dependencies:
   google_sign_in_mocks: ^0.3.0
   firebase_auth_mocks: ^0.14.0
   rxdart: ^0.28.0
+  
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
   firebase_database_platform_interface: any
-  test: ^1.25.7
+  test: ^1.25.2
 flutter:
 
   # The following line ensures that the Material Icons font is

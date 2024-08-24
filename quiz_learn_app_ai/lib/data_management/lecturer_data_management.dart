@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 import 'package:quiz_learn_app_ai/data_management/data_backups/pdf_generator.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
@@ -112,8 +114,9 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
   Future<void> _backupData() async {
     try {
       final file = await PdfGenerator.generateUserDataPdf(_users);
-      saveUserDataToTextFile();
+     
       if (mounted) {
+         saveUserDataToTextFile(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Backup saved to: ${file.path}')),
         );
@@ -127,21 +130,33 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
     }
   }
 
-  Future<void> saveUserDataToTextFile() async {
-    // Get the application documents directory
-    final directory = await getApplicationDocumentsDirectory();
-    // Define the path for the file
-    final path =
-        Directory('${directory.path}/lib/data_management/data_backups');
 
-    // Create the directory if it doesn't exist
-    if (!await path.exists()) {
-      await path.create(recursive: true);
+Future<void> saveUserDataToTextFile(BuildContext context) async {
+  try {
+    // Request storage permission
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      status = await Permission.storage.request();
+      if (!status.isGranted) {
+        throw Exception('Storage permission is required to save the file');
+      }
+    }
+
+    // Get the Downloads directory
+    Directory? directory;
+    if (Platform.isAndroid) {
+      directory = Directory('/storage/emulated/0/Download');
+    } else if (Platform.isIOS) {
+      directory = await getApplicationDocumentsDirectory();
+    }
+
+    if (directory == null) {
+      throw Exception('Could not access the Downloads directory');
     }
 
     // Define the file path and name
-    final filePath =
-        '${path.path}/user_data_${DateTime.now().millisecondsSinceEpoch}.txt';
+    final fileName = 'user_data_${DateTime.now().millisecondsSinceEpoch}.txt';
+    final filePath = '${directory.path}/$fileName';
     final file = File(filePath);
 
     // Prepare the content for the file
@@ -156,9 +171,30 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
     await file.writeAsString(content.toString());
 
     if (kDebugMode) {
-      print('File saved at: $filePath');
+      print('txt File saved at: $filePath');
+    }
+
+    // Show a success message to the user
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File saved to Downloads: $fileName')),
+      );
+    }
+
+    // Open the file automatically
+    OpenFile.open(filePath);
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error saving file: $e');
+    }
+    // Show an error message to the user
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving file: $e')),
+      );
     }
   }
+}
 
   Widget _buildAppBar() {
     return Padding(
@@ -186,112 +222,110 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
       ),
     );
   }
-
-  Widget _buildStudentDataTable(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints:
-            BoxConstraints(minWidth: MediaQuery.of(context).size.width),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Card(
-              elevation: 4,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-              ),
-              child: DataTable(
-                columnSpacing: 20.0,
-                headingRowColor: WidgetStateColor.resolveWith(
-                    (states) => Colors.indigo[100]!),
-                border:
-                    TableBorder.all(borderRadius: BorderRadius.circular(10)),
-                columns: [
-                   DataColumn(
-                      label: Center(
-                          child: Text('№',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800])))),
-                  DataColumn(
-                      label: Center(
-                          child: Text('ID',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800])))),
-                  DataColumn(
-                      label: Center(
-                          child: Text('Email',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800])))),
-                  DataColumn(
-                      label: Center(
-                          child: Text('Type',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800])))),
-                  DataColumn(
-                      label: Center(
-                          child: Text('Token ID',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800])))),
-                  DataColumn(
-                      label: Center(
-                          child: Text('Actions',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800])))),
-                ],
-                rows: _users
-                    .map(
-                      (user) => DataRow(
-                        
-                        cells: [
-                          
-                          DataCell(Text(user.id,
-                              style: TextStyle(color: Colors.indigo[300]))),
-                          DataCell(Text(user.email,
-                              style: TextStyle(color: Colors.indigo[300]))),
-                          DataCell(Text(user.userType,
-                              style: TextStyle(color: Colors.indigo[300]))),
-                          DataCell(Text(user.deviceToken != '' ? 'Yes' : 'No',
-                              style: TextStyle(color: Colors.indigo[300]))),
-                          DataCell(
-                            Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.edit,
-                                        color: Colors.indigo[400]),
-                                    onPressed: () => _showEditUserDialog(user),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete,
-                                        color: Colors.red[400]),
-                                    onPressed: () =>
-                                        _showDeleteConfirmation(user),
-                                  ),
-                                ],
+Widget _buildStudentDataTable(BuildContext context) {
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: ConstrainedBox(
+      constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Card(
+            elevation: 4,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+            ),
+            child: DataTable(
+              columnSpacing: 20.0,
+              headingRowColor: WidgetStateColor.resolveWith(
+                  (states) => Colors.indigo[100]!),
+              border: TableBorder.all(borderRadius: BorderRadius.circular(10)),
+              columns: [
+                DataColumn(
+                    label: Center(
+                        child: Text('№',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800])))),
+                DataColumn(
+                    label: Center(
+                        child: Text('ID',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800])))),
+                DataColumn(
+                    label: Center(
+                        child: Text('Email',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800])))),
+                DataColumn(
+                    label: Center(
+                        child: Text('Type',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800])))),
+                DataColumn(
+                    label: Center(
+                        child: Text('Token ID',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800])))),
+                DataColumn(
+                    label: Center(
+                        child: Text('Actions',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800])))),
+              ],
+              rows: _users.asMap().entries.map(
+                (entry) {
+                  final index = entry.key;
+                  final user = entry.value;
+                  return DataRow(
+                    cells: [
+                      DataCell(Text('${index + 1}',
+                          style: TextStyle(color: Colors.indigo[300]))),
+                      DataCell(Text(user.id,
+                          style: TextStyle(color: Colors.indigo[300]))),
+                      DataCell(Text(user.email,
+                          style: TextStyle(color: Colors.indigo[300]))),
+                      DataCell(Text(user.userType,
+                          style: TextStyle(color: Colors.indigo[300]))),
+                      DataCell(Text(user.deviceToken != '' ? 'Yes' : 'No',
+                          style: TextStyle(color: Colors.indigo[300]))),
+                      DataCell(
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit,
+                                    color: Colors.indigo[400]),
+                                onPressed: () => _showEditUserDialog(user),
                               ),
-                            ),
+                              IconButton(
+                                icon: Icon(Icons.delete,
+                                    color: Colors.red[400]),
+                                onPressed: () =>
+                                    _showDeleteConfirmation(user),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    )
-                    .toList(),
-              ),
+                    ],
+                  );
+                },
+              ).toList(),
             ),
           ),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   void _showEditUserDialog(UserDataToken user) {
     final emailController = TextEditingController(text: user.email);
 

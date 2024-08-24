@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quiz_learn_app_ai/data_management/data_backups/pdf_generator.dart';
 import 'package:quiz_learn_app_ai/services/firebase_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class QuizDataManagement extends StatefulWidget {
   const QuizDataManagement({super.key});
@@ -111,7 +113,10 @@ class QuizDataManagementState extends State<QuizDataManagement> {
   Future<void> _backupData() async {
     try {
       final pdfFile = await PdfGenerator.generateQuizDataPdf(_allQuizzes);
-      await saveQuizDataToTextFile(_allQuizzes);
+      if(mounted){
+          await saveQuizDataToTextFile(_allQuizzes, context);
+      }
+    
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Backup saved to: ${pdfFile.path}')),
@@ -126,23 +131,34 @@ class QuizDataManagementState extends State<QuizDataManagement> {
     }
   }
 
-  Future<void> saveQuizDataToTextFile(
-      List<Map<String, dynamic>> quizzes) async {
-    // Get the application documents directory
-    final directory = await getApplicationDocumentsDirectory();
 
-    // Define the path for the file
-    final path =
-        Directory('${directory.path}/lib/data_management/data_backups');
 
-    // Create the directory if it doesn't exist
-    if (!await path.exists()) {
-      await path.create(recursive: true);
+Future<void> saveQuizDataToTextFile(List<Map<String, dynamic>> quizzes, BuildContext context) async {
+  try {
+    // Request storage permission
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      status = await Permission.storage.request();
+      if (!status.isGranted) {
+        throw Exception('Storage permission is required to save the file');
+      }
     }
 
-    // Create a file name with the current timestamp
-    final filePath =
-        '${path.path}/quiz_data_${DateTime.now().millisecondsSinceEpoch}.txt';
+    // Get the Downloads directory
+    Directory? directory;
+    if (Platform.isAndroid) {
+      directory = Directory('/storage/emulated/0/Download');
+    } else if (Platform.isIOS) {
+      directory = await getApplicationDocumentsDirectory();
+    }
+
+    if (directory == null) {
+      throw Exception('Could not access the Downloads directory');
+    }
+
+    // Define the file path and name
+    final fileName = 'quiz_data_${DateTime.now().millisecondsSinceEpoch}.txt';
+    final filePath = '${directory.path}/$fileName';
     final file = File(filePath);
 
     // Prepare the content for the file
@@ -158,9 +174,30 @@ class QuizDataManagementState extends State<QuizDataManagement> {
     await file.writeAsString(content.toString());
 
     if (kDebugMode) {
-      print('File saved at: $filePath');
+      print('txt File saved at: $filePath');
+    }
+
+    // Show a success message to the user
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File saved to Downloads: $fileName')),
+      );
+    }
+
+    // Open the file automatically
+    OpenFile.open(filePath);
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error saving file: $e');
+    }
+    // Show an error message to the user
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving file: $e')),
+      );
     }
   }
+}
 
   Widget _buildAppBar() {
     return Padding(
@@ -318,7 +355,7 @@ class QuizDataManagementState extends State<QuizDataManagement> {
                     _allQuizzes.removeWhere((q) => q['id'] == quiz['id']);
                   });
 
-                  if (mounted) {
+                  if (context.mounted) {
                     // ignore: use_build_context_synchronously
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(

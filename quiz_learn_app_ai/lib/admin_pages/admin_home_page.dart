@@ -40,6 +40,14 @@ class AdminHomePageState extends State<AdminHomePage> {
     notificationHandler();
   }
 
+  @override
+void dispose() {
+  // Cancel listeners here
+  FirebaseMessaging.onMessage.drain();
+  FirebaseMessaging.onMessageOpenedApp.drain();
+  super.dispose();
+}
+
   Future _firebaseBackgroundMessage(RemoteMessage message) async {
     if (message.notification != null) {
       if (kDebugMode) {
@@ -51,53 +59,53 @@ class AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
-  void notificationHandler() {
-    // terminated
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) async {
-      if (message != null) {
-        setState(() {
-          _hasNotifications = true;
-        });
-        if (kDebugMode) {
-          print("Launched from terminated state");
-        }
-        Future.delayed(const Duration(seconds: 1), () {});
+void notificationHandler() {
+  // terminated
+  FirebaseMessaging.instance
+      .getInitialMessage()
+      .then((RemoteMessage? message) async {
+    if (message != null && mounted) {
+      setState(() {
+        _hasNotifications = true;
+      });
+      if (kDebugMode) {
+        print("Launched from terminated state");
       }
-    });
-    // foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
-      if (message != null) {
-        setState(() {
-          _hasNotifications = true;
-        });
-        if (kDebugMode) {
-          print(message.notification!.title);
-        }
-        if (kDebugMode) {
-          print("Got a message in foreground");
-        }
-        if (message.notification != null) {
-          PushNotifications().showSimpleNotification(message);
-        }
-      }
-    });
-    // background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
-      if (message?.notification != null) {
-        setState(() {
-          _hasNotifications = true;
-        });
-        if (kDebugMode) {
-          print("Background Notification Tapped");
-        }
-      }
-    });
+      Future.delayed(const Duration(seconds: 1), () {});
+    }
+  });
 
-    // Listen to background notifications
-    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
-  }
+  // foreground
+  FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
+    if (message != null && mounted) {
+      setState(() {
+        _hasNotifications = true;
+      });
+      if (kDebugMode) {
+        print(message.notification!.title);
+        print("Got a message in foreground");
+      }
+      if (message.notification != null) {
+        PushNotifications().showSimpleNotification(message);
+      }
+    }
+  });
+
+  // background
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
+    if (message?.notification != null && mounted) {
+      setState(() {
+        _hasNotifications = true;
+      });
+      if (kDebugMode) {
+        print("Background Notification Tapped");
+      }
+    }
+  });
+
+  // Listen to background notifications
+  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
+}
 
   Future<void> _loadUserData() async {
     try {

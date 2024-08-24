@@ -39,11 +39,12 @@ class CreateQuestionAIState extends State<CreateQuestionAI> {
   Future<void> _loadUsers() async {
     try {
       List<UserDataToken> users = await _firebaseService.loadUsersWithTokens();
-      users.forEach((user) async {
-        if (user.deviceToken != '' && user.userType == 'Student') {
-          _users.add(user);
-        }
-      });
+    for (int i = 0; i < users.length; i++) {
+  final user = users[i];
+  if (user.deviceToken != '' && user.userType == 'Student') {
+    _users.add(user);
+  }
+}
     } catch (e) {
       if (kDebugMode) {
         print('Error loading users: $e');

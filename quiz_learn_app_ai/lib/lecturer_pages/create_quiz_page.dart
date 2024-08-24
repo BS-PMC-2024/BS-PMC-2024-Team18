@@ -31,11 +31,11 @@ class CreateQuizPageState extends State<CreateQuizPage> {
   Future<void> _loadUsers() async {
     try {
       List<UserDataToken> users = await _firebaseService.loadUsersWithTokens();
-      users.forEach((user) async {
-        if (user.deviceToken != '' && user.userType == 'Student') {
-          _users.add(user);
-        }
-      });
+    for (final user in users) {
+  if (user.deviceToken != '' && user.userType == 'Student') {
+    _users.add(user);
+  }
+}
     } catch (e) {
       if (kDebugMode) {
         print('Error loading users: $e');
@@ -374,7 +374,10 @@ class CreateQuizPageState extends State<CreateQuizPage> {
           const SnackBar(content: Text('Quiz saved successfully')),
         );
         await sendNotificationToStudents();
-        Navigator.of(context).pop();
+        if(mounted){
+            Navigator.of(context).pop();
+        }
+      
       }
     } catch (e) {
       if (mounted) {

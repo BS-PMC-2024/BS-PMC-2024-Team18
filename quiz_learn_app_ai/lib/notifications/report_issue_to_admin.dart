@@ -197,16 +197,21 @@ class ReportIssueState extends State<ReportIssue> {
       adminsEmails.add(admin.email);
     }
 
-    _admins.forEach((admin) async {
-      try {
-        PushNotifications().sendPushNotifications(
-            admin.deviceToken, subject, title, data, context);
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error sending message: $e');
-        }
-      }
-    });
+  for (final admin in _admins) {
+  try {
+    await PushNotifications().sendPushNotifications(
+      admin.deviceToken,
+      subject,
+      title,
+      data,
+      context,
+    );
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error sending message to admin ${admin.id}: $e');
+    }
+  }
+}
     if (kDebugMode) {
       print('Report sent to admins: $subject - $data');
     }

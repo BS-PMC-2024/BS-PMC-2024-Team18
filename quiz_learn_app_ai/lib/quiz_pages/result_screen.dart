@@ -47,11 +47,9 @@ class ResultScreenState extends State<ResultScreen> {
   Future<void> _loadUsers() async {
     try {
       List<UserDataToken> users = await _firebaseService.loadUsersWithTokens();
-      users.forEach((user) async {
-        if (user.deviceToken != '' && user.userType == 'Lecturer') {
-          _users.add(user);
-        }
-      });
+    _users.addAll(users.where((user) => 
+  user.deviceToken != '' && user.userType == 'Lecturer'
+));
     } catch (e) {
       if (kDebugMode) {
         print('Error loading users: $e');
@@ -101,17 +99,22 @@ class ResultScreenState extends State<ResultScreen> {
           deviceToken = user.deviceToken;
         }
       }
-      await PushNotifications().sendPushNotifications(
+     
+      if (mounted) {
+         await PushNotifications().sendPushNotifications(
         deviceToken ?? '',
         body,
         title,
         data,
         context,
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if(mounted){
+          ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Message sent to lecturer')),
         );
+
+      }
+      
       }
     } catch (e) {
       if (mounted) {

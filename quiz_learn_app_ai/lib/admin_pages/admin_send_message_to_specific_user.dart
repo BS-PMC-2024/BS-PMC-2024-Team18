@@ -222,8 +222,8 @@ class SendToSpecificUserState extends State<SendToSpecificUser> {
     };
     try {
       await ref.set(message);
-      if (mounted) {
-        ScaffoldMessenger.of(context!).showSnackBar(
+      if (context!.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content:
                   Text('message sent successfully to user: ${user.email}')),

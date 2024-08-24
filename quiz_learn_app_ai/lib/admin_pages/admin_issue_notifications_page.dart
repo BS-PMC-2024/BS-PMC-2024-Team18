@@ -171,7 +171,7 @@ class AdminIssueNotificationReportState
         print('Error removing message: $e');
       }
     }
-    if (context.mounted) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Notification deleted successfully')),
       );
@@ -194,7 +194,7 @@ class AdminIssueNotificationReportState
         print('Error removing message: $e');
       }
     }
-    if (context.mounted) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Notification deleted successfully')),
       );
