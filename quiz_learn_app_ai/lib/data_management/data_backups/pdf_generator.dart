@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+// ignore: implementation_imports
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:quiz_learn_app_ai/admin_pages/admin_send_messages.dart';
 
 class PdfGenerator {
-  static Future<File> generateUserDataPdf(List<UserDataToken> users) async {
+  static Future<File> generateUserDataPdf(List<UserDataToken> users, BuildContext context) async {
     final pdf = pw.Document();
 
     pdf.addPage(

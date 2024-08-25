@@ -25,7 +25,9 @@ pipeline {
                              sh 'flutter pub get'
 
                             // Run flutter test
-                             sh 'flutter test test/is_valid_email_test.dart test/check_admin_password_test.dart test/auth_unit_test.dart  test/firebase_service_test.dart' 
+                             sh 'flutter test test/is_valid_email_test.dart test/check_admin_password_test.dart test/auth_unit_test.dart  test/firebase_service_test.dart'
+
+                             sh 'flutter analyze' 
                         }
                     }
                 }

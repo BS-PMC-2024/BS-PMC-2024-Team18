@@ -113,8 +113,12 @@ class StudentDataManagementState extends State<StudentDataManagement> {
 
   Future<void> _backupData() async {
     try {
-      final file = await PdfGenerator.generateUserDataPdf(_users);
-      saveUserDataToTextFile();
+      final file = await PdfGenerator.generateUserDataPdf(_users, context);
+      if(mounted){
+            saveUserDataToTextFile(context,_users );
+
+      }
+  
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Backup saved to: ${file.path}')),
@@ -129,15 +133,11 @@ class StudentDataManagementState extends State<StudentDataManagement> {
     }
   }
 
-Future<void> saveUserDataToTextFile() async {
+Future<void> saveUserDataToTextFile(BuildContext context, List<UserDataToken> users) async {
   try {
-    // Request storage permission
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
-      if (!status.isGranted) {
-        throw Exception('Storage permission is required to save the file');
-      }
+    // Check and request permissions
+    if (await _requestPermissions(context) == false) {
+      return; // Exit if permissions are not granted
     }
 
     // Get the Downloads directory
@@ -160,7 +160,7 @@ Future<void> saveUserDataToTextFile() async {
     // Prepare the content for the file
     StringBuffer content = StringBuffer();
     content.writeln('ID, Email, User Type, Device Token');
-    for (UserDataToken user in _users) {
+    for (UserDataToken user in users) {
       content.writeln(
           '${user.id}, ${user.email}, ${user.userType}, ${user.deviceToken}');
     }
@@ -173,7 +173,7 @@ Future<void> saveUserDataToTextFile() async {
     }
 
     // Show a success message to the user
-    if (mounted) {
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('File saved to Downloads: $fileName')),
       );
@@ -186,29 +186,69 @@ Future<void> saveUserDataToTextFile() async {
       print('Error saving file: $e');
     }
     // Show an error message to the user
-    if (mounted) {
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving file: $e')),
       );
     }
   }
 }
+
+Future<bool> _requestPermissions(BuildContext context) async {
+  if (Platform.isAndroid) {
+    if (await Permission.storage.request().isGranted) {
+      return true;
+    }
+    
+    // For Android 10 and above
+    if (await Permission.manageExternalStorage.request().isGranted) {
+      return true;
+    }
+    
+    // If permissions are not granted, show a dialog
+    if (context.mounted) {
+      return await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Permissions required'),
+          content: const Text('Storage permission is required to save the file. Please grant the permission in app settings.'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Open Settings'),
+              onPressed: () {
+                openAppSettings();
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
+  } else if (Platform.isIOS) {
+    return true; // iOS doesn't need explicit permission for app documents directory
+  }
+  
+  return false;
+}
 Widget _buildAppBar() {
   return Padding(
-    padding: const EdgeInsets.all(20.0),
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        const Flexible(
+         Expanded(
           child: Center(
             child: Text(
               'Student Data Management',
               style: TextStyle(
-                fontSize: 20,
+               fontSize: MediaQuery.of(context).size.width < 360 ? 16 : 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -224,6 +264,7 @@ Widget _buildAppBar() {
     ),
   );
 }
+
   Widget _buildStudentDataTable(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

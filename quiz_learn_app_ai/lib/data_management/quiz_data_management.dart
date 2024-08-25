@@ -135,13 +135,9 @@ class QuizDataManagementState extends State<QuizDataManagement> {
 
 Future<void> saveQuizDataToTextFile(List<Map<String, dynamic>> quizzes, BuildContext context) async {
   try {
-    // Request storage permission
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
-      if (!status.isGranted) {
-        throw Exception('Storage permission is required to save the file');
-      }
+    // Check and request permissions
+    if (await _requestPermissions(context) == false) {
+      return; // Exit if permissions are not granted
     }
 
     // Get the Downloads directory
@@ -197,6 +193,47 @@ Future<void> saveQuizDataToTextFile(List<Map<String, dynamic>> quizzes, BuildCon
       );
     }
   }
+}
+
+Future<bool> _requestPermissions(BuildContext context) async {
+  if (Platform.isAndroid) {
+    if (await Permission.storage.request().isGranted) {
+      return true;
+    }
+    
+    // For Android 10 and above
+    if (await Permission.manageExternalStorage.request().isGranted) {
+      return true;
+    }
+    
+    // If permissions are not granted, show a dialog
+    if (context.mounted) {
+      return await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Permissions required'),
+          content: const Text('Storage permission is required to save the file. Please grant the permission in app settings.'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Open Settings'),
+              onPressed: () {
+                openAppSettings();
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
+  } else if (Platform.isIOS) {
+    return true; // iOS doesn't need explicit permission for app documents directory
+  }
+  
+  return false;
 }
 Widget _buildAppBar() {
   return Padding(

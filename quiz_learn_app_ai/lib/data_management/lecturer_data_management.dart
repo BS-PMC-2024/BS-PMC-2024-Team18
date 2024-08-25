@@ -113,10 +113,10 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
 
   Future<void> _backupData() async {
     try {
-      final file = await PdfGenerator.generateUserDataPdf(_users);
+      final file = await PdfGenerator.generateUserDataPdf(_users, context);
      
       if (mounted) {
-         saveUserDataToTextFile(context);
+         saveUserDataToTextFile(context, _users);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Backup saved to: ${file.path}')),
         );
@@ -130,16 +130,11 @@ class LecturerDataManagementState extends State<LecturerDataManagement> {
     }
   }
 
-
-Future<void> saveUserDataToTextFile(BuildContext context) async {
+Future<void> saveUserDataToTextFile(BuildContext context, List<UserDataToken> users) async {
   try {
-    // Request storage permission
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
-      if (!status.isGranted) {
-        throw Exception('Storage permission is required to save the file');
-      }
+    // Check and request permissions
+    if (!await _requestPermissions(context)) {
+      return; // Exit if permissions are not granted
     }
 
     // Get the Downloads directory
@@ -162,7 +157,7 @@ Future<void> saveUserDataToTextFile(BuildContext context) async {
     // Prepare the content for the file
     StringBuffer content = StringBuffer();
     content.writeln('ID, Email, User Type, Device Token');
-    for (UserDataToken user in _users) {
+    for (UserDataToken user in users) {
       content.writeln(
           '${user.id}, ${user.email}, ${user.userType}, ${user.deviceToken}');
     }
@@ -182,7 +177,7 @@ Future<void> saveUserDataToTextFile(BuildContext context) async {
     }
 
     // Open the file automatically
-    OpenFile.open(filePath);
+    await OpenFile.open(filePath);
   } catch (e) {
     if (kDebugMode) {
       print('Error saving file: $e');
@@ -196,22 +191,61 @@ Future<void> saveUserDataToTextFile(BuildContext context) async {
   }
 }
 
-  Widget _buildAppBar() {
+Future<bool> _requestPermissions(BuildContext context) async {
+  if (Platform.isAndroid) {
+    if (await Permission.storage.request().isGranted) {
+      return true;
+    }
+    
+    // For Android 10 and above
+    if (await Permission.manageExternalStorage.request().isGranted) {
+      return true;
+    }
+    
+    // If permissions are not granted, show a dialog
+    if (context.mounted) {
+      return await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Permissions required'),
+          content: const Text('Storage permission is required to save the file. Please grant the permission in app settings.'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Open Settings'),
+              onPressed: () {
+                openAppSettings();
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
+  } else if (Platform.isIOS) {
+    return true; // iOS doesn't need explicit permission for app documents directory
+  }
+  
+  return false;
+}
+ Widget _buildAppBar() {
   return Padding(
-    padding: const EdgeInsets.all(20.0),
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        const Flexible(
+        const Expanded(
           child: Center(
             child: Text(
               'Lecturer Data Management',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
